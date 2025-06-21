@@ -1,54 +1,36 @@
 <template>
-  <div class="p-4">
-    <!-- Filters Row -->
-    <div class="flex items-center space-x-3 mb-4 px-1">
-      <select 
-        v-model="selectedSession"
-        class="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none"
-      >
-        <option value="">All Sessions</option>
-        <option value="2024-2025">2024-2025</option>
-        <option value="2023-2024">2023-2024</option>
-      </select>
-      
-      <select 
-        v-model="selectedCategory"
-        class="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none"
-      >
-        <option value="">All Categories</option>
-        <option value="Area Based - 1">Area Based - 1</option>
-        <option value="Area Based - 2">Area Based - 2</option>
-        <option value="College Event">College Event</option>
-        <option value="University Event">University Event</option>
-        <option value="Camp">Camp</option>
-        <option value="Workshop">Workshop</option>
-        <option value="Competition">Competition</option>
-      </select>
-      
-      <button 
-        class="button-glass-secondary hover-lift flex items-center space-x-2 text-sm py-2 px-3 rounded-lg"
-        @click="applyFilters"
-      >
-        <i class="fas fa-filter fa-sm"></i>
-        <span>Filter</span>
-      </button>
-      
-      <button 
-        class="text-gray-500 hover:text-gray-300 text-sm py-2 px-3 transition-colors"
-        @click="clearFilters"
-      >
-        Clear
-      </button>
+  <!-- PWA Enhanced Events Page -->
+  <div class="flex-1 p-3 sm:p-5 lg:p-6 overflow-x-hidden overflow-y-auto main-content-bg pwa-optimized">
+    <!-- Filters Row - PWA Enhanced -->
+    <div class="filter-row flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mb-4 px-1">
+      <div class="flex flex-col sm:flex-row space-y-1.5 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+        <select class="input-dark text-xs sm:text-sm rounded-md py-1.5 px-2.5 focus:outline-none w-full sm:w-auto min-w-[120px] h-8 sm:h-9">
+          <option value="">All Sessions</option>
+          <option value="2024-2025">2024-2025</option>
+          <option value="2023-2024">2023-2024</option>
+        </select>
+        <select class="input-dark text-xs sm:text-sm rounded-md py-1.5 px-2.5 focus:outline-none w-full sm:w-auto min-w-[120px] h-8 sm:h-9">
+          <option value="">All Categories</option>
+          <option value="Area Based - 1">Area Based - 1</option>
+          <option value="Camp">Camp</option>
+        </select>
+          </div>
+          
+      <div class="flex items-center space-x-2 w-full sm:w-auto">
+        <button class="button-glass-secondary hover-lift flex items-center space-x-1.5 text-xs sm:text-sm py-1.5 px-3 rounded-md flex-1 sm:flex-none justify-center min-h-[36px] sm:min-h-[40px]">
+          <i class="fas fa-filter text-xs"></i>
+          <span>Filter</span>
+        </button>
+        <button class="text-gray-500 hover:text-gray-300 text-xs sm:text-sm py-1.5 px-2.5 transition-colors min-h-[36px] sm:min-h-[40px] flex items-center">
+          Clear
+        </button>
+      </div>
     </div>
 
-    <!-- Events Grid -->
-    <div 
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" 
-      :class="{ 'lg:grid-cols-4 xl:grid-cols-5': sidebarCollapsed }"
-      id="eventsGrid"
-    >
-      <EventCard
-        v-for="event in filteredEvents"
+    <!-- Events Grid - PWA Enhanced Responsive -->
+    <div class="responsive-grid mb-8 w-full" id="eventsGrid">
+      <EventCard 
+        v-for="event in events" 
         :key="event.id"
         :event="event"
         @edit="editEvent"
@@ -57,33 +39,19 @@
       />
     </div>
 
-    <!-- Pagination -->
-    <div class="flex justify-center mt-6">
-      <nav class="flex space-x-2">
-        <button 
-          class="pagination-button px-3 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >
-          Previous
+    <!-- PWA Enhanced Pagination -->
+    <div class="flex justify-center mt-3">
+      <nav class="flex flex-wrap justify-center space-x-1 sm:space-x-2">
+        <button class="pagination-button px-3 sm:px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center" disabled>
+          <span class="hidden sm:inline">Previous</span>
+          <span class="sm:hidden">Prev</span>
         </button>
-        
-        <button 
-          v-for="page in paginationPages"
-          :key="page"
-          class="pagination-button px-3 py-2 text-sm rounded-lg"
-          :class="{ 'active': page === currentPage }"
-          @click="currentPage = page"
-        >
-          {{ page }}
-        </button>
-        
-        <button 
-          class="pagination-button px-3 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >
-          Next
+        <button class="pagination-button active px-3 sm:px-4 py-2 text-sm rounded-lg min-h-[44px] flex items-center min-w-[44px] justify-center">1</button>
+        <button class="pagination-button px-3 sm:px-4 py-2 text-sm rounded-lg min-h-[44px] flex items-center min-w-[44px] justify-center">2</button>
+        <button class="pagination-button px-3 sm:px-4 py-2 text-sm rounded-lg min-h-[44px] flex items-center min-w-[44px] justify-center">3</button>
+        <button class="pagination-button px-3 sm:px-4 py-2 text-sm rounded-lg min-h-[44px] flex items-center">
+          <span class="hidden sm:inline">Next</span>
+          <span class="sm:hidden">Next</span>
         </button>
       </nav>
     </div>
@@ -98,6 +66,7 @@ useHead({
 // Inject search query and modal functions from layout
 const searchQuery = inject('searchQuery', ref(''))
 const openEventModal = inject('openEventModal', () => {})
+const isMobile = inject('isMobile', ref(false))
 
 // Reactive data
 const selectedSession = ref('')
@@ -276,8 +245,21 @@ const deleteEvent = (event) => {
 
 // Watch for sidebar collapse changes from layout
 provide('sidebarCollapsed', sidebarCollapsed)
+
+// Watch for search query changes
+watch(searchQuery, (newQuery) => {
+  // Filter events based on search query
+  console.log('Search query changed:', newQuery)
+  // Implement search filtering logic here
+})
 </script>
 
 <style scoped>
 /* Additional page-specific styles if needed */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 </style>
