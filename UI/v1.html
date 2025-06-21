@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSS VIT Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            background-color: #161618; /* Main background for board area */
+            color: #E0E0E0;
+        }
+        .sidebar-bg { background-color: #1E1F22; }
+        .header-bg { background-color: #161618; }
+        .content-area-bg { background-color: #161618; } /* Explicit for content area to ensure consistency */
+        .card-bg { background-color: #2C2D31; }
+        .card-bg-hover:hover { background-color: #3a3b40; }
+        .nss-primary-bg { background-color: #4338CA; } /* NSS Blue */
+        .nss-primary-text { color: #4338CA; }
+        .nss-primary-hover:hover { background-color: #3730A3; } /* Darker NSS Blue */
+        .nss-accent-bg { background-color: #6366F1; } /* NSS Accent */
+        .nss-accent-text { color: #6366F1; }
+        .nss-accent-hover:hover { background-color: #4F46E5; }
+
+        .input-dark {
+            background-color: #2C2D31;
+            border: 1px solid #4A4C52;
+            color: #E0E0E0;
+        }
+        .input-dark:focus {
+            border-color: #4338CA;
+            box-shadow: 0 0 0 1px #4338CA;
+        }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem; /* 12px */
+            line-height: 1rem; /* 16px */
+            margin-right: 6px;
+            margin-bottom: 6px;
+            border: 1px solid #4A4C52;
+        }
+        .tag-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #2c2d31; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4a4c52; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5a5c62; }
+
+        .avatar-status-dot-sidebar {
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 2px solid #1E1F22; /* Sidebar background for border */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'nss-primary': '#4338CA',
+                        'nss-primary-darker': '#3730A3',
+                        'nss-secondary': '#818CF8',
+                        'nss-accent': '#6366F1',
+                        'nss-accent-darker': '#4F46E5',
+                        'sidebar-item-hover': '#2C2D31',
+                        'card-bg': '#2C2D31',
+                        'card-border': '#4A4C52',
+                        'dark-bg': '#161618',
+                        'sidebar-bg': '#1E1F22',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Left Sidebar -->
+    <aside class="sidebar-bg w-64 flex-shrink-0 flex flex-col p-3 space-y-2">
+        <!-- Sidebar Header / Logo -->
+        <div class="flex items-center justify-between mb-4 px-1 py-2 border-b border-gray-700">
+            <div class="flex items-center space-x-2">
+                <img src="https://res.cloudinary.com/du6zyqqyw/image/upload/v1740557668/img/nss-logo.png" alt="NSS Logo" class="h-10">
+                <img src="https://res.cloudinary.com/du6zyqqyw/image/upload/v1740557668/img/vit-logo.png" alt="VIT Logo" class="h-6">
+            </div>
+            <!-- Placeholder for sidebar collapse icon if needed -->
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex-grow overflow-y-auto pr-1 space-y-1 text-sm">
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <i class="fas fa-tachometer-alt w-5 text-center text-gray-400"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-white bg-nss-primary rounded-md font-medium"> {/* Active Link Example */}
+                <i class="fas fa-calendar-alt w-5 text-center"></i>
+                <span>Events</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <i class="fas fa-users w-5 text-center text-gray-400"></i>
+                <span>Volunteers</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <i class="fas fa-clipboard-check w-5 text-center text-gray-400"></i>
+                <span>Attendance</span>
+            </a>
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <i class="fas fa-chart-bar w-5 text-center text-gray-400"></i>
+                <span>Reports</span>
+            </a>
+
+            <hr class="border-gray-700 my-3">
+
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <i class="fas fa-user-shield w-5 text-center text-gray-400"></i>
+                <span>User Management</span>
+                 <span class="ml-auto text-xs bg-nss-accent text-white px-1.5 py-0.5 rounded-full">Admin</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer / User Profile -->
+        <div class="mt-auto pt-2 border-t border-gray-700">
+            <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <div class="relative">
+                    <img src="https://res.cloudinary.com/du6zyqqyw/image/upload/v1740560606/img/2024-2025/team/rakshaksood.jpg" alt="User Avatar" class="w-8 h-8 rounded-full">
+                    <span class="avatar-status-dot-sidebar bg-green-500"></span>
+                </div>
+                <div class="flex flex-col text-xs">
+                    <span>Prof. Rakshak Sood</span>
+                    <span class="text-gray-500">Admin</span>
+                </div>
+                <i class="fas fa-ellipsis-h ml-auto text-gray-500"></i>
+            </a>
+             <a href="#" class="flex items-center space-x-3 px-3 py-2.5 text-gray-300 hover:bg-sidebar-item-hover hover:text-white rounded-md">
+                <i class="fas fa-sign-out-alt w-5 text-center text-gray-400"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col header-bg overflow-y-auto">
+        <!-- Top Bar -->
+        <header class="flex items-center justify-between px-6 py-4 border-b border-gray-700 sticky top-0 z-10 bg-header-bg">
+            <div class="flex items-center">
+                <h1 class="text-xl font-semibold text-gray-200">Events Management</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" placeholder="Search events..." class="input-dark text-sm rounded-md py-2 pl-8 pr-3 focus:outline-none w-64">
+                    <i class="fas fa-search absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs"></i>
+                </div>
+                <button class="bg-nss-primary hover:bg-nss-primary-darker text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2">
+                    <i class="fas fa-plus"></i>
+                    <span>Create New Event</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area for Events -->
+        <div class="flex-1 p-6 content-area-bg space-y-6">
+            <!-- Filters -->
+            <div class="flex space-x-3 items-center">
+                <select class="input-dark text-sm rounded-md py-1.5 px-3 focus:outline-none">
+                    <option value="">All Academic Sessions</option>
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2023-2024">2023-2024</option>
+                </select>
+                <select class="input-dark text-sm rounded-md py-1.5 px-3 focus:outline-none">
+                    <option value="">All Categories</option>
+                    <option value="Area Based - 1">Area Based - 1</option>
+                    <option value="Area Based - 2">Area Based - 2</option>
+                    <option value="University Event">University Event</option>
+                    <option value="College Event">College Event</option>
+                    <option value="Camp">Camp</option>
+                    <option value="Competition">Competition</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button class="text-gray-400 hover:text-white text-sm">
+                    <i class="fas fa-filter mr-1"></i> Apply Filters
+                </button>
+            </div>
+
+            <!-- Event Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Sample Event Card 1 -->
+                <div class="card-bg p-4 rounded-lg shadow-md flex flex-col justify-between card-bg-hover transition-all duration-200 ease-in-out transform hover:scale-[1.02]">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-semibold text-gray-100">Beach Clean-Up Drive</h3>
+                            <span class="text-xs bg-nss-accent text-white px-2 py-0.5 rounded-full">Area Based - 1</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mb-1"><i class="fas fa-calendar-alt mr-1.5"></i> Date: 2024-08-15</p>
+                        <p class="text-xs text-gray-400 mb-1"><i class="fas fa-clock mr-1.5"></i> Declared Hours: 4</p>
+                        <p class="text-xs text-gray-400 mb-3"><i class="fas fa-layer-group mr-1.5"></i> Session: 2024-2025</p>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed line-clamp-2">
+                            Annual beach clean-up initiative at Juhu Beach to promote environmental awareness and cleanliness.
+                        </p>
+                    </div>
+                    <div class="flex items-center justify-between mt-3 pt-3 border-t border-card-border">
+                        <div class="flex items-center text-xs text-gray-400">
+                            <i class="fas fa-users mr-1.5"></i> 75 Participants
+                        </div>
+                        <div class="space-x-2">
+                            <button class="text-gray-400 hover:text-nss-primary text-xs"><i class="fas fa-edit"></i></button>
+                            <button class="text-gray-400 hover:text-red-500 text-xs"><i class="fas fa-trash"></i></button>
+                            <button class="text-gray-400 hover:text-nss-accent text-xs"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Event Card 2 -->
+                <div class="card-bg p-4 rounded-lg shadow-md flex flex-col justify-between card-bg-hover transition-all duration-200 ease-in-out transform hover:scale-[1.02]">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-semibold text-gray-100">Blood Donation Camp</h3>
+                             <span class="text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">College Event</span>
+                        </div>
+                         <p class="text-xs text-gray-400 mb-1"><i class="fas fa-calendar-alt mr-1.5"></i> Date: 2024-09-10</p>
+                        <p class="text-xs text-gray-400 mb-1"><i class="fas fa-clock mr-1.5"></i> Declared Hours: 3</p>
+                        <p class="text-xs text-gray-400 mb-3"><i class="fas fa-layer-group mr-1.5"></i> Session: 2024-2025</p>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed line-clamp-2">
+                            Organized in collaboration with local hospitals to encourage blood donation among students and staff.
+                        </p>
+                    </div>
+                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-card-border">
+                        <div class="flex items-center text-xs text-gray-400">
+                            <i class="fas fa-users mr-1.5"></i> 120 Donors
+                        </div>
+                        <div class="space-x-2">
+                            <button class="text-gray-400 hover:text-nss-primary text-xs"><i class="fas fa-edit"></i></button>
+                            <button class="text-gray-400 hover:text-red-500 text-xs"><i class="fas fa-trash"></i></button>
+                            <button class="text-gray-400 hover:text-nss-accent text-xs"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Event Card 3 (Camp) -->
+                <div class="card-bg p-4 rounded-lg shadow-md flex flex-col justify-between card-bg-hover transition-all duration-200 ease-in-out transform hover:scale-[1.02]">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-semibold text-gray-100">NSS Special Camp - Kuderan</h3>
+                             <span class="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">Camp</span>
+                        </div>
+                         <p class="text-xs text-gray-400 mb-1"><i class="fas fa-calendar-alt mr-1.5"></i> Date: 2024-11-27</p>
+                        <p class="text-xs text-gray-400 mb-1"><i class="fas fa-clock mr-1.5"></i> Declared Hours: 50 (total)</p>
+                        <p class="text-xs text-gray-400 mb-3"><i class="fas fa-layer-group mr-1.5"></i> Session: 2024-2025</p>
+                        <p class="text-sm text-gray-300 mb-3 leading-relaxed line-clamp-2">
+                            7-day special camp focusing on rural development, health awareness, and infrastructure projects in Kuderan village.
+                        </p>
+                    </div>
+                     <div class="flex items-center justify-between mt-3 pt-3 border-t border-card-border">
+                        <div class="flex items-center text-xs text-gray-400">
+                            <i class="fas fa-users mr-1.5"></i> 50 Volunteers
+                        </div>
+                        <div class="space-x-2">
+                            <button class="text-gray-400 hover:text-nss-primary text-xs"><i class="fas fa-edit"></i></button>
+                            <button class="text-gray-400 hover:text-red-500 text-xs"><i class="fas fa-trash"></i></button>
+                            <button class="text-gray-400 hover:text-nss-accent text-xs"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add more event cards as needed -->
+            </div>
+
+            <!-- Pagination (Placeholder) -->
+            <div class="flex justify-center mt-8">
+                <nav class="flex space-x-1">
+                    <button class="px-3 py-1.5 text-xs text-gray-400 bg-gray-700 rounded-md hover:bg-gray-600">Previous</button>
+                    <button class="px-3 py-1.5 text-xs text-white bg-nss-primary rounded-md">1</button>
+                    <button class="px-3 py-1.5 text-xs text-gray-400 bg-gray-700 rounded-md hover:bg-gray-600">2</button>
+                    <button class="px-3 py-1.5 text-xs text-gray-400 bg-gray-700 rounded-md hover:bg-gray-600">Next</button>
+                </nav>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modal for Create/Edit Event (Hidden by default) -->
+    <div id="eventModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="card-bg p-6 rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalTitle" class="text-xl font-semibold text-gray-100">Create New Event</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl">×</button>
+            </div>
+            <form id="eventForm" class="space-y-4">
+                <div>
+                    <label for="eventName" class="block text-sm font-medium text-gray-300 mb-1">Event Name</label>
+                    <input type="text" id="eventName" name="eventName" required class="input-dark w-full text-sm rounded-md p-2.5" placeholder="e.g., Tree Plantation Drive">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="eventDate" class="block text-sm font-medium text-gray-300 mb-1">Date</label>
+                        <input type="date" id="eventDate" name="eventDate" required class="input-dark w-full text-sm rounded-md p-2.5">
+                    </div>
+                    <div>
+                        <label for="declaredHours" class="block text-sm font-medium text-gray-300 mb-1">Declared Hours</label>
+                        <input type="number" id="declaredHours" name="declaredHours" required min="1" class="input-dark w-full text-sm rounded-md p-2.5" placeholder="e.g., 4">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="eventCategory" class="block text-sm font-medium text-gray-300 mb-1">Category</label>
+                        <select id="eventCategory" name="eventCategory" required class="input-dark w-full text-sm rounded-md p-2.5">
+                            <option value="">Select Category</option>
+                            <option value="Area Based - 1">Area Based - 1</option>
+                            <option value="Area Based - 2">Area Based - 2</option>
+                            <option value="University Event">University Event</option>
+                            <option value="College Event">College Event</option>
+                            <option value="Camp">Camp</option>
+                            <option value="Competition">Competition</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="academicSession" class="block text-sm font-medium text-gray-300 mb-1">Academic Session</label>
+                        <input type="text" id="academicSession" name="academicSession" required class="input-dark w-full text-sm rounded-md p-2.5" placeholder="e.g., 2024-2025">
+                    </div>
+                </div>
+                 <div>
+                    <label for="eventLocation" class="block text-sm font-medium text-gray-300 mb-1">Location (Optional)</label>
+                    <input type="text" id="eventLocation" name="eventLocation" class="input-dark w-full text-sm rounded-md p-2.5" placeholder="e.g., Juhu Beach, Mumbai">
+                </div>
+                <div>
+                    <label for="eventDescription" class="block text-sm font-medium text-gray-300 mb-1">Description (Optional)</label>
+                    <textarea id="eventDescription" name="eventDescription" rows="3" class="input-dark w-full text-sm rounded-md p-2.5" placeholder="Briefly describe the event..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-600 hover:bg-gray-500 rounded-md">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-nss-primary hover:bg-nss-primary-darker rounded-md">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const eventModal = document.getElementById('eventModal');
+        const createEventButton = document.querySelector('button > span + span'); // A bit fragile selector
+
+        if (createEventButton && createEventButton.textContent === 'Create New Event') {
+            createEventButton.parentElement.addEventListener('click', () => {
+                document.getElementById('modalTitle').textContent = 'Create New Event';
+                document.getElementById('eventForm').reset();
+                eventModal.classList.remove('hidden');
+            });
+        }
+        
+        function closeModal() {
+            eventModal.classList.add('hidden');
+        }
+
+        // Close modal if backdrop is clicked
+        eventModal.addEventListener('click', function(e) {
+            if (e.target === eventModal) {
+                closeModal();
+            }
+        });
+
+        // Handle form submission (dummy)
+        document.getElementById('eventForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Actual form submission logic to Supabase would go here
+            alert('Event form submitted (dummy)!');
+            closeModal();
+        });
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSS VIT Dashboard - Events</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-bg: #050507;
+            --secondary-bg: #0A0A0C;
+            --sidebar-bg: #111113;
+            --card-bg: rgba(18, 19, 23, 0.85);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #F8F9FA;
+            --text-secondary: #E9ECEF;
+            --text-muted: #ADB5BD;
+            --text-subtle: #6C757D;
+            --accent-primary: #6366F1;
+            --accent-secondary: #8B5CF6;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Enhanced Glassmorphism Components */
+        .glass-surface {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(22, 23, 27, 0.9);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* Volta-style Glass Buttons */
+        .btn-glass-primary {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.2) 0%, 
+                rgba(139, 92, 246, 0.3) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: var(--text-primary);
+            box-shadow: 
+                0 4px 20px rgba(99, 102, 241, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-glass-primary:hover {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.3) 0%, 
+                rgba(139, 92, 246, 0.4) 100%);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 8px 28px rgba(99, 102, 241, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-glass-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-glass-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 6px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        /* Enhanced Input Styling */
+        .input-glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-glass::placeholder {
+            color: var(--text-subtle);
+        }
+
+        .input-glass:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 
+                0 0 0 3px rgba(99, 102, 241, 0.1),
+                inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sidebar Enhancements */
+        .sidebar {
+            background: linear-gradient(180deg, var(--sidebar-bg) 0%, #0F0F11 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .sidebar-link {
+            position: relative;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            margin: 2px 0;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+            transform: translateX(2px);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.15) 0%, 
+                rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--text-primary);
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* Tag Enhancements */
+        .tag {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            display: inline-flex;
+            align-items: center;
+            margin: 2px 4px 2px 0;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .tag-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Enhanced Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Header Glass Effect */
+        .header-glass {
+            background: rgba(5, 5, 7, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Modal Enhancements */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* Animation Classes */
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        /* Hover Effects */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Action Buttons */
+        .action-btn {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Branding Section */
+        .branding {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        /* Pagination */
+        .pagination-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .pagination-btn.active {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.3) 0%, 
+                rgba(139, 92, 246, 0.2) 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Enhanced Sidebar -->
+    <aside class="sidebar w-56 flex-shrink-0 flex flex-col p-4 space-y-2">
+        <!-- Window Controls -->
+        <div class="flex items-center justify-between mb-4 px-2">
+            <div class="flex space-x-2">
+                <span class="w-3 h-3 bg-red-500/60 rounded-full"></span>
+                <span class="w-3 h-3 bg-yellow-500/60 rounded-full"></span>
+                <span class="w-3 h-3 bg-green-500/60 rounded-full"></span>
+            </div>
+        </div>
+
+        <!-- Enhanced Branding -->
+        <div class="branding flex items-center space-x-3 px-4 py-3 mb-4">
+            <img src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_36/v1740557668/img/nss-logo.png" alt="NSS Logo" class="h-8 filter drop-shadow-lg">
+            <img src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_90/v1740557668/img/vit-logo.png" alt="VIT Logo" class="h-5 opacity-90 filter drop-shadow-lg">
+        </div>
+
+        <!-- Enhanced Navigation -->
+        <nav class="flex-grow overflow-y-auto space-y-1 text-sm">
+            <a href="#dashboard" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-400 rounded-lg">
+                <i class="fas fa-border-all w-4 text-center"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#events" class="sidebar-link active flex items-center space-x-3 px-4 py-3 rounded-lg font-medium">
+                <i class="fas fa-calendar-check w-4 text-center text-indigo-400"></i>
+                <span>Events</span>
+            </a>
+            <a href="#volunteers" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-400 rounded-lg">
+                <i class="fas fa-users w-4 text-center"></i>
+                <span>Volunteers</span>
+            </a>
+            <a href="#attendance" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-400 rounded-lg">
+                <i class="fas fa-user-check w-4 text-center"></i>
+                <span>Attendance</span>
+            </a>
+            <a href="#reports" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-400 rounded-lg">
+                <i class="fas fa-chart-pie w-4 text-center"></i>
+                <span>Reports</span>
+            </a>
+
+            <hr class="border-gray-700/30 my-4">
+
+            <a href="#user-management" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-400 rounded-lg">
+                <i class="fas fa-user-shield w-4 text-center"></i>
+                <span>User Management</span>
+                <span class="ml-auto text-xs bg-red-600/80 text-white px-2 py-1 rounded-full font-semibold">Admin</span>
+            </a>
+            <a href="#settings" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-400 rounded-lg">
+                <i class="fas fa-cog w-4 text-center"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <!-- Enhanced User Profile -->
+        <div class="mt-auto pt-4 border-t border-gray-700/30">
+            <a href="#profile" class="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-300 rounded-lg">
+                <div class="relative">
+                    <img src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_32/v1740560606/img/2024-2025/team/rakshaksood.jpg" 
+                         alt="User Avatar" class="w-8 h-8 rounded-full ring-2 ring-green-500/30">
+                    <span class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-800"></span>
+                </div>
+                <div class="flex flex-col text-xs">
+                    <span class="font-medium text-gray-200">Prof. Rakshak S.</span>
+                    <span class="text-gray-500">Administrator</span>
+                </div>
+            </a>
+            <button class="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-400 hover:bg-red-900/20 hover:text-red-300 rounded-lg mt-2 transition-all duration-200">
+                <i class="fas fa-sign-out-alt w-4 text-center"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col">
+        <!-- Enhanced Header -->
+        <header class="header-glass flex items-center justify-between px-6 py-4 sticky top-0 z-20">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-campground text-xl text-indigo-400"></i>
+                <h1 class="text-lg font-semibold">
+                    NSS VIT / <span class="text-gray-400">Events</span>
+                </h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <input type="text" placeholder="Search events..." 
+                           class="input-glass text-sm rounded-lg py-3 px-4 pl-10 focus:outline-none w-64">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
+                </div>
+                <button class="btn-glass-primary hover-lift flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-medium">
+                    <i class="fas fa-plus fa-sm"></i>
+                    <span>Create Event</span>
+                </button>
+                <button class="action-btn hover-lift p-3 rounded-lg">
+                    <i class="far fa-bell text-gray-400"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Enhanced Content Area -->
+        <div class="flex-1 p-6 overflow-y-auto">
+            <!-- Filters -->
+            <div class="flex items-center space-x-4 mb-6">
+                <select class="input-glass text-sm rounded-lg py-3 px-4 focus:outline-none">
+                    <option value="">All Sessions</option>
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2023-2024">2023-2024</option>
+                </select>
+                <select class="input-glass text-sm rounded-lg py-3 px-4 focus:outline-none">
+                    <option value="">All Categories</option>
+                    <option value="Area Based - 1">Area Based - 1</option>
+                    <option value="Camp">Camp</option>
+                </select>
+                <button class="btn-glass-secondary hover-lift flex items-center space-x-2 px-4 py-3 rounded-lg text-sm">
+                    <i class="fas fa-filter fa-sm"></i>
+                    <span>Filter</span>
+                </button>
+                <button class="text-gray-500 hover:text-gray-300 px-4 py-3 text-sm transition-colors">
+                    Clear
+                </button>
+            </div>
+
+            <!-- Enhanced Events Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Event Card 1 -->
+                <div class="glass-card hover-lift p-5 rounded-xl animate-fade-in">
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-base font-semibold text-gray-100 truncate pr-2">Beach Clean-Up Drive</h3>
+                            <span class="text-sm text-gray-400">Aug 15</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                            Annual Juhu Beach clean-up initiative promoting environmental awareness.
+                        </p>
+                        <div class="flex flex-wrap items-center mb-4">
+                            <span class="tag"><span class="tag-dot bg-blue-500"></span>Area Based - 1</span>
+                            <span class="tag"><span class="tag-dot bg-green-500"></span>4 Hrs</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-700/20">
+                        <div class="flex items-center -space-x-2">
+                            <img src="https://i.imgur.com/gVo4gxC.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <img src="https://i.imgur.com/7OtnwP9.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <span class="text-sm text-gray-500 pl-3">+73</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-blue-400">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-green-400">
+                                <i class="fas fa-users text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-red-400">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Card 2 -->
+                <div class="glass-card hover-lift p-5 rounded-xl animate-fade-in" style="animation-delay: 0.1s;">
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-base font-semibold text-gray-100 truncate pr-2">Blood Donation VIT</h3>
+                            <span class="text-sm text-gray-400">Sep 10</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                            Organized with local hospitals to encourage blood donation among students.
+                        </p>
+                        <div class="flex flex-wrap items-center mb-4">
+                            <span class="tag"><span class="tag-dot bg-purple-500"></span>College Event</span>
+                            <span class="tag"><span class="tag-dot bg-green-500"></span>3 Hrs</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-700/20">
+                        <div class="flex items-center -space-x-2">
+                            <img src="https://i.imgur.com/gJgRz7n.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <span class="text-sm text-gray-500 pl-3">+118</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-blue-400">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-green-400">
+                                <i class="fas fa-users text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-red-400">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Card 3 -->
+                <div class="glass-card hover-lift p-5 rounded-xl animate-fade-in" style="animation-delay: 0.2s;">
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-base font-semibold text-gray-100 truncate pr-2">NSS Camp - Kuderan</h3>
+                            <span class="text-sm text-gray-400">Nov 27</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                            7-day camp: rural development, health, infrastructure. Theme: Sarvangin Vikas.
+                        </p>
+                        <div class="flex flex-wrap items-center mb-4">
+                            <span class="tag"><span class="tag-dot bg-orange-500"></span>Camp</span>
+                            <span class="tag"><span class="tag-dot bg-green-500"></span>50 Hrs</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-700/20">
+                        <div class="flex items-center -space-x-2">
+                            <img src="https://i.imgur.com/xG2942s.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <img src="https://i.imgur.com/gVo4gxC.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <span class="text-sm text-gray-500 pl-3">+48</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-blue-400">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-green-400">
+                                <i class="fas fa-users text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-red-400">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Card 4 -->
+                <div class="glass-card hover-lift p-5 rounded-xl animate-fade-in" style="animation-delay: 0.3s;">
+                    <div class="flex-grow">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="text-base font-semibold text-gray-100 truncate pr-2">Digital Literacy Workshop</h3>
+                            <span class="text-sm text-gray-400">Dec 5</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                            Teaching basic computer skills and digital literacy to local community.
+                        </p>
+                        <div class="flex flex-wrap items-center mb-4">
+                            <span class="tag"><span class="tag-dot bg-indigo-500"></span>Workshop</span>
+                            <span class="tag"><span class="tag-dot bg-green-500"></span>6 Hrs</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-700/20">
+                        <div class="flex items-center -space-x-2">
+                            <img src="https://i.imgur.com/gVo4gxC.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <img src="https://i.imgur.com/7OtnwP9.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <img src="https://i.imgur.com/xG2942s.png" alt="User" class="w-6 h-6 rounded-full border-2 border-gray-700/50">
+                            <span class="text-sm text-gray-500 pl-3">+32</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-blue-400">
+                                <i class="fas fa-pencil-alt text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-green-400">
+                                <i class="fas fa-users text-xs"></i>
+                            </button>
+                            <button class="action-btn p-2 rounded-lg text-gray-400 hover:text-red-400">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Pagination -->
+            <div class="flex justify-center mt-8">
+                <nav class="flex space-x-2">
+                    <button class="pagination-btn px-4 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Previous</button>
+                    <button class="pagination-btn active px-4 py-2 text-sm rounded-lg">1</button>
+                    <button class="pagination-btn px-4 py-2 text-sm rounded-lg">2</button>
+                    <button class="pagination-btn px-4 py-2 text-sm rounded-lg">3</button>
+                    <button class="pagination-btn px-4 py-2 text-sm rounded-lg">Next</button>
+                </nav>
+            </div>
+        </div>
+    </main>
+
+    <!-- Enhanced Modal -->
+    <div id="eventModal" class="fixed inset-0 modal-backdrop flex items-center justify-center p-6 z-50 hidden">
+        <div class="glass-card p-6 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-xl font-semibold">Create New Event</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl transition-colors">×</button>
+            </div>
+            <form id="eventForm" class="space-y-5">
+                <div>
+                    <label for="eventName" class="block text-sm font-medium text-gray-300 mb-2">Event Name</label>
+                    <input type="text" id="eventName" name="eventName" required 
+                           class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+                           placeholder="e.g., Tree Plantation Drive">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="eventDate" class="block text-sm font-medium text-gray-300 mb-2">Event Date</label>
+                        <input type="date" id="eventDate" name="eventDate" required 
+                               class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="declaredHours" class="block text-sm font-medium text-gray-300 mb-2">Declared Hours</label>
+                        <input type="number" id="declaredHours" name="declaredHours" required min="1" 
+                               class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+                               placeholder="e.g., 4">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label for="eventCategory" class="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                        <select id="eventCategory" name="eventCategory" required 
+                                class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none">
+                            <option value="">Select Category...</option>
+                            <option value="Area Based - 1">Area Based - 1</option>
+                            <option value="Area Based - 2">Area Based - 2</option>
+                            <option value="University Event">University Event</option>
+                            <option value="College Event">College Event</option>
+                            <option value="Camp">Camp</option>
+                            <option value="Competition">Competition</option>
+                            <option value="Workshop">Workshop</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="academicSession" class="block text-sm font-medium text-gray-300 mb-2">Academic Session</label>
+                        <input type="text" id="academicSession" name="academicSession" required 
+                               class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+                               placeholder="e.g., 2024-2025">
+                    </div>
+                </div>
+                <div>
+                    <label for="eventLocation" class="block text-sm font-medium text-gray-300 mb-2">Location (Optional)</label>
+                    <input type="text" id="eventLocation" name="eventLocation" 
+                           class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+                           placeholder="e.g., Juhu Beach, Mumbai">
+                </div>
+                <div>
+                    <label for="eventDescription" class="block text-sm font-medium text-gray-300 mb-2">Description</label>
+                    <textarea id="eventDescription" name="eventDescription" rows="4" 
+                              class="input-glass w-full text-sm rounded-lg px-4 py-3 focus:outline-none resize-none" 
+                              placeholder="Provide a detailed description of the event..."></textarea>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6">
+                    <button type="button" onclick="closeModal()" 
+                            class="btn-glass-secondary hover-lift px-6 py-3 text-sm font-medium rounded-lg">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="btn-glass-primary hover-lift px-6 py-3 text-sm font-medium rounded-lg">
+                        Save Event
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Modal Functionality
+        const eventModal = document.getElementById('eventModal');
+        const createEventButton = document.querySelector('.btn-glass-primary');
+
+        // Create Event Modal
+        createEventButton?.addEventListener('click', () => {
+            document.getElementById('modalTitle').textContent = 'Create New Event';
+            document.getElementById('eventForm').reset();
+            eventModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        });
+
+        // Close Modal
+        function closeModal() {
+            eventModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Close on backdrop click
+        eventModal.addEventListener('click', (e) => {
+            if (e.target === eventModal) closeModal();
+        });
+
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !eventModal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('eventForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const eventData = Object.fromEntries(formData.entries());
+            console.log('Event Data:', eventData);
+            alert('Event created successfully!');
+            closeModal();
+        });
+
+        // Enhanced interactions
+        document.querySelectorAll('.glass-card').forEach((card, index) => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Search functionality
+        document.querySelector('input[placeholder="Search events..."]').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const eventCards = document.querySelectorAll('.glass-card');
+            
+            eventCards.forEach(card => {
+                const title = card.querySelector('h3').textContent.toLowerCase();
+                const description = card.querySelector('p').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    card.style.opacity = '1';
+                } else {
+                    card.style.opacity = searchTerm.length > 2 ? '0.3' : '1';
+                }
+            });
+        });
+
+        // Staggered animation for cards
+        const cards = document.querySelectorAll('.glass-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" rx="24" fill="#3b82f6"/>
+  <text x="96" y="105" font-family="Arial, sans-serif" font-size="60" text-anchor="middle" fill="white">📋</text>
+  <text x="96" y="140" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="white">TaskPilot</text>
+</svg>
