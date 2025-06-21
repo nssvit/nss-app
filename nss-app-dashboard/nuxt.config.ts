@@ -20,11 +20,12 @@ export default defineNuxtConfig({
       meta: [
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
-        { name: 'apple-mobile-web-app-title', content: 'TaskPilot' },
+        { name: 'apple-mobile-web-app-title', content: 'NSS VIT Dashboard' },
         { name: 'format-detection', content: 'telephone=no' }
       ],
       link: [
-        { rel: 'apple-touch-icon', href: '/icon-192x192.png' }
+        { rel: 'apple-touch-icon', href: '/icon-192x192.png' },
+        { href: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css', rel: 'stylesheet' }
       ]
     }
   },
@@ -90,17 +91,17 @@ export default defineNuxtConfig({
       type: 'module'
     },
     manifest: {
-      name: 'TaskPilot - AI Todo List',
-      short_name: 'TaskPilot',
-      description: 'An AI-powered todo list application that helps you manage tasks efficiently',
-      theme_color: '#3b82f6',
-      background_color: '#ffffff',
+      name: 'NSS VIT Dashboard',
+      short_name: 'NSS VIT',
+      description: 'NSS VIT Dashboard for managing events, volunteers, and activities',
+      theme_color: '#6366F1',
+      background_color: '#070709',
       display: 'standalone',
       orientation: 'any',
       scope: '/',
       start_url: '/',
-      id: 'taskpilot-ai-todo',
-      categories: ['productivity', 'utilities'],
+      id: 'nss-vit-dashboard',
+      categories: ['productivity', 'utilities', 'education'],
       lang: 'en',
       dir: 'ltr',
       prefer_related_applications: false,

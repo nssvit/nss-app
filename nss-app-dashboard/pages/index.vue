@@ -1,78 +1,283 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-    <div class="mx-auto max-w-7xl py-24 sm:px-6 sm:py-32 lg:px-8">
-      <div class="relative isolate overflow-hidden bg-gray-900 px-6 pt-16 shadow-2xl sm:rounded-3xl sm:px-16 md:pt-24 lg:flex lg:gap-x-20 lg:px-24 lg:pt-0">
-        <svg viewBox="0 0 1024 1024" class="absolute top-1/2 left-1/2 -z-10 size-256 -translate-y-1/2 mask-[radial-gradient(closest-side,white,transparent)] sm:left-full sm:-ml-80 lg:left-1/2 lg:ml-0 lg:-translate-x-1/2 lg:translate-y-0" aria-hidden="true">
-          <circle cx="512" cy="512" r="512" fill="url(#759c1415-0410-454c-8f7c-9a820de03641)" fill-opacity="0.7" />
-          <defs>
-            <radialGradient id="759c1415-0410-454c-8f7c-9a820de03641">
-              <stop stop-color="#7775D6" />
-              <stop offset="1" stop-color="#E935C1" />
-            </radialGradient>
-          </defs>
-        </svg>
-        <div class="mx-auto max-w-md text-center lg:mx-0 lg:flex-auto lg:py-32 lg:text-left">
-          <h2 class="text-3xl font-semibold tracking-tight text-balance text-white sm:text-4xl">
-            Boost your productivity with TaskPilot
-          </h2>
-          <p class="mt-6 text-lg/8 text-pretty text-gray-300">
-            Your AI-powered todo list application. Install it as a PWA for the best experience.
-          </p>
-          <div class="mt-10 flex items-center justify-center gap-x-6 lg:justify-start">
-            <NuxtLink 
-              to="/pwa-status" 
-              class="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-xs hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              Check PWA Status
-            </NuxtLink>
-            <button
-              v-if="showInstallPrompt && !isInstalled"
-              @click="installPwa"
-              class="text-sm/6 font-semibold text-white hover:text-gray-200"
-            >
-              Install App <span aria-hidden="true">→</span>
-            </button>
-          </div>
-          
-          <!-- PWA Status Indicators -->
-          <div class="mt-8 flex flex-wrap gap-2 justify-center lg:justify-start">
-            <span v-if="isPwaAvailable" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              PWA Ready
-            </span>
-            <span v-if="isInstalled" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-              Installed
-            </span>
-            <span v-if="offlineReady" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-              Offline Ready
-            </span>
-            <span v-if="updateAvailable" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-              Update Available
-            </span>
-          </div>
-        </div>
-        <div class="relative mt-16 h-80 lg:mt-8">
-          <img class="absolute top-0 left-0 w-228 max-w-none rounded-md bg-white/5 ring-1 ring-white/10" src="https://tailwindcss.com/plus-assets/img/component-images/dark-project-app-screenshot.png" alt="App screenshot" width="1824" height="1080" />
-        </div>
-      </div>
+  <div class="p-4">
+    <!-- Filters Row -->
+    <div class="flex items-center space-x-3 mb-4 px-1">
+      <select 
+        v-model="selectedSession"
+        class="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none"
+      >
+        <option value="">All Sessions</option>
+        <option value="2024-2025">2024-2025</option>
+        <option value="2023-2024">2023-2024</option>
+      </select>
+      
+      <select 
+        v-model="selectedCategory"
+        class="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none"
+      >
+        <option value="">All Categories</option>
+        <option value="Area Based - 1">Area Based - 1</option>
+        <option value="Area Based - 2">Area Based - 2</option>
+        <option value="College Event">College Event</option>
+        <option value="University Event">University Event</option>
+        <option value="Camp">Camp</option>
+        <option value="Workshop">Workshop</option>
+        <option value="Competition">Competition</option>
+      </select>
+      
+      <button 
+        class="button-glass-secondary hover-lift flex items-center space-x-2 text-sm py-2 px-3 rounded-lg"
+        @click="applyFilters"
+      >
+        <i class="fas fa-filter fa-sm"></i>
+        <span>Filter</span>
+      </button>
+      
+      <button 
+        class="text-gray-500 hover:text-gray-300 text-sm py-2 px-3 transition-colors"
+        @click="clearFilters"
+      >
+        Clear
+      </button>
+    </div>
+
+    <!-- Events Grid -->
+    <div 
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" 
+      :class="{ 'lg:grid-cols-4 xl:grid-cols-5': sidebarCollapsed }"
+      id="eventsGrid"
+    >
+      <EventCard
+        v-for="event in filteredEvents"
+        :key="event.id"
+        :event="event"
+        @edit="editEvent"
+        @view-participants="viewParticipants"
+        @delete="deleteEvent"
+      />
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center mt-6">
+      <nav class="flex space-x-2">
+        <button 
+          class="pagination-button px-3 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed" 
+          :disabled="currentPage === 1"
+          @click="currentPage--"
+        >
+          Previous
+        </button>
+        
+        <button 
+          v-for="page in paginationPages"
+          :key="page"
+          class="pagination-button px-3 py-2 text-sm rounded-lg"
+          :class="{ 'active': page === currentPage }"
+          @click="currentPage = page"
+        >
+          {{ page }}
+        </button>
+        
+        <button 
+          class="pagination-button px-3 py-2 text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+        >
+          Next
+        </button>
+      </nav>
     </div>
   </div>
 </template>
 
 <script setup>
-const { 
-  isPwaAvailable, 
-  isInstalled, 
-  offlineReady, 
-  updateAvailable,
-  showInstallPrompt,
-  installPwa
-} = usePwa()
-
-// Set page title
 useHead({
-  title: 'TaskPilot - AI-Powered Todo List',
-  meta: [
-    { name: 'description', content: 'Boost your productivity with TaskPilot, an AI-powered todo list application.' }
-  ]
+  title: 'NSS VIT Dashboard - Events'
 })
+
+// Inject search query and modal functions from layout
+const searchQuery = inject('searchQuery', ref(''))
+const openEventModal = inject('openEventModal', () => {})
+
+// Reactive data
+const selectedSession = ref('')
+const selectedCategory = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 12
+const sidebarCollapsed = ref(false)
+
+// Sample events data (same as in prototype)
+const events = ref([
+  {
+    id: 1,
+    title: 'Beach Clean-Up Drive',
+    date: '2024-08-15',
+    description: 'Annual Juhu Beach clean-up. Promote environmental awareness.',
+    category: 'Area Based - 1',
+    hours: 4,
+    session: '2024-2025',
+    location: 'Juhu Beach, Mumbai',
+    participants: [
+      { name: 'User 1', avatar: 'https://i.imgur.com/gVo4gxC.png' },
+      { name: 'User 2', avatar: 'https://i.imgur.com/7OtnwP9.png' },
+      ...Array(73).fill().map((_, i) => ({ name: `User ${i + 3}`, avatar: 'https://i.imgur.com/gVo4gxC.png' }))
+    ]
+  },
+  {
+    id: 2,
+    title: 'Blood Donation VIT',
+    date: '2024-09-10',
+    description: 'Organized with local hospitals to encourage blood donation among students and staff.',
+    category: 'College Event',
+    hours: 3,
+    session: '2024-2025',
+    location: 'VIT Campus',
+    participants: [
+      { name: 'User 1', avatar: 'https://i.imgur.com/gJgRz7n.png' },
+      ...Array(118).fill().map((_, i) => ({ name: `User ${i + 2}`, avatar: 'https://i.imgur.com/gJgRz7n.png' }))
+    ]
+  },
+  {
+    id: 3,
+    title: 'NSS Camp - Kuderan',
+    date: '2024-11-27',
+    description: '7-day camp: rural development, health, infrastructure. Theme: Sarvangin Vikas.',
+    category: 'Camp',
+    hours: 50,
+    session: '2024-2025',
+    location: 'Kuderan Village',
+    participants: [
+      { name: 'User 1', avatar: 'https://i.imgur.com/xG2942s.png' },
+      { name: 'User 2', avatar: 'https://i.imgur.com/gVo4gxC.png' },
+      ...Array(48).fill().map((_, i) => ({ name: `User ${i + 3}`, avatar: 'https://i.imgur.com/xG2942s.png' }))
+    ]
+  },
+  {
+    id: 4,
+    title: 'Digital Literacy Workshop',
+    date: '2024-12-05',
+    description: 'Teaching basic computer skills and digital literacy to local community members.',
+    category: 'Workshop',
+    hours: 6,
+    session: '2024-2025',
+    location: 'Community Center',
+    participants: [
+      { name: 'User 1', avatar: 'https://i.imgur.com/gVo4gxC.png' },
+      { name: 'User 2', avatar: 'https://i.imgur.com/7OtnwP9.png' },
+      { name: 'User 3', avatar: 'https://i.imgur.com/xG2942s.png' },
+      ...Array(32).fill().map((_, i) => ({ name: `User ${i + 4}`, avatar: 'https://i.imgur.com/gVo4gxC.png' }))
+    ]
+  }
+])
+
+// Computed properties
+const filteredEvents = computed(() => {
+  let filtered = events.value
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(event => 
+      event.title.toLowerCase().includes(query) ||
+      event.description.toLowerCase().includes(query)
+    )
+  }
+
+  // Apply session filter
+  if (selectedSession.value) {
+    filtered = filtered.filter(event => event.session === selectedSession.value)
+  }
+
+  // Apply category filter
+  if (selectedCategory.value) {
+    filtered = filtered.filter(event => event.category === selectedCategory.value)
+  }
+
+  // Apply pagination
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filtered.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  let filtered = events.value
+
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(event => 
+      event.title.toLowerCase().includes(query) ||
+      event.description.toLowerCase().includes(query)
+    )
+  }
+
+  if (selectedSession.value) {
+    filtered = filtered.filter(event => event.session === selectedSession.value)
+  }
+
+  if (selectedCategory.value) {
+    filtered = filtered.filter(event => event.category === selectedCategory.value)
+  }
+
+  return Math.ceil(filtered.length / itemsPerPage)
+})
+
+const paginationPages = computed(() => {
+  const pages = []
+  const total = totalPages.value
+  const current = currentPage.value
+  
+  if (total <= 5) {
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    if (current <= 3) {
+      pages.push(1, 2, 3, 4, 5)
+    } else if (current >= total - 2) {
+      pages.push(total - 4, total - 3, total - 2, total - 1, total)
+    } else {
+      pages.push(current - 2, current - 1, current, current + 1, current + 2)
+    }
+  }
+  
+  return pages
+})
+
+// Methods
+const applyFilters = () => {
+  currentPage.value = 1
+  console.log('Filters applied:', { selectedSession: selectedSession.value, selectedCategory: selectedCategory.value })
+}
+
+const clearFilters = () => {
+  selectedSession.value = ''
+  selectedCategory.value = ''
+  currentPage.value = 1
+  searchQuery.value = ''
+}
+
+const editEvent = (event) => {
+  openEventModal(event)
+}
+
+const viewParticipants = (event) => {
+  console.log('View participants for:', event.title)
+  // Implement participants view logic
+}
+
+const deleteEvent = (event) => {
+  if (confirm(`Are you sure you want to delete "${event.title}"?`)) {
+    const index = events.value.findIndex(e => e.id === event.id)
+    if (index > -1) {
+      events.value.splice(index, 1)
+    }
+  }
+}
+
+// Watch for sidebar collapse changes from layout
+provide('sidebarCollapsed', sidebarCollapsed)
 </script>
+
+<style scoped>
+/* Additional page-specific styles if needed */
+</style>
