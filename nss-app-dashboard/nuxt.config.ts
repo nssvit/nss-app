@@ -10,9 +10,25 @@ export default defineNuxtConfig({
     appManifest: false
   },
   ssr: true,
+  // Development server configuration for mobile testing
+  devServer: {
+    host: '0.0.0.0', // Allow external connections
+    port: 3000,
+  },
   nitro: {
     experimental: {
       wasm: false
+    },
+    // Allow CORS for development
+    routeRules: {
+      '/**': {
+        cors: true,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization, X-Requested-With'
+        }
+      }
     }
   },
   app: {
@@ -33,6 +49,12 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    server: {
+      cors: true, // Enable CORS
+      hmr: {
+        port: 24678, // Use a different port for HMR
+      }
+    },
   },
   modules: [
     '@nuxt/content',
