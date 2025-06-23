@@ -1,0 +1,42 @@
+{
+  "name": "NSS VIT Dashboard",
+  "short_name": "NSS VIT",
+  "description": "National Service Scheme - VIT Dashboard for managing events, volunteers, and activities",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070709",
+  "theme_color": "#070709",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "education", "social"],
+  "shortcuts": [
+    {
+      "name": "Events",
+      "short_name": "Events",
+      "description": "View and manage NSS events",
+      "url": "/?page=events",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Volunteers",
+      "short_name": "Volunteers",
+      "description": "Manage volunteer information",
+      "url": "/?page=volunteers",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+} 
