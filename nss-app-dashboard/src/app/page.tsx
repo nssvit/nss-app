@@ -61,6 +61,16 @@ const sampleEvents = [
   }
 ]
 
+interface EventData {
+  eventName: string
+  eventDate: string
+  eventDescription: string
+  eventCategory: string
+  declaredHours: string
+  academicSession: string
+  eventLocation: string
+}
+
 export default function Dashboard() {
   const [activeLink, setActiveLink] = useState('events')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -89,7 +99,7 @@ export default function Dashboard() {
     setFilteredEvents(filtered)
   }, [events, searchTerm, categoryFilter])
 
-  const handleCreateEvent = (eventData: any) => {
+  const handleCreateEvent = (eventData: EventData) => {
     const newEvent = {
       id: events.length + 1,
       title: eventData.eventName,

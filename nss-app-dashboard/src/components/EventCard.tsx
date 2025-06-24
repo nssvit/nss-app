@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 interface EventCardProps {
   title: string
   date: string
@@ -73,11 +75,13 @@ export function EventCard({
       <div className="flex items-center justify-between pt-3 border-t border-gray-700/20 mt-auto">
         <div className="flex items-center -space-x-2">
           {participants.map((participant, index) => (
-            <img 
+            <Image 
               key={index}
               src={participant.avatar} 
               alt={participant.alt} 
               className="w-5 h-5 rounded-full border-2 border-gray-700/50"
+              width={20}
+              height={20}
             />
           ))}
           <span className="text-xs text-gray-500 pl-3">+{participantCount}</span>

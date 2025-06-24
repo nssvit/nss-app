@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from 'react'
 
+interface EventFormData {
+  eventName: string
+  eventDate: string
+  declaredHours: string
+  eventCategory: string
+  academicSession: string
+  eventLocation: string
+  eventDescription: string
+}
+
 interface EventModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (eventData: any) => void
+  onSubmit: (eventData: EventFormData) => void
   title?: string
-  initialData?: any
+  initialData?: EventFormData
 }
 
 export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Event", initialData }: EventModalProps) {
