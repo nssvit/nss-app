@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 
 interface SidebarProps {
@@ -29,15 +28,19 @@ export function Sidebar({ activeLink, onLinkClick, collapsed, onToggle }: Sideba
       {/* Sidebar Header with Toggle */}
       <div className="sidebar-header-box flex items-center justify-between px-3 py-2 h-12 mx-3 my-2">
         <div className="branding-section flex items-center space-x-2 h-7">
-          <img 
+          <Image 
             src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_36/v1740557668/img/nss-logo.png" 
             alt="NSS Logo" 
+            width={20}
+            height={20}
             className="h-5" 
             style={{ transform: 'scale(1.01)' }}
           />
-          <img 
+          <Image 
             src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_90/v1740557668/img/vit-logo.png" 
             alt="VIT Logo" 
+            width={36}
+            height={14}
             className="h-3.5 opacity-85" 
             style={{ transform: 'scale(1.5)' }}
           />
@@ -109,9 +112,11 @@ export function Sidebar({ activeLink, onLinkClick, collapsed, onToggle }: Sideba
             }}
           >
             <div className="relative">
-              <img 
+              <Image 
                 src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_32/v1740560606/img/2024-2025/team/rakshaksood.jpg" 
                 alt="User Avatar" 
+                width={28}
+                height={28}
                 className="w-7 h-7 rounded-full"
               />
               <span className="avatar-status-dot-sidebar bg-green-500"></span>

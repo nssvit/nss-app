@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react']
   },
+  images: {
+    domains: [
+      'res.cloudinary.com',
+      'i.imgur.com',
+    ],
+  },
   async headers() {
     return [
       {
