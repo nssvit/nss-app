@@ -80,6 +80,9 @@ body {
         0 4px 20px rgba(99, 102, 241, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* PWA touch target minimum size */
+    min-height: 44px;
+    min-width: 44px;
 }
 .button-glass-primary:hover {
     background: linear-gradient(135deg, 
@@ -318,3 +321,168 @@ body {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(1.05);
 }
+
+/* Mobile-first responsive enhancements */
+@media (max-width: 768px) {
+    body {
+        font-size: 0.95rem; /* Slightly smaller on mobile for better readability */
+    }
+    
+    /* Mobile sidebar overlay */
+    .mobile-sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 40;
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Mobile sidebar */
+    .mobile-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .mobile-sidebar.open {
+        transform: translateX(0);
+    }
+    
+    /* Improved touch targets for mobile */
+    .sidebar-link {
+        min-height: 44px;
+        padding: 12px 16px;
+    }
+    
+    .action-button {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px;
+    }
+    
+    /* Mobile header adjustments */
+    .mobile-header {
+        height: 56px;
+        padding: 0 16px;
+    }
+    
+    /* Mobile search input */
+    .mobile-search {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Tablet specific adjustments */
+    .card-glass {
+        padding: 1rem;
+    }
+    
+    /* Tablet grid optimizations */
+    .tablet-grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tablet-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1025px) {
+    /* Desktop specific enhancements */
+    .desktop-grid-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .desktop-grid-5 {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* PWA specific enhancements */
+.pwa-button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Safe area support for devices with notches */
+@supports (padding: max(0px)) {
+    .safe-area-padding {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+    
+    .safe-area-top {
+        padding-top: max(16px, env(safe-area-inset-top));
+    }
+    
+    .safe-area-bottom {
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+}
+
+/* Improved scrolling on mobile */
+.mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* Better modal behavior on mobile */
+@media (max-width: 768px) {
+    .modal-container {
+        margin: 16px;
+        max-height: calc(100vh - 32px);
+        width: calc(100vw - 32px);
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
+}
+
+/* Loading states for better UX */
+.skeleton-loading {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.05) 25%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        rgba(255, 255, 255, 0.05) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Focus improvements for accessibility */
+.focus-visible:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.8);
+    outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
