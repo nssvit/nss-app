@@ -72,7 +72,7 @@ export const useResponsiveLayout = () => {
     window.addEventListener('resize', handleResize)
 
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [updateLayout])
 
   const toggleSidebar = () => {
     setState(prev => ({
