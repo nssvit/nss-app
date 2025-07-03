@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { BREAKPOINTS, PWA_CONSTANTS } from '@/utils/responsive'
 
 export type ScreenSize = 'mobile' | 'tablet' | 'desktop'
@@ -36,7 +36,7 @@ export const useResponsiveLayout = () => {
     return 'desktop'
   }
 
-  const updateLayout = () => {
+  const updateLayout = useCallback(() => {
     if (typeof window === 'undefined') return
 
     const width = window.innerWidth
@@ -61,7 +61,7 @@ export const useResponsiveLayout = () => {
       // Close mobile menu when switching to desktop
       showMobileMenu: isDesktop ? false : prev.showMobileMenu,
     }))
-  }
+  }, [])
 
   useEffect(() => {
     // Initial setup

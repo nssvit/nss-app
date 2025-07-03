@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Fixed
 - **ESLint Compliance**: Fixed unescaped apostrophe in offline page (`You're` → `You&apos;re`)
-- **React Hook Dependencies**: Added missing `updateLayout` dependency to useEffect in `useResponsiveLayout` hook
+- **React Hook Optimization**: Wrapped `updateLayout` in `useCallback` and added stable dependency to `useEffect`
+- **Prerender Error**: Marked `/offline` page as Client Component to allow event handlers during prerendering
 - **Vercel Deployment**: Resolved build errors preventing successful production deployment
 
 ### 🛠️ Technical
 - **Linting**: All ESLint rules now pass for production builds
 - **React Rules**: React Hook exhaustive-deps warning resolved
 - **HTML Entities**: Proper escaping of special characters in JSX
+- **Client Component**: Offline page converted to Client Component to support interactivity
 - **Deployment**: Vercel build process now completes successfully
 
 ## [2.0.0] - 03-07-2025 - **Responsive PWA Implementation**
@@ -145,4 +147,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-*For detailed technical implementation notes, see individual component documentation and code comments.* 
