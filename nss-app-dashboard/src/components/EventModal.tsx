@@ -97,19 +97,19 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
       className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="card-glass p-5 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-100">{title}</h2>
+      <div className="card-glass p-6 md:p-5 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
+        <div className="flex justify-between items-center mb-6 md:mb-4">
+          <h2 className="text-xl md:text-lg font-semibold text-gray-100">{title}</h2>
           <button 
             onClick={onClose}
-            className="text-gray-500 hover:text-white text-2xl leading-none p-1 transition-colors"
+            className="pwa-button text-gray-500 hover:text-white text-3xl md:text-2xl leading-none p-2 md:p-1 transition-colors focus-visible rounded"
           >
             ×
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-4">
           <div>
-            <label htmlFor="eventName" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="eventName" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
               Event Name
             </label>
             <input 
@@ -117,15 +117,15 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
               id="eventName" 
               name="eventName" 
               required 
-              className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
               placeholder="e.g., Tree Plantation Drive"
               value={formData.eventName}
               onChange={handleInputChange}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
             <div>
-              <label htmlFor="eventDate" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="eventDate" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
                 Event Date
               </label>
               <input 
@@ -133,13 +133,13 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
                 id="eventDate" 
                 name="eventDate" 
                 required 
-                className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none"
+                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
                 value={formData.eventDate}
                 onChange={handleInputChange}
               />
             </div>
             <div>
-              <label htmlFor="declaredHours" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="declaredHours" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
                 Declared Hours
               </label>
               <input 
@@ -148,23 +148,23 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
                 name="declaredHours" 
                 required 
                 min="1" 
-                className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
                 placeholder="e.g., 4"
                 value={formData.declaredHours}
                 onChange={handleInputChange}
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
             <div>
-              <label htmlFor="eventCategory" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="eventCategory" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
                 Category
               </label>
               <select 
                 id="eventCategory" 
                 name="eventCategory" 
                 required 
-                className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none"
+                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
                 value={formData.eventCategory}
                 onChange={handleInputChange}
               >
@@ -180,7 +180,7 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
               </select>
             </div>
             <div>
-              <label htmlFor="academicSession" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="academicSession" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
                 Academic Session
               </label>
               <input 
@@ -188,7 +188,7 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
                 id="academicSession" 
                 name="academicSession" 
                 required 
-                className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
                 placeholder="e.g., 2024-2025"
                 value={formData.academicSession}
                 onChange={handleInputChange}
@@ -196,44 +196,44 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
             </div>
           </div>
           <div>
-            <label htmlFor="eventLocation" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="eventLocation" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
               Location (Optional)
             </label>
             <input 
               type="text" 
               id="eventLocation" 
               name="eventLocation" 
-              className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none" 
+              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
               placeholder="e.g., Juhu Beach, Mumbai"
               value={formData.eventLocation}
               onChange={handleInputChange}
             />
           </div>
           <div>
-            <label htmlFor="eventDescription" className="block text-sm font-medium text-gray-300 mb-2">
+            <label htmlFor="eventDescription" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
               Description
             </label>
             <textarea 
               id="eventDescription" 
               name="eventDescription" 
-              rows={4} 
-              className="input-dark w-full text-sm rounded-lg px-4 py-3 focus:outline-none resize-none" 
+              rows={5} 
+              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible resize-none mobile-scroll" 
               placeholder="Provide a detailed description of the event..."
               value={formData.eventDescription}
               onChange={handleInputChange}
             ></textarea>
           </div>
-          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 md:pt-4 safe-area-bottom">
             <button 
               type="button" 
               onClick={onClose}
-              className="button-glass-secondary hover-lift px-6 py-3 text-sm font-medium rounded-lg"
+              className="pwa-button button-glass-secondary hover-lift px-6 py-4 md:py-3 text-base md:text-sm font-medium rounded-lg focus-visible"
             >
               Cancel
             </button>
             <button 
               type="submit" 
-              className="button-glass-primary hover-lift px-6 py-3 text-sm font-medium rounded-lg"
+              className="pwa-button button-glass-primary hover-lift px-6 py-4 md:py-3 text-base md:text-sm font-medium rounded-lg focus-visible"
             >
               Save Event
             </button>

@@ -46,27 +46,26 @@ export function EventCard({
   }
 
   return (
-    <div className="card-glass hover-lift rounded-xl flex flex-col transition-all duration-300 ease-out" style={{ padding: '0.85rem' }}>
+    <div className="card-glass hover-lift rounded-xl flex flex-col transition-all duration-300 ease-out px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-2.4">
       <div className="flex-grow">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start mb-3 md:mb-2">
           <h3 
-            className="font-semibold text-gray-100 truncate pr-2" 
-            style={{ fontSize: '0.94rem' }} 
+            className="font-semibold text-gray-100 truncate pr-2 text-base md:text-sm lg:text-base" 
             title={title}
           >
             {title}
           </h3>
-          <span className="text-xs text-gray-400 whitespace-nowrap">{date}</span>
+          <span className="text-sm md:text-xs text-gray-400 whitespace-nowrap">{date}</span>
         </div>
-        <p className="text-xs text-gray-400 mb-3 leading-relaxed line-clamp-2">
+        <p className="text-sm md:text-xs text-gray-400 mb-4 md:mb-3 leading-relaxed line-clamp-3 md:line-clamp-2">
           {description}
         </p>
-        <div className="flex flex-wrap items-center mb-3">
-          <span className="tag">
+        <div className="flex flex-wrap items-center mb-4 md:mb-3 gap-1">
+          <span className="tag text-xs">
             <span className={`tag-dot ${getCategoryColor(category)}`}></span>
             {category}
           </span>
-          <span className="tag">
+          <span className="tag text-xs">
             <span className="tag-dot bg-green-500"></span>
             {hours} Hrs
           </span>
@@ -79,31 +78,31 @@ export function EventCard({
               key={index}
               src={participant.avatar} 
               alt={participant.alt} 
-              className="w-5 h-5 rounded-full border-2 border-gray-700/50"
-              width={20}
-              height={20}
+              className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2 border-gray-700/50"
+              width={24}
+              height={24}
             />
           ))}
-          <span className="text-xs text-gray-500 pl-3">+{participantCount}</span>
+          <span className="text-sm md:text-xs text-gray-500 pl-3">+{participantCount}</span>
         </div>
-        <div className="flex space-x-1">
+        <div className="flex space-x-3 md:space-x-1.5">
           <button 
             title="Edit" 
-            className="action-button text-gray-400 hover:text-blue-400 p-1.5 rounded-lg text-xs"
+            className="pwa-button action-button text-gray-400 hover:text-blue-400 p-2 md:p-1.5 rounded-lg text-sm md:text-xs focus-visible"
             onClick={onEdit}
           >
             <i className="fas fa-pencil-alt"></i>
           </button>
           <button 
             title="Participants" 
-            className="action-button text-gray-400 hover:text-green-400 p-1.5 rounded-lg text-xs"
+            className="pwa-button action-button text-gray-400 hover:text-green-400 p-2 md:p-1.5 rounded-lg text-sm md:text-xs focus-visible"
             onClick={onViewParticipants}
           >
             <i className="fas fa-users"></i>
           </button>
           <button 
             title="Delete" 
-            className="action-button text-gray-400 hover:text-red-500 p-1.5 rounded-lg text-xs"
+            className="pwa-button action-button text-gray-400 hover:text-red-500 p-2 md:p-1.5 rounded-lg text-sm md:text-xs focus-visible"
             onClick={onDelete}
           >
             <i className="fas fa-trash-alt"></i>
