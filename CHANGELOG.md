@@ -5,7 +5,20 @@ All notable changes to the NSS Dashboard project will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2024-12-XX - **Responsive PWA Implementation**
+## [2.0.1] - 03-07-2025 - **Build Fixes**
+
+### 🐛 Fixed
+- **ESLint Compliance**: Fixed unescaped apostrophe in offline page (`You're` → `You&apos;re`)
+- **React Hook Dependencies**: Added missing `updateLayout` dependency to useEffect in `useResponsiveLayout` hook
+- **Vercel Deployment**: Resolved build errors preventing successful production deployment
+
+### 🛠️ Technical
+- **Linting**: All ESLint rules now pass for production builds
+- **React Rules**: React Hook exhaustive-deps warning resolved
+- **HTML Entities**: Proper escaping of special characters in JSX
+- **Deployment**: Vercel build process now completes successfully
+
+## [2.0.0] - 03-07-2025 - **Responsive PWA Implementation**
 
 ### 🚀 Added
 - **Full Responsive Design**: Mobile-first approach with tablet and desktop optimizations
@@ -44,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Safe Areas**: CSS support for device-specific safe areas
 - **Viewport Optimization**: Proper scaling and zoom controls
 
-## [1.0.0] - 2024-XX-XX - **Initial UI Implementation**
+## [1.0.0] - 23-06-2025 - **Initial UI Implementation**
 
 ### 🎉 Added
 - **Core Dashboard UI**: Initial implementation of NSS Dashboard interface
@@ -78,6 +91,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 🔄 Migration Notes
 
+### From v2.0 to v2.0.1
+- **No Breaking Changes**: Patch version with bug fixes only
+- **Build Compatibility**: Improved Vercel deployment reliability
+- **Code Quality**: Enhanced ESLint compliance and React best practices
+
 ### From v1.0 to v2.0
 - **Breaking Changes**: Component props may have changed for responsive features
 - **New Dependencies**: Added responsive utilities and hooks
@@ -100,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] **Advanced Filtering**: More sophisticated event filtering
 - [ ] **Dark Mode**: Theme switching capability
 - [ ] **Gesture Support**: Swipe gestures for mobile navigation
+- [ ] **Performance Monitoring**: Error tracking and performance metrics
 
 ### v3.0.0 - Future
 - [ ] **Real-time Updates**: WebSocket integration
@@ -112,15 +131,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 📊 Version Comparison
 
-| Feature | v1.0 | v2.0 |
-|---------|------|------|
-| Responsive Design | ❌ | ✅ |
-| Mobile Support | ❌ | ✅ |
-| PWA Features | Basic | Complete |
-| Touch Optimization | ❌ | ✅ |
-| Accessibility | Basic | Enhanced |
-| Performance | Good | Optimized |
-| Cross-device | Desktop Only | All Devices |
+| Feature | v1.0 | v2.0 | v2.0.1 |
+|---------|------|------|--------|
+| Responsive Design | ❌ | ✅ | ✅ |
+| Mobile Support | ❌ | ✅ | ✅ |
+| PWA Features | Basic | Complete | Complete |
+| Touch Optimization | ❌ | ✅ | ✅ |
+| Accessibility | Basic | Enhanced | Enhanced |
+| Performance | Good | Optimized | Optimized |
+| Cross-device | Desktop Only | All Devices | All Devices |
+| Build Stability | ⚠️ | ⚠️ | ✅ |
+| Production Ready | ✅ | ⚠️ | ✅ |
 
 ---
 
