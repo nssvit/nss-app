@@ -26,6 +26,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://nss-vit-dashboard.vercel.app"),
   title: {
     default: "NSS VIT Dashboard",
     template: "%s | NSS VIT Dashboard",
@@ -37,7 +38,16 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "NSS VIT Dashboard",
-    startupImage: ["/icon-192x192.png", "/icon-512x512.png"],
+    startupImage: [
+      {
+        url: "/icon-192x192.png",
+        media: "(device-width: 320px) and (device-height: 568px)",
+      },
+      {
+        url: "/icon-512x512.png",
+        media: "(device-width: 414px) and (device-height: 896px)",
+      },
+    ],
   },
   formatDetection: {
     telephone: false,
@@ -58,6 +68,10 @@ export const metadata: Metadata = {
     images: ["/icon-512x512.png"],
   },
   icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/icon-192x192.png",
     apple: [
       { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
@@ -89,6 +103,10 @@ export default function RootLayout({
         <meta name="msapplication-config" content="/browserconfig.xml" />
         <meta name="msapplication-TileColor" content="#070709" />
         <meta name="msapplication-tap-highlight" content="no" />
+        <link rel="icon" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icon-512x512.png" />
         <link
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           rel="stylesheet"
