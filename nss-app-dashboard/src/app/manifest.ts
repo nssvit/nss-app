@@ -28,6 +28,18 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
       {
+        src: "/icon-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
         src: "/icon-192x192.svg",
         sizes: "192x192",
         type: "image/svg+xml",
@@ -70,6 +82,13 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Volunteers",
         description: "Manage volunteer information",
         url: "/?page=volunteers",
+        icons: [{ src: "/icon-192x192.png", sizes: "192x192" }],
+      },
+      {
+        name: "Dashboard",
+        short_name: "Dashboard",
+        description: "View dashboard overview",
+        url: "/?page=dashboard",
         icons: [{ src: "/icon-192x192.png", sizes: "192x192" }],
       },
     ],
