@@ -1,106 +1,118 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 interface EventFormData {
-  eventName: string
-  eventDate: string
-  declaredHours: string
-  eventCategory: string
-  academicSession: string
-  eventLocation: string
-  eventDescription: string
+  eventName: string;
+  eventDate: string;
+  declaredHours: string;
+  eventCategory: string;
+  academicSession: string;
+  eventLocation: string;
+  eventDescription: string;
 }
 
 interface EventModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (eventData: EventFormData) => void
-  title?: string
-  initialData?: EventFormData
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (eventData: EventFormData) => void;
+  title?: string;
+  initialData?: EventFormData;
 }
 
-export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Event", initialData }: EventModalProps) {
+export function EventModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  title = "Create New Event",
+  initialData,
+}: EventModalProps) {
   const [formData, setFormData] = useState({
-    eventName: '',
-    eventDate: '',
-    declaredHours: '',
-    eventCategory: '',
-    academicSession: '',
-    eventLocation: '',
-    eventDescription: ''
-  })
+    eventName: "",
+    eventDate: "",
+    declaredHours: "",
+    eventCategory: "",
+    academicSession: "",
+    eventLocation: "",
+    eventDescription: "",
+  });
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData)
+      setFormData(initialData);
     } else {
       setFormData({
-        eventName: '',
-        eventDate: '',
-        declaredHours: '',
-        eventCategory: '',
-        academicSession: '',
-        eventLocation: '',
-        eventDescription: ''
-      })
+        eventName: "",
+        eventDate: "",
+        declaredHours: "",
+        eventCategory: "",
+        academicSession: "",
+        eventLocation: "",
+        eventDescription: "",
+      });
     }
-  }, [initialData, isOpen])
+  }, [initialData, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit(formData)
-    onClose()
-  }
+    e.preventDefault();
+    onSubmit(formData);
+    onClose();
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
+      if (e.key === "Escape" && isOpen) {
+        onClose();
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleEscape)
-    return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = "";
     }
 
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isOpen])
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
       <div className="card-glass p-6 md:p-5 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
         <div className="flex justify-between items-center mb-6 md:mb-4">
-          <h2 className="text-xl md:text-lg font-semibold text-gray-100">{title}</h2>
-          <button 
+          <h2 className="text-xl md:text-lg font-semibold text-gray-100">
+            {title}
+          </h2>
+          <button
             onClick={onClose}
             className="pwa-button text-gray-500 hover:text-white text-3xl md:text-2xl leading-none p-2 md:p-1 transition-colors focus-visible rounded"
           >
@@ -109,15 +121,18 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
         </div>
         <form onSubmit={handleSubmit} className="space-y-5 md:space-y-4">
           <div>
-            <label htmlFor="eventName" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+            <label
+              htmlFor="eventName"
+              className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+            >
               Event Name
             </label>
-            <input 
-              type="text" 
-              id="eventName" 
-              name="eventName" 
-              required 
-              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
+            <input
+              type="text"
+              id="eventName"
+              name="eventName"
+              required
+              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
               placeholder="e.g., Tree Plantation Drive"
               value={formData.eventName}
               onChange={handleInputChange}
@@ -125,30 +140,36 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
             <div>
-              <label htmlFor="eventDate" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+              <label
+                htmlFor="eventDate"
+                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              >
                 Event Date
               </label>
-              <input 
-                type="date" 
-                id="eventDate" 
-                name="eventDate" 
-                required 
+              <input
+                type="date"
+                id="eventDate"
+                name="eventDate"
+                required
                 className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
                 value={formData.eventDate}
                 onChange={handleInputChange}
               />
             </div>
             <div>
-              <label htmlFor="declaredHours" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+              <label
+                htmlFor="declaredHours"
+                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              >
                 Declared Hours
               </label>
-              <input 
-                type="number" 
-                id="declaredHours" 
-                name="declaredHours" 
-                required 
-                min="1" 
-                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
+              <input
+                type="number"
+                id="declaredHours"
+                name="declaredHours"
+                required
+                min="1"
+                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
                 placeholder="e.g., 4"
                 value={formData.declaredHours}
                 onChange={handleInputChange}
@@ -157,13 +178,16 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
             <div>
-              <label htmlFor="eventCategory" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+              <label
+                htmlFor="eventCategory"
+                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              >
                 Category
               </label>
-              <select 
-                id="eventCategory" 
-                name="eventCategory" 
-                required 
+              <select
+                id="eventCategory"
+                name="eventCategory"
+                required
                 className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
                 value={formData.eventCategory}
                 onChange={handleInputChange}
@@ -180,15 +204,18 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
               </select>
             </div>
             <div>
-              <label htmlFor="academicSession" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+              <label
+                htmlFor="academicSession"
+                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              >
                 Academic Session
               </label>
-              <input 
-                type="text" 
-                id="academicSession" 
-                name="academicSession" 
-                required 
-                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
+              <input
+                type="text"
+                id="academicSession"
+                name="academicSession"
+                required
+                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
                 placeholder="e.g., 2024-2025"
                 value={formData.academicSession}
                 onChange={handleInputChange}
@@ -196,43 +223,49 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
             </div>
           </div>
           <div>
-            <label htmlFor="eventLocation" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+            <label
+              htmlFor="eventLocation"
+              className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+            >
               Location (Optional)
             </label>
-            <input 
-              type="text" 
-              id="eventLocation" 
-              name="eventLocation" 
-              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible" 
+            <input
+              type="text"
+              id="eventLocation"
+              name="eventLocation"
+              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
               placeholder="e.g., Juhu Beach, Mumbai"
               value={formData.eventLocation}
               onChange={handleInputChange}
             />
           </div>
           <div>
-            <label htmlFor="eventDescription" className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2">
+            <label
+              htmlFor="eventDescription"
+              className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+            >
               Description
             </label>
-            <textarea 
-              id="eventDescription" 
-              name="eventDescription" 
-              rows={5} 
-              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible resize-none mobile-scroll" 
+            <textarea
+              id="eventDescription"
+              name="eventDescription"
+              rows={5}
+              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible resize-none mobile-scroll"
               placeholder="Provide a detailed description of the event..."
               value={formData.eventDescription}
               onChange={handleInputChange}
             ></textarea>
           </div>
           <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 md:pt-4 safe-area-bottom">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={onClose}
               className="pwa-button button-glass-secondary hover-lift px-6 py-4 md:py-3 text-base md:text-sm font-medium rounded-lg focus-visible"
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="pwa-button button-glass-primary hover-lift px-6 py-4 md:py-3 text-base md:text-sm font-medium rounded-lg focus-visible"
             >
               Save Event
@@ -241,5 +274,5 @@ export function EventModal({ isOpen, onClose, onSubmit, title = "Create New Even
         </form>
       </div>
     </div>
-  )
-} 
+  );
+}

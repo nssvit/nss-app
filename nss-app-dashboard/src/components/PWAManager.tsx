@@ -1,81 +1,91 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
 export function PWAManager() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [isInstallable, setIsInstallable] = useState(false)
-  const [isInstalled, setIsInstalled] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     // Check if app is already installed
-    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true)
+    if (
+      window.matchMedia &&
+      window.matchMedia("(display-mode: standalone)").matches
+    ) {
+      setIsInstalled(true);
     }
 
     // Register service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js', {
-        scope: '/',
-        updateViaCache: 'none',
-      }).then((registration) => {
-        console.log('Service Worker registered successfully:', registration)
-      }).catch((error) => {
-        console.log('Service Worker registration failed:', error)
-      })
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js", {
+          scope: "/",
+          updateViaCache: "none",
+        })
+        .then((registration) => {
+          console.log("Service Worker registered successfully:", registration);
+        })
+        .catch((error) => {
+          console.log("Service Worker registration failed:", error);
+        });
     }
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault()
-      setDeferredPrompt(e as BeforeInstallPromptEvent)
-      setIsInstallable(true)
-    }
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      setIsInstallable(true);
+    };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     // Listen for app installed
     const handleAppInstalled = () => {
-      setIsInstalled(true)
-      setIsInstallable(false)
-      setDeferredPrompt(null)
-    }
+      setIsInstalled(true);
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    };
 
-    window.addEventListener('appinstalled', handleAppInstalled)
+    window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-    }
-  }, [])
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return
+    if (!deferredPrompt) return;
 
     try {
-      await deferredPrompt.prompt()
-      const choiceResult = await deferredPrompt.userChoice
-      
-      if (choiceResult.outcome === 'accepted') {
-        console.log('User accepted the install prompt')
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+
+      if (choiceResult.outcome === "accepted") {
+        console.log("User accepted the install prompt");
       } else {
-        console.log('User dismissed the install prompt')
+        console.log("User dismissed the install prompt");
       }
-      
-      setDeferredPrompt(null)
-      setIsInstallable(false)
+
+      setDeferredPrompt(null);
+      setIsInstallable(false);
     } catch (error) {
-      console.error('Error during installation:', error)
+      console.error("Error during installation:", error);
     }
-  }
+  };
 
   if (isInstalled || !isInstallable) {
-    return null
+    return null;
   }
 
   return (
@@ -83,7 +93,9 @@ export function PWAManager() {
       <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 md:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-1">
-            <h3 className="text-base font-medium text-gray-900 mb-1">Install App</h3>
+            <h3 className="text-base font-medium text-gray-900 mb-1">
+              Install App
+            </h3>
             <p className="text-sm text-gray-600">
               Add this app to your home screen for quick access and offline use
             </p>
@@ -116,5 +128,5 @@ export function PWAManager() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}
