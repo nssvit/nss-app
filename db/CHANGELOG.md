@@ -239,5 +239,65 @@ For technical support or questions about schema changes:
 
 ---
 
+## Version 4.0.0 (Minimal & Robust) - 2024-12-19
+
+### 🎯 **Back to Basics**
+
+#### **Philosophy Change**
+- **Simplified Architecture**: Returned to core requirements based on user feedback
+- **Universal Set Concept**: All users are volunteers first, roles are assigned separately
+- **Minimal Complexity**: Removed advanced features to focus on essential functionality
+- **College-Specific**: Tailored to college roll number format and academic structure
+
+#### **Core Simplifications**
+- **Single User Type**: Everyone is a `volunteer` first, eliminating separate `leads` table
+- **Direct Role Assignment**: Roles (`admin`, `program_officer`, `heads`) linked directly to volunteers
+- **College Roll Numbers**: Using college-specific format (e.g., 23108A0054, 23104B0068)
+- **Academic Focus**: Branch (EXCS, CMPN, IT, BIO-MED, EXTC) and Year (FE, SE, TE) specific to engineering
+- **Flexible Hours**: No strict hour validation - heads can manually adjust as needed
+
+### 🔧 **Technical Changes**
+
+#### **Removed Complexity**
+- Eliminated separate `leads` table - everyone is a volunteer
+- Removed advanced audit logging and field-level tracking
+- Simplified lookup tables (no colors, display ordering)
+- Removed certificate management and rating systems
+- No full-text search or advanced analytics
+- Simplified RLS policies
+
+#### **New Structure**
+- `volunteers` - Universal user table with college-specific fields
+- `roles` - Simple role assignments (admin, program_officer, heads)
+- `event_categories` - Basic categories (AB1, AB2, University Events, College Events)
+- `events` - Essential event information only
+- `event_participation` - Simple participation tracking with flexible hours
+
+#### **Key Features Retained**
+- **Row Level Security**: Basic RLS for data protection
+- **Role-Based Access**: Simple role checking with `has_role()` function
+- **Data Validation**: Essential constraints and checks
+- **Performance Indexing**: Optimized indexes for core queries
+- **Helpful Views**: Summary views for frontend integration
+
+### 🎯 **Role Definitions**
+- **admin**: Full system control (single admin role)
+- **program_officer**: View all data, no editing permissions
+- **heads**: Create events, assign hours, manage participation
+
+### 📊 **Data Model**
+- **Volunteers**: College roll numbers, branch/year validation, NSS join year
+- **Events**: Basic event info with flexible participation tracking
+- **Participation**: Simple status tracking (present, absent, partially present)
+- **Roles**: Direct assignment to volunteers with permissions
+
+### 🔄 **Migration Notes**
+- Complete schema rebuild recommended
+- Data migration needed from v3 complex structure to v4 simplified structure
+- Role assignments need to be recreated using volunteer IDs
+- No backward compatibility with v3 advanced features
+
+---
+
 *Last updated: December 19, 2024*
-*Schema version: 3.0.0* 
+*Schema version: 4.0.0* 
