@@ -299,5 +299,106 @@ For technical support or questions about schema changes:
 
 ---
 
-*Last updated: December 19, 2024*
-*Schema version: 4.0.0* 
+## Version 5.0.0 (Robust & Maintainable) - 2024-12-19
+
+### 🔧 **CRITICAL ARCHITECTURAL FIXES**
+
+#### **1. FIXED: Role System Architecture** 
+**Problem in v4**: Roles were just text strings in assignments table, causing data consistency bugs and unmaintainable security policies.
+
+**Solution in v5**:
+- **`role_definitions` table**: Centralized role management with permissions and hierarchy
+- **`user_roles` table**: Clean role assignments with expiration support  
+- **Scalable Permissions**: Change role permissions once, affects all users with that role
+- **Hierarchy Support**: Role levels for proper access control
+- **Type Safety**: No more typos like 'head' vs 'heads' causing permission failures
+
+```sql
+-- v4 (BROKEN): Role as text string
+roles(volunteer_id, role='heads', permissions='{}') 
+
+-- v5 (FIXED): Proper role definition system
+role_definitions(role_name='heads', permissions='{}', hierarchy_level=20)
+user_roles(volunteer_id, role_definition_id, expires_at)
+```
+
+#### **2. FIXED: Events Table Limitations**
+**Problem in v4**: Single date, no capacity management, no status workflow.
+
+**Solution in v5**:
+- **Multi-day Events**: `start_date` and `end_date` support weekend camps and extended activities
+- **Capacity Management**: `min_participants` and `max_participants` with validation functions
+- **Status Workflow**: Complete event lifecycle (planned → registration_open → ongoing → completed/cancelled)
+- **Registration System**: Registration deadlines and capacity checking
+
+```sql
+-- v4 (LIMITED): Single date, no capacity
+events(event_date, min_participants)
+
+-- v5 (ROBUST): Multi-day, capacity, workflow
+events(start_date, end_date, min_participants, max_participants, event_status, registration_deadline)
+```
+
+### 🚀 **Architectural Improvements**
+
+#### **Maintainable Security Policies**
+- **Scalable RLS**: Adding new roles doesn't require editing every policy
+- **Role-based Functions**: `has_role()` and `has_any_role()` for flexible access control
+- **Future-proof**: New permissions can be added to role definitions without code changes
+
+#### **Business Logic at Database Level**
+- **Event Capacity Validation**: `can_register_for_event()` prevents overbooking
+- **Role Expiration**: Automatic handling of temporary role assignments
+- **Data Integrity**: Comprehensive constraints and validation
+
+#### **Enhanced User Experience**
+- **Registration Workflow**: Complete event registration and attendance tracking
+- **Capacity Indicators**: Real-time availability and percentage tracking
+- **Multi-day Support**: Proper handling of camps and extended activities
+
+### 🔄 **Migration Impact**
+
+#### **Breaking Changes from v4**
+- **Role System**: Complete restructure - roles are now defined centrally
+- **Events Structure**: Multi-day support changes date handling
+- **Participation Flow**: Enhanced registration and attendance workflow
+
+#### **New Functions Added**
+- `has_any_role(VARIADIC TEXT[])` - Multi-role checking
+- `can_register_for_event(UUID)` - Capacity validation  
+- Enhanced `get_current_volunteer()` - Includes permissions
+
+#### **New Views**
+- `role_management` - Administrative role oversight
+- Enhanced `volunteer_summary` - Role hierarchy and permissions
+- Enhanced `event_summary` - Capacity tracking and analytics
+
+### 📊 **Scalability Benefits**
+
+#### **Role Management**
+- **Add New Roles**: Just insert into `role_definitions` - no code changes needed
+- **Permission Changes**: Update role definition once, affects all users
+- **Temporary Access**: Role expiration support for guest access
+
+#### **Event Management** 
+- **Multi-day Events**: Weekend retreats, week-long camps supported
+- **Capacity Planning**: Prevent overbooking, optimize participation
+- **Workflow Management**: Complete event lifecycle tracking
+
+#### **Future-proof Design**
+- **Extensible Permissions**: JSON-based permissions can grow
+- **Flexible Hierarchy**: Role levels allow complex organizational structures
+- **Audit Ready**: Complete tracking of role assignments and changes
+
+### ⚠️ **Migration Notes**
+- **Complete Rebuild Required**: v5 is not backward compatible with v4
+- **Data Migration Needed**: 
+  - Existing roles need to be recreated in role_definitions
+  - User assignments need to be migrated to user_roles table
+  - Events with single dates need end_date assignment
+- **RLS Policies Changed**: New policy structure leverages role definitions
+
+---
+
+*Last updated: 12 July, 2025*
+*Schema version: 5.0.0* 
