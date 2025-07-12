@@ -26,15 +26,14 @@ export function UserManagementPage() {
   const users: User[] = [
     {
       id: 1,
-      name: "Prof. Rakshak Sood",
-      email: "rakshak.sood@vit.ac.in",
+      name: "Admin",
+      email: "admin@vit.edu.in",
       role: "Admin",
       status: "Active",
       lastLogin: "2 hours ago",
       joinDate: "Jan 2020",
       permissions: ["all"],
-      avatar:
-        "https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_32/v1740560606/img/2024-2025/team/rakshaksood.jpg",
+      avatar: "/icon-192x192.png",
     },
     {
       id: 2,

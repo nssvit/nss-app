@@ -81,7 +81,7 @@ export function DashboardPage() {
       {/* Welcome Section */}
       <div className="mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-100 mb-2">
-          Welcome back, Prof. Rakshak!
+          Welcome back, Admin!
         </h2>
         <p className="text-gray-400">
           Here&apos;s what&apos;s happening with your NSS activities today.

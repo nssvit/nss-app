@@ -177,7 +177,7 @@ export function Sidebar({
                 >
                   <div className="relative">
                     <Image
-                      src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_32/v1740560606/img/2024-2025/team/rakshaksood.jpg"
+                      src="/icon-192x192.png"
                       alt="User Avatar"
                       width={32}
                       height={32}
@@ -187,7 +187,7 @@ export function Sidebar({
                   </div>
                   <div className="flex flex-col text-sm">
                     <span className="font-medium text-gray-200">
-                      Prof. Rakshak S.
+                      Admin
                     </span>
                     <span className="text-gray-500 text-xs">Admin</span>
                   </div>
@@ -306,7 +306,7 @@ export function Sidebar({
           >
             <div className="relative">
               <Image
-                src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_32/v1740560606/img/2024-2025/team/rakshaksood.jpg"
+                src="/icon-192x192.png"
                 alt="User Avatar"
                 width={28}
                 height={28}
@@ -316,7 +316,7 @@ export function Sidebar({
             </div>
             <div className="flex flex-col text-[0.7rem] sidebar-text">
               <span className="font-medium text-gray-200">
-                Prof. Rakshak S.
+                Admin
               </span>
               <span className="text-gray-500">Admin</span>
             </div>

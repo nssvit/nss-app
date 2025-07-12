@@ -10,8 +10,8 @@ export function ProfilePage() {
 
   // Profile data
   const [profileData, setProfileData] = useState({
-    name: "Prof. Rakshak Sood",
-    email: "rakshak.sood@vit.ac.in",
+    name: "Admin",
+    email: "admin@example.com",
     phone: "+91 9876543210",
     designation: "NSS Programme Officer",
     department: "Computer Science",
@@ -89,7 +89,7 @@ export function ProfilePage() {
           >
             <div className="relative">
               <Image
-                src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_128/v1740560606/img/2024-2025/team/rakshaksood.jpg"
+                src="/icon-192x192.png"
                 alt="Profile Picture"
                 width={layout.isMobile ? 96 : 128}
                 height={layout.isMobile ? 96 : 128}
