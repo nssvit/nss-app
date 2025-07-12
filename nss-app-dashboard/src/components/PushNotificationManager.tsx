@@ -1,100 +1,103 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i)
+    outputArray[i] = rawData.charCodeAt(i);
   }
-  return outputArray
+  return outputArray;
 }
 
 export function PushNotificationManager() {
-  const [isSupported, setIsSupported] = useState(false)
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null)
-  const [permission, setPermission] = useState<NotificationPermission>('default')
+  const [isSupported, setIsSupported] = useState(false);
+  const [subscription, setSubscription] = useState<PushSubscription | null>(
+    null,
+  );
+  const [permission, setPermission] =
+    useState<NotificationPermission>("default");
 
   useEffect(() => {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      setIsSupported(true)
-      setPermission(Notification.permission)
-      checkSubscription()
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      setIsSupported(true);
+      setPermission(Notification.permission);
+      checkSubscription();
     }
-  }, [])
+  }, []);
 
   const checkSubscription = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready
-      const sub = await registration.pushManager.getSubscription()
-      setSubscription(sub)
+      const registration = await navigator.serviceWorker.ready;
+      const sub = await registration.pushManager.getSubscription();
+      setSubscription(sub);
     } catch (error) {
-      console.error('Error checking subscription:', error)
+      console.error("Error checking subscription:", error);
     }
-  }
+  };
 
   const subscribeToPush = async () => {
     try {
-      const permission = await Notification.requestPermission()
-      setPermission(permission)
+      const permission = await Notification.requestPermission();
+      setPermission(permission);
 
-      if (permission !== 'granted') {
-        console.log('Notification permission denied')
-        return
+      if (permission !== "granted") {
+        console.log("Notification permission denied");
+        return;
       }
 
-      const registration = await navigator.serviceWorker.ready
-      
+      const registration = await navigator.serviceWorker.ready;
+
       // In a real app, you would get this from your server
-      const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE'
-      
+      const vapidPublicKey = "YOUR_VAPID_PUBLIC_KEY_HERE";
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-      })
+      });
 
-      setSubscription(subscription)
-      console.log('Push subscription successful:', subscription)
-      
+      setSubscription(subscription);
+      console.log("Push subscription successful:", subscription);
+
       // Send subscription to your server here
       // await sendSubscriptionToServer(subscription)
     } catch (error) {
-      console.error('Error subscribing to push notifications:', error)
+      console.error("Error subscribing to push notifications:", error);
     }
-  }
+  };
 
   const unsubscribeFromPush = async () => {
     try {
       if (subscription) {
-        await subscription.unsubscribe()
-        setSubscription(null)
-        console.log('Successfully unsubscribed from push notifications')
+        await subscription.unsubscribe();
+        setSubscription(null);
+        console.log("Successfully unsubscribed from push notifications");
       }
     } catch (error) {
-      console.error('Error unsubscribing from push notifications:', error)
+      console.error("Error unsubscribing from push notifications:", error);
     }
-  }
+  };
 
   const sendTestNotification = async () => {
-    if ('serviceWorker' in navigator && 'Notification' in window) {
+    if ("serviceWorker" in navigator && "Notification" in window) {
       try {
-        const registration = await navigator.serviceWorker.ready
-        await registration.showNotification('Test Notification', {
-          body: 'This is a test notification from your PWA!',
-          icon: '/icon-192x192.png',
-          badge: '/icon-192x192.png',
-        })
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification("Test Notification", {
+          body: "This is a test notification from your PWA!",
+          icon: "/icon-192x192.png",
+          badge: "/icon-192x192.png",
+        });
       } catch (error) {
-        console.error('Error sending test notification:', error)
+        console.error("Error sending test notification:", error);
       }
     }
-  }
+  };
 
   if (!isSupported) {
-    return null
+    return null;
   }
 
   return (
@@ -103,20 +106,24 @@ export function PushNotificationManager() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Push Notifications
         </h3>
-        
+
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              Permission Status: <span className="font-medium">{permission}</span>
+              Permission Status:{" "}
+              <span className="font-medium">{permission}</span>
             </span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              Subscription: <span className="font-medium">{subscription ? 'Active' : 'Inactive'}</span>
+              Subscription:{" "}
+              <span className="font-medium">
+                {subscription ? "Active" : "Inactive"}
+              </span>
             </span>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             {!subscription ? (
               <button
@@ -163,5 +170,5 @@ export function PushNotificationManager() {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

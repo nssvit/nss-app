@@ -1,35 +1,35 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import Image from 'next/image'
+import { useState } from "react";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import Image from "next/image";
 
 interface AttendanceRecord {
-  id: number
-  eventName: string
-  eventDate: string
-  totalRegistered: number
-  totalAttended: number
-  attendanceRate: number
-  status: 'Completed' | 'Ongoing' | 'Upcoming'
+  id: number;
+  eventName: string;
+  eventDate: string;
+  totalRegistered: number;
+  totalAttended: number;
+  attendanceRate: number;
+  status: "Completed" | "Ongoing" | "Upcoming";
 }
 
 interface ParticipantRecord {
-  id: number
-  name: string
-  email: string
-  registrationDate: string
-  attendanceStatus: 'Present' | 'Absent' | 'Late' | 'Excused'
-  checkInTime?: string
-  avatar: string
+  id: number;
+  name: string;
+  email: string;
+  registrationDate: string;
+  attendanceStatus: "Present" | "Absent" | "Late" | "Excused";
+  checkInTime?: string;
+  avatar: string;
 }
 
 export function AttendancePage() {
-  const layout = useResponsiveLayout()
-  const [selectedEvent, setSelectedEvent] = useState<number | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [attendanceFilter, setAttendanceFilter] = useState('')
+  const layout = useResponsiveLayout();
+  const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [attendanceFilter, setAttendanceFilter] = useState("");
 
   const attendanceRecords: AttendanceRecord[] = [
     {
@@ -39,7 +39,7 @@ export function AttendancePage() {
       totalRegistered: 95,
       totalAttended: 73,
       attendanceRate: 76.8,
-      status: "Completed"
+      status: "Completed",
     },
     {
       id: 2,
@@ -48,7 +48,7 @@ export function AttendancePage() {
       totalRegistered: 150,
       totalAttended: 118,
       attendanceRate: 78.7,
-      status: "Completed"
+      status: "Completed",
     },
     {
       id: 3,
@@ -57,7 +57,7 @@ export function AttendancePage() {
       totalRegistered: 60,
       totalAttended: 48,
       attendanceRate: 80.0,
-      status: "Completed"
+      status: "Completed",
     },
     {
       id: 4,
@@ -66,9 +66,9 @@ export function AttendancePage() {
       totalRegistered: 40,
       totalAttended: 32,
       attendanceRate: 80.0,
-      status: "Ongoing"
-    }
-  ]
+      status: "Ongoing",
+    },
+  ];
 
   const participants: ParticipantRecord[] = [
     {
@@ -78,7 +78,7 @@ export function AttendancePage() {
       registrationDate: "Aug 12, 2024",
       attendanceStatus: "Present",
       checkInTime: "09:15 AM",
-      avatar: "https://i.imgur.com/gVo4gxC.png"
+      avatar: "https://i.imgur.com/gVo4gxC.png",
     },
     {
       id: 2,
@@ -87,7 +87,7 @@ export function AttendancePage() {
       registrationDate: "Aug 13, 2024",
       attendanceStatus: "Present",
       checkInTime: "09:22 AM",
-      avatar: "https://i.imgur.com/7OtnwP9.png"
+      avatar: "https://i.imgur.com/7OtnwP9.png",
     },
     {
       id: 3,
@@ -96,7 +96,7 @@ export function AttendancePage() {
       registrationDate: "Aug 10, 2024",
       attendanceStatus: "Late",
       checkInTime: "10:45 AM",
-      avatar: "https://i.imgur.com/xG2942s.png"
+      avatar: "https://i.imgur.com/xG2942s.png",
     },
     {
       id: 4,
@@ -104,67 +104,75 @@ export function AttendancePage() {
       email: "sneha.reddy@vitstudent.ac.in",
       registrationDate: "Aug 14, 2024",
       attendanceStatus: "Absent",
-      avatar: "https://i.imgur.com/gJgRz7n.png"
-    }
-  ]
+      avatar: "https://i.imgur.com/gJgRz7n.png",
+    },
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Completed':
-        return 'text-green-400 bg-green-900/30'
-      case 'Ongoing':
-        return 'text-yellow-400 bg-yellow-900/30'
-      case 'Upcoming':
-        return 'text-blue-400 bg-blue-900/30'
+      case "Completed":
+        return "text-green-400 bg-green-900/30";
+      case "Ongoing":
+        return "text-yellow-400 bg-yellow-900/30";
+      case "Upcoming":
+        return "text-blue-400 bg-blue-900/30";
       default:
-        return 'text-gray-400 bg-gray-900/30'
+        return "text-gray-400 bg-gray-900/30";
     }
-  }
+  };
 
   const getAttendanceColor = (status: string) => {
     switch (status) {
-      case 'Present':
-        return 'text-green-400 bg-green-900/30'
-      case 'Late':
-        return 'text-yellow-400 bg-yellow-900/30'
-      case 'Absent':
-        return 'text-red-400 bg-red-900/30'
-      case 'Excused':
-        return 'text-blue-400 bg-blue-900/30'
+      case "Present":
+        return "text-green-400 bg-green-900/30";
+      case "Late":
+        return "text-yellow-400 bg-yellow-900/30";
+      case "Absent":
+        return "text-red-400 bg-red-900/30";
+      case "Excused":
+        return "text-blue-400 bg-blue-900/30";
       default:
-        return 'text-gray-400 bg-gray-900/30'
+        return "text-gray-400 bg-gray-900/30";
     }
-  }
+  };
 
   const getAttendanceRateColor = (rate: number) => {
-    if (rate >= 80) return 'text-green-400'
-    if (rate >= 60) return 'text-yellow-400'
-    return 'text-red-400'
-  }
+    if (rate >= 80) return "text-green-400";
+    if (rate >= 60) return "text-yellow-400";
+    return "text-red-400";
+  };
 
   const clearFilters = () => {
-    setSearchTerm('')
-    setStatusFilter('')
-    setAttendanceFilter('')
-  }
+    setSearchTerm("");
+    setStatusFilter("");
+    setAttendanceFilter("");
+  };
 
-  const filteredRecords = attendanceRecords.filter(record => {
-    const matchesSearch = record.eventName.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = !statusFilter || record.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const filteredRecords = attendanceRecords.filter((record) => {
+    const matchesSearch = record.eventName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || record.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
-  const filteredParticipants = participants.filter(participant => {
-    const matchesSearch = participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         participant.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesAttendance = !attendanceFilter || participant.attendanceStatus === attendanceFilter
-    return matchesSearch && matchesAttendance
-  })
+  const filteredParticipants = participants.filter((participant) => {
+    const matchesSearch =
+      participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      participant.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesAttendance =
+      !attendanceFilter || participant.attendanceStatus === attendanceFilter;
+    return matchesSearch && matchesAttendance;
+  });
 
   return (
-    <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+    <div
+      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+    >
       {/* Summary Cards */}
-      <div className={`grid ${layout.isMobile ? 'grid-cols-1' : layout.isTablet ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mb-6`}>
+      <div
+        className={`grid ${layout.isMobile ? "grid-cols-1" : layout.isTablet ? "grid-cols-2" : "grid-cols-4"} gap-4 mb-6`}
+      >
         <div className="card-glass rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
@@ -223,19 +231,21 @@ export function AttendancePage() {
       </div>
 
       {/* Search and Filters */}
-      <div className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? 'px-0' : 'px-1'}`}>
+      <div
+        className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? "px-0" : "px-1"}`}
+      >
         <div className="relative flex-1 min-w-0">
-          <input 
-            type="text" 
-            placeholder="Search events or participants..." 
-            className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible w-full" 
+          <input
+            type="text"
+            placeholder="Search events or participants..."
+            className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
         </div>
 
-        <select 
+        <select
           className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -247,7 +257,7 @@ export function AttendancePage() {
         </select>
 
         {selectedEvent && (
-          <select 
+          <select
             className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
             value={attendanceFilter}
             onChange={(e) => setAttendanceFilter(e.target.value)}
@@ -260,7 +270,7 @@ export function AttendancePage() {
           </select>
         )}
 
-        <button 
+        <button
           className="text-gray-500 hover:text-gray-300 text-sm py-2 px-3 transition-colors focus-visible rounded"
           onClick={clearFilters}
         >
@@ -269,41 +279,57 @@ export function AttendancePage() {
       </div>
 
       {/* Content Area */}
-      <div className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
+      <div
+        className={`grid ${layout.isMobile ? "grid-cols-1" : "grid-cols-2"} gap-6`}
+      >
         {/* Events List */}
         <div className="card-glass rounded-xl overflow-hidden">
           <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
-            <h3 className="text-lg font-semibold text-gray-100">Event Attendance</h3>
+            <h3 className="text-lg font-semibold text-gray-100">
+              Event Attendance
+            </h3>
           </div>
           <div className="max-h-96 overflow-y-auto">
             <div className="divide-y divide-gray-700/30">
               {filteredRecords.map((record) => (
-                <div 
-                  key={record.id} 
+                <div
+                  key={record.id}
                   className={`px-4 py-3 hover:bg-gray-800/20 transition-colors cursor-pointer ${
-                    selectedEvent === record.id ? 'bg-indigo-900/20' : ''
+                    selectedEvent === record.id ? "bg-indigo-900/20" : ""
                   }`}
                   onClick={() => setSelectedEvent(record.id)}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-200 text-sm">{record.eventName}</h4>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(record.status)}`}>
+                    <h4 className="font-medium text-gray-200 text-sm">
+                      {record.eventName}
+                    </h4>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(record.status)}`}
+                    >
                       {record.status}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-3">{record.eventDate}</p>
+                  <p className="text-xs text-gray-500 mb-3">
+                    {record.eventDate}
+                  </p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="text-xs">
-                        <span className="text-gray-400">Registered:</span> 
-                        <span className="text-gray-300 ml-1">{record.totalRegistered}</span>
+                        <span className="text-gray-400">Registered:</span>
+                        <span className="text-gray-300 ml-1">
+                          {record.totalRegistered}
+                        </span>
                       </div>
                       <div className="text-xs">
-                        <span className="text-gray-400">Attended:</span> 
-                        <span className="text-gray-300 ml-1">{record.totalAttended}</span>
+                        <span className="text-gray-400">Attended:</span>
+                        <span className="text-gray-300 ml-1">
+                          {record.totalAttended}
+                        </span>
                       </div>
                     </div>
-                    <div className={`text-xs font-medium ${getAttendanceRateColor(record.attendanceRate)}`}>
+                    <div
+                      className={`text-xs font-medium ${getAttendanceRateColor(record.attendanceRate)}`}
+                    >
                       {record.attendanceRate}%
                     </div>
                   </div>
@@ -317,16 +343,21 @@ export function AttendancePage() {
         <div className="card-glass rounded-xl overflow-hidden">
           <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
             <h3 className="text-lg font-semibold text-gray-100">
-              {selectedEvent ? `Participants - ${attendanceRecords.find(r => r.id === selectedEvent)?.eventName}` : 'Select an event to view participants'}
+              {selectedEvent
+                ? `Participants - ${attendanceRecords.find((r) => r.id === selectedEvent)?.eventName}`
+                : "Select an event to view participants"}
             </h3>
           </div>
           <div className="max-h-96 overflow-y-auto">
             {selectedEvent ? (
               <div className="divide-y divide-gray-700/30">
                 {filteredParticipants.map((participant) => (
-                  <div key={participant.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
+                  <div
+                    key={participant.id}
+                    className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
+                  >
                     <div className="flex items-center space-x-3">
-                      <Image 
+                      <Image
                         src={participant.avatar}
                         alt={participant.name}
                         width={32}
@@ -335,16 +366,26 @@ export function AttendancePage() {
                       />
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-200 text-sm">{participant.name}</h4>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getAttendanceColor(participant.attendanceStatus)}`}>
+                          <h4 className="font-medium text-gray-200 text-sm">
+                            {participant.name}
+                          </h4>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${getAttendanceColor(participant.attendanceStatus)}`}
+                          >
                             {participant.attendanceStatus}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500">{participant.email}</p>
+                        <p className="text-xs text-gray-500">
+                          {participant.email}
+                        </p>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs text-gray-400">Registered: {participant.registrationDate}</span>
+                          <span className="text-xs text-gray-400">
+                            Registered: {participant.registrationDate}
+                          </span>
                           {participant.checkInTime && (
-                            <span className="text-xs text-gray-400">Check-in: {participant.checkInTime}</span>
+                            <span className="text-xs text-gray-400">
+                              Check-in: {participant.checkInTime}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -380,5 +421,5 @@ export function AttendancePage() {
         </button>
       </div>
     </div>
-  )
-} 
+  );
+}
