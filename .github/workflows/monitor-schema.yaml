@@ -1,0 +1,16 @@
+name: Atlas Schema Monitoring
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */4 * * *'  # every 4 hours
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ariga/setup-atlas@v0
+        with:
+          version: beta
+      - uses: ariga/atlas-action/monitor/schema@v1
+        with:
+          cloud-token: ${{ secrets.ATLAS_CLOUD_TOKEN }}
+          url: ${{ secrets.DB_URL }}
