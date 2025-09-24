@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useVolunteers } from "@/hooks/useVolunteers";
 import Image from "next/image";
 import { getStatusClasses } from "@/utils/colors/statusColors";
 
@@ -24,68 +25,44 @@ export function VolunteersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-  const [selectedVolunteers, setSelectedVolunteers] = useState<number[]>([]);
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
 
-  const volunteers: Volunteer[] = [
-    {
-      id: 1,
-      name: "Arjun Patel",
-      email: "arjun.patel@vitstudent.ac.in",
-      phone: "+91 9876543210",
-      year: "3rd Year",
-      branch: "Computer Science",
-      eventsParticipated: 12,
-      totalHours: 48,
-      status: "Active",
-      joinDate: "Jan 2024",
-      avatar: "https://i.imgur.com/gVo4gxC.png",
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      email: "priya.sharma@vitstudent.ac.in",
-      phone: "+91 9765432109",
-      year: "2nd Year",
-      branch: "Electronics",
-      eventsParticipated: 8,
-      totalHours: 32,
-      status: "Active",
-      joinDate: "Feb 2024",
-      avatar: "https://i.imgur.com/7OtnwP9.png",
-    },
-    {
-      id: 3,
-      name: "Raj Kumar",
-      email: "raj.kumar@vitstudent.ac.in",
-      phone: "+91 9654321098",
-      year: "4th Year",
-      branch: "Mechanical",
-      eventsParticipated: 15,
-      totalHours: 75,
-      status: "Active",
-      joinDate: "Sep 2023",
-      avatar: "https://i.imgur.com/xG2942s.png",
-    },
-    {
-      id: 4,
-      name: "Sneha Reddy",
-      email: "sneha.reddy@vitstudent.ac.in",
-      phone: "+91 9543210987",
-      year: "1st Year",
-      branch: "Civil",
-      eventsParticipated: 3,
-      totalHours: 12,
-      status: "Pending",
-      joinDate: "Nov 2024",
-      avatar: "https://i.imgur.com/gJgRz7n.png",
-    },
-  ];
+  const { volunteers, loading, error } = useVolunteers();
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-500 border-t-transparent"></div>
+          <p className="text-gray-400">Loading volunteers...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Error loading volunteers: {error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="button-glass-primary px-4 py-2 rounded-lg"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const filteredVolunteers = volunteers.filter((volunteer) => {
+    const fullName = `${volunteer.first_name} ${volunteer.last_name}`;
     const matchesSearch =
-      volunteer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       volunteer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      volunteer.branch.toLowerCase().includes(searchTerm.toLowerCase());
+      volunteer.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      volunteer.roll_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || volunteer.status === statusFilter;
     const matchesYear = !yearFilter || volunteer.year === yearFilter;
 
@@ -275,14 +252,14 @@ export function VolunteersPage() {
                     />
                     <Image
                       src={volunteer.avatar}
-                      alt={volunteer.name}
+                      alt={`${volunteer.first_name} ${volunteer.last_name}`}
                       width={40}
                       height={40}
                       className="w-10 h-10 rounded-full"
                     />
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-200">
-                        {volunteer.name}
+                        {volunteer.first_name} {volunteer.last_name}
                       </h4>
                       <p className="text-sm text-gray-400">{volunteer.email}</p>
                     </div>
@@ -325,14 +302,14 @@ export function VolunteersPage() {
                   <div className="col-span-2 flex items-center space-x-3">
                     <Image
                       src={volunteer.avatar}
-                      alt={volunteer.name}
+                      alt={`${volunteer.first_name} ${volunteer.last_name}`}
                       width={32}
                       height={32}
                       className="w-8 h-8 rounded-full"
                     />
                     <div>
                       <div className="font-medium text-gray-200 text-sm">
-                        {volunteer.name}
+                        {volunteer.first_name} {volunteer.last_name}
                       </div>
                       <div className="text-xs text-gray-500">
                         {volunteer.email}

@@ -17,6 +17,8 @@ interface EventCardProps {
   onEdit: () => void;
   onViewParticipants: () => void;
   onDelete: () => void;
+  createdBy?: string;
+  canEdit?: boolean;
 }
 
 export function EventCard({
@@ -30,6 +32,8 @@ export function EventCard({
   onEdit,
   onViewParticipants,
   onDelete,
+  createdBy,
+  canEdit = false,
 }: EventCardProps) {
   return (
     <div className="card-glass hover-lift rounded-xl flex flex-col transition-all duration-300 ease-out px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-2.4">

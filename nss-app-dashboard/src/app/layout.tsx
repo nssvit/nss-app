@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PWAManager } from "@/components/PWAManager";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
 export const viewport: Viewport = {
@@ -105,9 +106,11 @@ export default function RootLayout({
       <body
         className="antialiased h-full overflow-x-hidden"
       >
-        <ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider>
           {children}
-          <PWAManager />
+            <PWAManager />
+        </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
