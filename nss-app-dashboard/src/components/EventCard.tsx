@@ -16,6 +16,8 @@ interface EventCardProps {
   onEdit: () => void;
   onViewParticipants: () => void;
   onDelete: () => void;
+  createdBy?: string;
+  canEdit?: boolean;
 }
 
 export function EventCard({
@@ -29,6 +31,8 @@ export function EventCard({
   onEdit,
   onViewParticipants,
   onDelete,
+  createdBy,
+  canEdit = false,
 }: EventCardProps) {
   const getCategoryColor = (category: string) => {
     switch (category.toLowerCase()) {
