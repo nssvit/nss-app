@@ -1,0 +1,247 @@
+/* ============================================
+   LIGHT MODE OVERRIDES
+   ============================================ */
+
+/* Text Colors */
+.light .text-gray-100 {
+  color: #212529 !important;
+}
+
+.light .text-gray-200 {
+  color: #343a40 !important;
+}
+
+.light .text-gray-300 {
+  color: #495057 !important;
+}
+
+.light .text-gray-400 {
+  color: #6c757d !important;
+}
+
+.light .text-gray-500 {
+  color: #adb5bd !important;
+}
+
+/* Buttons */
+.light .button-glass-primary {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.15) 0%,
+    rgba(139, 92, 246, 0.2) 100%
+  );
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #4c51bf;
+  box-shadow:
+    0 4px 20px rgba(99, 102, 241, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.light .button-glass-primary:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.25) 0%,
+    rgba(139, 92, 246, 0.3) 100%
+  );
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow:
+    0 8px 28px rgba(99, 102, 241, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.light .button-glass-secondary {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #495057;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.light .button-glass-secondary:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Sidebar */
+.light .sidebar-link {
+  color: #6c757d !important;
+}
+
+.light .sidebar-link:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #343a40 !important;
+}
+
+.light .active-sidebar-link {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.12) 0%,
+    rgba(139, 92, 246, 0.15) 100%
+  ) !important;
+  color: #4c51bf !important;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.light .sidebar-header-box {
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dividers and Borders */
+.light hr,
+.light .border-gray-700\/30,
+.light .border-t {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Event Cards */
+.light .bg-gray-800\/30 {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.light .bg-gray-800\/50 {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light .bg-gray-700\/50 {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Icon Colors */
+.light .text-indigo-400 {
+  color: #5a67d8 !important;
+}
+
+.light .text-green-400 {
+  color: #48bb78 !important;
+}
+
+.light .text-purple-400 {
+  color: #9f7aea !important;
+}
+
+.light .text-orange-400 {
+  color: #ed8936 !important;
+}
+
+.light .text-blue-400 {
+  color: #4299e1 !important;
+}
+
+.light .text-yellow-400 {
+  color: #ecc94b !important;
+}
+
+.light .text-red-400 {
+  color: #f56565 !important;
+}
+
+/* Mobile Sidebar */
+.light .mobile-sidebar-overlay {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Responsive card improvements for light mode */
+.light .card-glass {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+@media (max-width: 768px) {
+  .light .card-glass {
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 1);
+  }
+
+  .light .sidebar-link {
+    color: #495057 !important;
+  }
+
+  .light .active-sidebar-link {
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.15) 0%,
+      rgba(139, 92, 246, 0.18) 100%
+    ) !important;
+    color: #4c51bf !important;
+  }
+}
+
+/* Charts (Recharts) */
+.light .recharts-text {
+  fill: #495057 !important;
+}
+
+.light .recharts-cartesian-grid line {
+  stroke: #dee2e6 !important;
+}
+
+/* Focus States */
+.light .focus-visible:focus {
+  outline: 2px solid #5a67d8 !important;
+  outline-offset: 2px;
+}
+
+/* Modal/Dialog */
+.light .fixed.inset-0.bg-black\/60 {
+  background: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Select Dropdowns */
+.light select option {
+  background: #ffffff;
+  color: #212529;
+}
+
+/* Hover effects for action buttons */
+.light .action-button:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #212529 !important;
+}
+
+/* Toast notifications - maintain visibility in light mode */
+.light .bg-green-600\/90 {
+  background: rgba(34, 197, 94, 0.95) !important;
+}
+
+.light .bg-red-600\/90 {
+  background: rgba(239, 68, 68, 0.95) !important;
+}
+
+.light .bg-yellow-600\/90 {
+  background: rgba(234, 179, 8, 0.95) !important;
+}
+
+.light .bg-indigo-600\/90 {
+  background: rgba(79, 70, 229, 0.95) !important;
+}
+
+/* Table and list hover states */
+.light .hover\:bg-gray-800\/20:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Stat cards background */
+.light .bg-gray-800\/30 {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Checkbox */
+.light .checkbox-custom {
+  background: #ffffff;
+  border-color: #ced4da;
+}
+
+.light .checkbox-custom:checked {
+  background-color: #5a67d8;
+  border-color: #5a67d8;
+}
+
+/* Toggle Switch */
+.light .toggle-switch {
+  background-color: #cbd5e0;
+}
+
+.light .toggle-switch.active {
+  background-color: #5a67d8;
+}

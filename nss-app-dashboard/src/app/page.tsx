@@ -11,6 +11,7 @@ import { ReportsPage } from "@/components/ReportsPage";
 import { UserManagementPage } from "@/components/UserManagementPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { ProfilePage } from "@/components/ProfilePage";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 // Sample events data matching the prototype
@@ -433,6 +434,8 @@ export default function Dashboard() {
                 {!layout.isMobile && <span>Create Event</span>}
               </button>
             )}
+
+            <ThemeToggle />
 
             <button className="pwa-button action-button hover-lift text-gray-400 hover:text-gray-200 p-2 rounded-lg focus-visible">
               <i
