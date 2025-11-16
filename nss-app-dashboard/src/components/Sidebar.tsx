@@ -220,16 +220,14 @@ export function Sidebar({
             alt="NSS Logo"
             width={20}
             height={20}
-            className="h-5"
-            style={{ transform: "scale(1.01)" }}
+            className="h-5 logo-nss"
           />
           <Image
             src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_90/v1740557668/img/vit-logo.png"
             alt="VIT Logo"
             width={36}
             height={14}
-            className="h-3.5 opacity-85"
-            style={{ transform: "scale(1.5)" }}
+            className="h-3.5 opacity-85 logo-vit"
           />
         </div>
         <button
@@ -243,8 +241,7 @@ export function Sidebar({
       {/* Desktop Navigation Section */}
       <div className="flex-grow flex flex-col px-3 space-y-1">
         <nav
-          className="flex-grow overflow-y-auto pr-1 space-y-1"
-          style={{ fontSize: "0.84rem" }}
+          className="flex-grow overflow-y-auto pr-1 space-y-1 sidebar-nav-text"
         >
           {navigationLinks.map((link) => (
             <a

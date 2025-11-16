@@ -1,0 +1,119 @@
+:root {
+  /* Text Colors - Dark Mode */
+  --text-primary: #f8f9fa;
+  --text-secondary: #e9ecef;
+  --text-tertiary: #adb5bd;
+  --text-quaternary: #6c757d;
+  --text-muted: #495057;
+
+  /* Background Colors - Dark Mode */
+  --bg-primary: #070709;
+  --bg-secondary: #0c0c0e;
+  --bg-tertiary: #131315;
+  --bg-surface: rgba(20, 21, 25, 0.82);
+  --bg-surface-hover: rgba(24, 25, 29, 0.88);
+
+  /* Sidebar */
+  --sidebar-bg: linear-gradient(180deg, #131315 0%, #111113 50%, #0c0c0e 100%);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+
+  /* Border Colors */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.13);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  /* Status Colors */
+  --status-success-text: #48bb78;
+  --status-success-bg: rgba(72, 187, 120, 0.2);
+  --status-error-text: #f56565;
+  --status-error-bg: rgba(245, 101, 101, 0.2);
+  --status-warning-text: #ecc94b;
+  --status-warning-bg: rgba(236, 201, 75, 0.2);
+  --status-info-text: #4299e1;
+  --status-info-bg: rgba(66, 153, 225, 0.2);
+
+  /* Brand Colors */
+  --brand-primary: #6366f1;
+  --brand-secondary: #8b5cf6;
+  --brand-primary-light: #a5b4fc;
+
+  /* Chart Colors */
+  --chart-1: #6366f1;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #8b5cf6;
+  --chart-5: #3b82f6;
+  --chart-grid: #374151;
+  --chart-text: #9ca3af;
+
+  /* Category Colors */
+  --category-area: #3b82f6;
+  --category-college: #a855f7;
+  --category-camp: #f97316;
+  --category-workshop: #6366f1;
+  --category-default: #6b7280;
+
+  /* Input Colors */
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.09);
+  --input-focus-border: rgba(99, 102, 241, 0.5);
+  --input-placeholder: #adb5bd;
+
+  /* Modal */
+  --modal-backdrop: rgba(0, 0, 0, 0.85);
+  --modal-bg: rgba(20, 21, 25, 0.95);
+}
+
+.light {
+  /* Text Colors - Light Mode */
+  --text-primary: #212529;
+  --text-secondary: #343a40;
+  --text-tertiary: #495057;
+  --text-quaternary: #6c757d;
+  --text-muted: #adb5bd;
+
+  /* Background Colors - Light Mode */
+  --bg-primary: #f8f9fa;
+  --bg-secondary: #e9ecef;
+  --bg-tertiary: #dee2e6;
+  --bg-surface: rgba(255, 255, 255, 0.9);
+  --bg-surface-hover: rgba(255, 255, 255, 0.95);
+
+  /* Sidebar */
+  --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8f9fa 50%, #f1f3f5 100%);
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+
+  /* Border Colors */
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.15);
+  --border-strong: rgba(0, 0, 0, 0.3);
+
+  /* Status Colors (adjusted for light mode) */
+  --status-success-text: #2d7a4f;
+  --status-success-bg: rgba(72, 187, 120, 0.15);
+  --status-error-text: #c53030;
+  --status-error-bg: rgba(245, 101, 101, 0.15);
+  --status-warning-text: #b7791f;
+  --status-warning-bg: rgba(236, 201, 75, 0.15);
+  --status-info-text: #2c5282;
+  --status-info-bg: rgba(66, 153, 225, 0.15);
+
+  /* Brand Colors */
+  --brand-primary: #5a67d8;
+  --brand-secondary: #9f7aea;
+  --brand-primary-light: #4c51bf;
+
+  /* Chart Colors */
+  --chart-grid: #dee2e6;
+  --chart-text: #495057;
+
+  /* Input Colors */
+  --input-bg: rgba(255, 255, 255, 0.95);
+  --input-border: rgba(0, 0, 0, 0.15);
+  --input-focus-border: rgba(99, 102, 241, 0.6);
+  --input-placeholder: #6c757d;
+
+  /* Modal */
+  --modal-backdrop: rgba(0, 0, 0, 0.5);
+  --modal-bg: rgba(255, 255, 255, 0.98);
+}

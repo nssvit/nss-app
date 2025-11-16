@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import Image from "next/image";
+import { getStatusClasses } from "@/utils/colors/statusColors";
 
 interface Volunteer {
   id: number;
@@ -91,19 +92,6 @@ export function VolunteersPage() {
     return matchesSearch && matchesStatus && matchesYear;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "text-green-400 bg-green-900/30";
-      case "Inactive":
-        return "text-red-400 bg-red-900/30";
-      case "Pending":
-        return "text-yellow-400 bg-yellow-900/30";
-      default:
-        return "text-gray-400 bg-gray-900/30";
-    }
-  };
-
   const handleSelectVolunteer = (id: number) => {
     setSelectedVolunteers((prev) =>
       prev.includes(id)
@@ -156,8 +144,7 @@ export function VolunteersPage() {
             <input
               type="text"
               placeholder="Search volunteers..."
-              className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible"
-              style={{ width: layout.isTablet ? "200px" : "250px" }}
+              className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible search-input-responsive"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -300,7 +287,7 @@ export function VolunteersPage() {
                       <p className="text-sm text-gray-400">{volunteer.email}</p>
                     </div>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(volunteer.status)}`}
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(volunteer.status)}`}
                     >
                       {volunteer.status}
                     </span>
@@ -364,7 +351,7 @@ export function VolunteersPage() {
                   </div>
                   <div>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(volunteer.status)}`}
+                      className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(volunteer.status)}`}
                     >
                       {volunteer.status}
                     </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getCategoryColor } from "@/utils/colors/categoryColors";
 
 interface EventCardProps {
   title: string;
@@ -30,21 +31,6 @@ export function EventCard({
   onViewParticipants,
   onDelete,
 }: EventCardProps) {
-  const getCategoryColor = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "area based - 1":
-        return "bg-blue-500";
-      case "college event":
-        return "bg-purple-500";
-      case "camp":
-        return "bg-orange-500";
-      case "workshop":
-        return "bg-indigo-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
   return (
     <div className="card-glass hover-lift rounded-xl flex flex-col transition-all duration-300 ease-out px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-2.4">
       <div className="flex-grow">
