@@ -2,11 +2,73 @@
 
 import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
+import {
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 export function ReportsPage() {
   const layout = useResponsiveLayout();
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [selectedReport, setSelectedReport] = useState("overview");
+  const { toasts, removeToast, success, info } = useToast();
+
+  // Export functions
+  const handleExport = (format: string) => {
+    info(`Preparing ${format.toUpperCase()} export...`);
+    setTimeout(() => {
+      success(`Report exported successfully as ${format.toUpperCase()}!`);
+    }, 1000);
+  };
+
+  const handleDownloadReport = (reportName: string) => {
+    info("Downloading report...");
+    setTimeout(() => {
+      success(`${reportName} downloaded successfully!`);
+    }, 800);
+  };
+
+  const handleGenerateReport = () => {
+    info("Generating custom report...");
+    setTimeout(() => {
+      success("Custom report generated successfully!");
+    }, 1500);
+  };
+
+  // Chart data for Monthly Trends
+  const chartData = [
+    { month: "Jan", events: 18, volunteers: 145, hours: 720 },
+    { month: "Feb", events: 22, volunteers: 167, hours: 890 },
+    { month: "Mar", events: 25, volunteers: 189, hours: 1050 },
+    { month: "Apr", events: 28, volunteers: 203, hours: 1200 },
+    { month: "May", events: 24, volunteers: 198, hours: 1100 },
+    { month: "Jun", events: 31, volunteers: 234, hours: 1350 },
+    { month: "Jul", events: 29, volunteers: 221, hours: 1280 },
+    { month: "Aug", events: 26, volunteers: 208, hours: 1180 },
+    { month: "Sep", events: 33, volunteers: 245, hours: 1420 },
+    { month: "Oct", events: 35, volunteers: 267, hours: 1580 },
+    { month: "Nov", events: 32, volunteers: 251, hours: 1450 },
+    { month: "Dec", events: 27, volunteers: 223, hours: 1320 },
+  ];
+
+  // Pie chart data for Event Categories
+  const categoryData = [
+    { name: "Area Based", value: 45, color: "#6366f1" },
+    { name: "College Events", value: 30, color: "#10b981" },
+    { name: "Camps", value: 15, color: "#f59e0b" },
+    { name: "Workshops", value: 10, color: "#8b5cf6" },
+  ];
 
   const reportTypes = [
     { id: "overview", name: "Overview Report", icon: "fas fa-chart-pie" },
@@ -172,7 +234,10 @@ export function ReportsPage() {
               </option>
             ))}
           </select>
-          <button className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible">
+          <button
+            onClick={() => handleExport("pdf")}
+            className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible"
+          >
             <i className="fas fa-download fa-sm"></i>
             <span>Export</span>
           </button>
@@ -221,14 +286,40 @@ export function ReportsPage() {
           <h3 className="text-lg font-semibold text-gray-100 mb-4">
             Monthly Trends
           </h3>
-          <div className="h-64 flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <i className="fas fa-chart-line text-4xl mb-3"></i>
-              <p>Monthly trends chart</p>
-              <p className="text-sm mt-1">
-                Integration with Chart.js coming soon
-              </p>
-            </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="month" stroke="#9ca3af" />
+                <YAxis stroke="#9ca3af" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(17, 24, 39, 0.95)",
+                    border: "1px solid rgba(75, 85, 99, 0.5)",
+                    borderRadius: "8px",
+                    color: "#f3f4f6",
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="events"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  dot={{ fill: "#6366f1" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="volunteers"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ fill: "#10b981" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -237,14 +328,35 @@ export function ReportsPage() {
           <h3 className="text-lg font-semibold text-gray-100 mb-4">
             Event Categories
           </h3>
-          <div className="h-64 flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <i className="fas fa-chart-pie text-4xl mb-3"></i>
-              <p>Category distribution chart</p>
-              <p className="text-sm mt-1">
-                Integration with Chart.js coming soon
-              </p>
-            </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) =>
+                    `${name} ${(percent * 100).toFixed(0)}%`
+                  }
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(17, 24, 39, 0.95)",
+                    border: "1px solid rgba(75, 85, 99, 0.5)",
+                    borderRadius: "8px",
+                    color: "#f3f4f6",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -302,7 +414,10 @@ export function ReportsPage() {
                   <h4 className="font-medium text-gray-200 text-sm">
                     {report.name}
                   </h4>
-                  <button className="pwa-button action-button text-indigo-400 hover:text-indigo-300 p-1 rounded focus-visible">
+                  <button
+                    onClick={() => handleDownloadReport(report.name)}
+                    className="pwa-button action-button text-indigo-400 hover:text-indigo-300 p-1 rounded focus-visible"
+                  >
                     <i className="fas fa-download text-sm"></i>
                   </button>
                 </div>
@@ -359,12 +474,18 @@ export function ReportsPage() {
           </div>
         </div>
         <div className="flex justify-end mt-4">
-          <button className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible">
+          <button
+            onClick={handleGenerateReport}
+            className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible"
+          >
             <i className="fas fa-chart-bar fa-sm"></i>
             <span>Generate Report</span>
           </button>
         </div>
       </div>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
+import { validateEmail, validateRequired } from "@/utils/validation";
 
 export function SettingsPage() {
   const layout = useResponsiveLayout();
   const [activeTab, setActiveTab] = useState("general");
+  const { toasts, removeToast, success, error } = useToast();
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // General Settings
   const [organizationName, setOrganizationName] = useState("NSS VIT");
@@ -40,9 +45,28 @@ export function SettingsPage() {
     { id: "backup", name: "Backup", icon: "fas fa-database" },
   ];
 
+  const validateSettings = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!validateRequired(organizationName)) {
+      newErrors.organizationName = "Organization name is required";
+    }
+
+    if (!validateEmail(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = () => {
-    // Save settings logic here
-    console.log("Settings saved");
+    if (activeTab === "general" && !validateSettings()) {
+      error("Please fix the errors before saving");
+      return;
+    }
+    success("Settings saved successfully!");
+    setErrors({});
   };
 
   return (
@@ -94,9 +118,19 @@ export function SettingsPage() {
                       <input
                         type="text"
                         value={organizationName}
-                        onChange={(e) => setOrganizationName(e.target.value)}
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                        onChange={(e) => {
+                          setOrganizationName(e.target.value);
+                          if (errors.organizationName) {
+                            setErrors({ ...errors, organizationName: "" });
+                          }
+                        }}
+                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.organizationName ? "border-2 border-red-500" : ""}`}
                       />
+                      {errors.organizationName && (
+                        <p className="text-red-400 text-xs mt-1">
+                          {errors.organizationName}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -105,9 +139,17 @@ export function SettingsPage() {
                       <input
                         type="email"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (errors.email) {
+                            setErrors({ ...errors, email: "" });
+                          }
+                        }}
+                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.email ? "border-2 border-red-500" : ""}`}
                       />
+                      {errors.email && (
+                        <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -477,6 +519,9 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

@@ -201,7 +201,12 @@ export default function Dashboard() {
   const renderPageContent = () => {
     switch (activeLink) {
       case "dashboard":
-        return <DashboardPage />;
+        return (
+          <DashboardPage
+            onNavigate={(page) => setActiveLink(page)}
+            onCreateEvent={() => setIsModalOpen(true)}
+          />
+        );
 
       case "volunteers":
         return <VolunteersPage />;
