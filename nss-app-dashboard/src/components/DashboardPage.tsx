@@ -1,9 +1,42 @@
 "use client";
 
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-export function DashboardPage() {
+interface DashboardPageProps {
+  onNavigate?: (page: string) => void;
+  onCreateEvent?: () => void;
+}
+
+export function DashboardPage({
+  onNavigate,
+  onCreateEvent,
+}: DashboardPageProps) {
   const layout = useResponsiveLayout();
+
+  // Activity chart data
+  const activityData = [
+    { month: "Jan", events: 18, volunteers: 145, hours: 720 },
+    { month: "Feb", events: 22, volunteers: 167, hours: 890 },
+    { month: "Mar", events: 25, volunteers: 189, hours: 1050 },
+    { month: "Apr", events: 28, volunteers: 203, hours: 1200 },
+    { month: "May", events: 24, volunteers: 198, hours: 1100 },
+    { month: "Jun", events: 31, volunteers: 234, hours: 1350 },
+    { month: "Jul", events: 29, volunteers: 221, hours: 1280 },
+    { month: "Aug", events: 26, volunteers: 208, hours: 1180 },
+    { month: "Sep", events: 33, volunteers: 245, hours: 1420 },
+    { month: "Oct", events: 35, volunteers: 267, hours: 1580 },
+    { month: "Nov", events: 32, volunteers: 251, hours: 1450 },
+    { month: "Dec", events: 27, volunteers: 223, hours: 1320 },
+  ];
 
   const stats = [
     {
@@ -131,7 +164,10 @@ export function DashboardPage() {
             <h3 className="text-lg font-semibold text-gray-100">
               Recent Events
             </h3>
-            <button className="text-sm text-indigo-400 hover:text-indigo-300">
+            <button
+              onClick={() => onNavigate?.("events")}
+              className="text-sm text-indigo-400 hover:text-indigo-300"
+            >
               View All
             </button>
           </div>
@@ -168,19 +204,31 @@ export function DashboardPage() {
             Quick Actions
           </h3>
           <div className="grid grid-cols-2 gap-3">
-            <button className="pwa-button button-glass-primary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible">
+            <button
+              onClick={() => onCreateEvent?.()}
+              className="pwa-button button-glass-primary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+            >
               <i className="fas fa-plus text-lg text-indigo-400"></i>
               <span className="text-sm font-medium">Create Event</span>
             </button>
-            <button className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible">
+            <button
+              onClick={() => onNavigate?.("volunteers")}
+              className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+            >
               <i className="fas fa-user-plus text-lg text-green-400"></i>
               <span className="text-sm font-medium">Add Volunteer</span>
             </button>
-            <button className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible">
+            <button
+              onClick={() => onNavigate?.("reports")}
+              className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+            >
               <i className="fas fa-chart-line text-lg text-purple-400"></i>
               <span className="text-sm font-medium">View Reports</span>
             </button>
-            <button className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible">
+            <button
+              onClick={() => onCreateEvent?.()}
+              className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+            >
               <i className="fas fa-calendar-alt text-lg text-orange-400"></i>
               <span className="text-sm font-medium">Schedule Event</span>
             </button>
@@ -193,14 +241,55 @@ export function DashboardPage() {
         <h3 className="text-lg font-semibold text-gray-100 mb-4">
           Activity Overview
         </h3>
-        <div className="h-64 flex items-center justify-center text-gray-500">
-          <div className="text-center">
-            <i className="fas fa-chart-area text-4xl mb-3"></i>
-            <p>Activity chart will be displayed here</p>
-            <p className="text-sm mt-1">
-              Integration with Chart.js coming soon
-            </p>
-          </div>
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={activityData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient
+                  id="colorVolunteers"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="month" stroke="#9ca3af" />
+              <YAxis stroke="#9ca3af" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(17, 24, 39, 0.95)",
+                  border: "1px solid rgba(75, 85, 99, 0.5)",
+                  borderRadius: "8px",
+                  color: "#f3f4f6",
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="events"
+                stroke="#6366f1"
+                fillOpacity={1}
+                fill="url(#colorEvents)"
+              />
+              <Area
+                type="monotone"
+                dataKey="volunteers"
+                stroke="#10b981"
+                fillOpacity={1}
+                fill="url(#colorVolunteers)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

@@ -1,12 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useToast } from "@/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
+import { validateEmail, validatePhone, validateRequired } from "@/utils/validation";
 import Image from "next/image";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 export function ProfilePage() {
   const layout = useResponsiveLayout();
   const [activeTab, setActiveTab] = useState("profile");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toasts, removeToast, success, error } = useToast();
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        error("File size must be less than 5MB");
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        error("Please select an image file");
+        return;
+      }
+      success("Profile picture updated successfully!");
+      // In a real app, you would upload the file here
+    }
+  };
+
+  // Activity chart data for the last 7 days
+  const activityChartData = [
+    { day: "Mon", events: 3, hours: 8 },
+    { day: "Tue", events: 5, hours: 12 },
+    { day: "Wed", events: 2, hours: 6 },
+    { day: "Thu", events: 4, hours: 10 },
+    { day: "Fri", events: 6, hours: 15 },
+    { day: "Sat", events: 8, hours: 20 },
+    { day: "Sun", events: 4, hours: 10 },
+  ];
 
   // Profile data
   const [profileData, setProfileData] = useState({
@@ -73,8 +119,32 @@ export function ProfilePage() {
     { id: "preferences", name: "Preferences", icon: "fas fa-sliders-h" },
   ];
 
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!validateRequired(profileData.name)) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!validateEmail(profileData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!validatePhone(profileData.phone)) {
+      newErrors.phone = "Please enter a valid phone number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = () => {
-    console.log("Profile saved");
+    if (validateForm()) {
+      success("Profile saved successfully!");
+      setErrors({});
+    } else {
+      error("Please fix the errors before saving");
+    }
   };
 
   return (
@@ -95,7 +165,17 @@ export function ProfilePage() {
                 height={layout.isMobile ? 96 : 128}
                 className={`${layout.isMobile ? "w-24 h-24" : "w-32 h-32"} rounded-full border-4 border-gray-700/50`}
               />
-              <button className="absolute bottom-0 right-0 pwa-button bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg focus-visible">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <button
+                onClick={handleAvatarClick}
+                className="absolute bottom-0 right-0 pwa-button bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg focus-visible"
+              >
                 <i className="fas fa-camera text-sm"></i>
               </button>
             </div>
@@ -202,14 +282,20 @@ export function ProfilePage() {
                       <input
                         type="text"
                         value={profileData.name}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setProfileData({
                             ...profileData,
                             name: e.target.value,
-                          })
-                        }
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                          });
+                          if (errors.name) {
+                            setErrors({ ...errors, name: "" });
+                          }
+                        }}
+                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.name ? "border-2 border-red-500" : ""}`}
                       />
+                      {errors.name && (
+                        <p className="text-red-400 text-xs mt-1">{errors.name}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -218,14 +304,20 @@ export function ProfilePage() {
                       <input
                         type="email"
                         value={profileData.email}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setProfileData({
                             ...profileData,
                             email: e.target.value,
-                          })
-                        }
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                          });
+                          if (errors.email) {
+                            setErrors({ ...errors, email: "" });
+                          }
+                        }}
+                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.email ? "border-2 border-red-500" : ""}`}
                       />
+                      {errors.email && (
+                        <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -234,14 +326,20 @@ export function ProfilePage() {
                       <input
                         type="tel"
                         value={profileData.phone}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setProfileData({
                             ...profileData,
                             phone: e.target.value,
-                          })
-                        }
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                          });
+                          if (errors.phone) {
+                            setErrors({ ...errors, phone: "" });
+                          }
+                        }}
+                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.phone ? "border-2 border-red-500" : ""}`}
                       />
+                      {errors.phone && (
+                        <p className="text-red-400 text-xs mt-1">{errors.phone}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -354,16 +452,29 @@ export function ProfilePage() {
 
                 <div>
                   <h3 className="text-lg font-semibold text-gray-100 mb-4">
-                    Activity Chart
+                    Activity Chart - Last 7 Days
                   </h3>
-                  <div className="h-64 bg-gray-800/30 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <i className="fas fa-chart-area text-4xl mb-3"></i>
-                      <p>Activity chart will be displayed here</p>
-                      <p className="text-sm mt-1">
-                        Integration with Chart.js coming soon
-                      </p>
-                    </div>
+                  <div className="h-64 bg-gray-800/30 rounded-lg p-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={activityChartData}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="day" stroke="#9ca3af" />
+                        <YAxis stroke="#9ca3af" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "rgba(17, 24, 39, 0.95)",
+                            border: "1px solid rgba(75, 85, 99, 0.5)",
+                            borderRadius: "8px",
+                            color: "#f3f4f6",
+                          }}
+                        />
+                        <Bar dataKey="events" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                        <Bar dataKey="hours" fill="#10b981" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
@@ -529,6 +640,9 @@ export function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

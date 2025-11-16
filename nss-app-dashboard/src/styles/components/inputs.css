@@ -1,0 +1,115 @@
+.input-dark {
+  background: var(--input-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+}
+
+.input-dark::placeholder {
+  color: var(--input-placeholder);
+}
+
+.input-dark:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1),
+    inset 0 2px 8px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+.input-error {
+  border: 2px solid var(--status-error-text);
+}
+
+.input-error:focus {
+  border-color: var(--status-error-text);
+  box-shadow: 0 0 0 3px var(--status-error-bg);
+}
+
+.checkbox-custom {
+  height: 1rem;
+  width: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid #4b5563;
+  background: #374151;
+  color: var(--brand-primary);
+}
+
+.checkbox-custom:checked {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.checkbox-custom:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  height: 1.5rem;
+  width: 2.75rem;
+  align-items: center;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+  background-color: #374151;
+}
+
+.toggle-switch:focus {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.toggle-switch.active {
+  background-color: var(--brand-primary);
+}
+
+.toggle-slider {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  transform: translateX(0.25rem);
+  border-radius: var(--radius-full);
+  background: white;
+  transition: transform 0.2s ease;
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(1.5rem);
+}
+
+.light .input-dark {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.light .input-dark:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15),
+    inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+.light .checkbox-custom {
+  background: #ffffff;
+  border-color: #ced4da;
+}
+
+.light .checkbox-custom:checked {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.light .toggle-switch {
+  background-color: #cbd5e0;
+}
+
+.light .toggle-switch.active {
+  background-color: var(--brand-primary);
+}

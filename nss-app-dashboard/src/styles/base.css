@@ -1,0 +1,31 @@
+@import "./tokens/colors.css";
+@import "./tokens/spacing.css";
+@import "./tokens/typography.css";
+@import "./components/buttons.css";
+@import "./components/cards.css";
+@import "./components/inputs.css";
+@import "./components/sidebar.css";
+@import "./components/modals.css";
+@import "./utilities/animations.css";
+@import "./utilities/layout.css";
+@import "../app/light-mode.css";
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(135deg, #070709 0%, #0c0c0e 50%, #131315 100%);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.light body {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 0.95rem;
+  }
+}

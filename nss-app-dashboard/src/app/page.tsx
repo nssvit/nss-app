@@ -11,6 +11,7 @@ import { ReportsPage } from "@/components/ReportsPage";
 import { UserManagementPage } from "@/components/UserManagementPage";
 import { SettingsPage } from "@/components/SettingsPage";
 import { ProfilePage } from "@/components/ProfilePage";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 
 // Sample events data matching the prototype
@@ -201,7 +202,12 @@ export default function Dashboard() {
   const renderPageContent = () => {
     switch (activeLink) {
       case "dashboard":
-        return <DashboardPage />;
+        return (
+          <DashboardPage
+            onNavigate={(page) => setActiveLink(page)}
+            onCreateEvent={() => setIsModalOpen(true)}
+          />
+        );
 
       case "volunteers":
         return <VolunteersPage />;
@@ -397,8 +403,7 @@ export default function Dashboard() {
                 <input
                   type="text"
                   placeholder="Search events..."
-                  className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible"
-                  style={{ width: layout.isTablet ? "180px" : "220px" }}
+                  className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible search-input-responsive"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -417,9 +422,8 @@ export default function Dashboard() {
             {activeLink === "events" && (
               <button
                 className={`button-glass-primary hover-lift flex items-center rounded-lg font-medium focus-visible ${
-                  layout.isMobile ? "p-2" : "space-x-2 px-4 py-2"
+                  layout.isMobile ? "p-2" : "space-x-2 px-4 py-2 text-sm"
                 }`}
-                style={{ fontSize: layout.isMobile ? undefined : "0.94rem" }}
                 onClick={() => setIsModalOpen(true)}
               >
                 <i
@@ -428,6 +432,8 @@ export default function Dashboard() {
                 {!layout.isMobile && <span>Create Event</span>}
               </button>
             )}
+
+            <ThemeToggle />
 
             <button className="pwa-button action-button hover-lift text-gray-400 hover:text-gray-200 p-2 rounded-lg focus-visible">
               <i

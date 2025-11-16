@@ -1,0 +1,102 @@
+.light .text-gray-100 {
+  color: var(--text-primary);
+}
+
+.light .text-gray-200 {
+  color: var(--text-secondary);
+}
+
+.light .text-gray-300 {
+  color: var(--text-tertiary);
+}
+
+.light .text-gray-400 {
+  color: var(--text-quaternary);
+}
+
+.light .text-gray-500 {
+  color: var(--text-muted);
+}
+
+.light hr,
+.light .border-gray-700\/30,
+.light .border-t {
+  border-color: var(--border-subtle);
+}
+
+.light .bg-gray-800\/30 {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.light .bg-gray-800\/50 {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.light .bg-gray-700\/50 {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.light .text-indigo-400 {
+  color: #5a67d8;
+}
+
+.light .text-green-400 {
+  color: #48bb78;
+}
+
+.light .text-purple-400 {
+  color: #9f7aea;
+}
+
+.light .text-orange-400 {
+  color: #ed8936;
+}
+
+.light .text-blue-400 {
+  color: #4299e1;
+}
+
+.light .text-yellow-400 {
+  color: #ecc94b;
+}
+
+.light .text-red-400 {
+  color: #f56565;
+}
+
+.light .recharts-text {
+  fill: var(--chart-text);
+}
+
+.light .recharts-cartesian-grid line {
+  stroke: var(--chart-grid);
+}
+
+.light .fixed.inset-0.bg-black\/60 {
+  background: var(--modal-backdrop);
+}
+
+.light select option {
+  background: #ffffff;
+  color: var(--text-primary);
+}
+
+.light .hover\:bg-gray-800\/20:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.light .bg-green-600\/90 {
+  background: rgba(34, 197, 94, 0.95);
+}
+
+.light .bg-red-600\/90 {
+  background: rgba(239, 68, 68, 0.95);
+}
+
+.light .bg-yellow-600\/90 {
+  background: rgba(234, 179, 8, 0.95);
+}
+
+.light .bg-indigo-600\/90 {
+  background: rgba(79, 70, 229, 0.95);
+}
