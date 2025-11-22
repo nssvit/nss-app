@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { StatsCard } from "./StatsCard";
 
 interface DashboardPageProps {
   onNavigate?: (page: string) => void;
@@ -126,30 +127,14 @@ export function DashboardPage({
         className={`grid ${layout.isMobile ? "grid-cols-1" : layout.isTablet ? "grid-cols-2" : "grid-cols-4"} gap-4 mb-6`}
       >
         {stats.map((stat, index) => (
-          <div key={index} className="card-glass rounded-xl p-4 md:p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div
-                className={`w-12 h-12 rounded-lg bg-gray-800/50 flex items-center justify-center ${stat.color}`}
-              >
-                <i className={`${stat.icon} text-lg`}></i>
-              </div>
-              <div
-                className={`flex items-center space-x-1 text-sm ${
-                  stat.changeType === "increase"
-                    ? "text-green-400"
-                    : "text-red-400"
-                }`}
-              >
-                <i
-                  className={`fas fa-arrow-${stat.changeType === "increase" ? "up" : "down"} text-xs`}
-                ></i>
-                <span>{stat.change}</span>
-              </div>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-100 mb-1">
-              {stat.value}
-            </h3>
-            <p className="text-sm text-gray-400">{stat.title}</p>
+          <div key={index} className="h-full">
+            <StatsCard
+              title={stat.title}
+              value={stat.value}
+              change={{ value: parseInt(stat.change), type: stat.changeType }}
+              icon={stat.icon}
+              color={stat.color.replace('text-', '').replace('-400', '') as any}
+            />
           </div>
         ))}
       </div>
@@ -159,7 +144,7 @@ export function DashboardPage({
         className={`grid ${layout.isMobile ? "grid-cols-1" : "grid-cols-2"} gap-6`}
       >
         {/* Recent Events */}
-        <div className="card-glass rounded-xl p-5">
+        <div className="card-glass rounded-xl p-5 h-full">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-100">
               Recent Events
@@ -199,7 +184,7 @@ export function DashboardPage({
         </div>
 
         {/* Quick Actions */}
-        <div className="card-glass rounded-xl p-5">
+        <div className="card-glass rounded-xl p-5 h-full">
           <h3 className="text-lg font-semibold text-gray-100 mb-4">
             Quick Actions
           </h3>
@@ -292,6 +277,6 @@ export function DashboardPage({
           </ResponsiveContainer>
         </div>
       </div>
-    </div>
+    </div >
   );
 }

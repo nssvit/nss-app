@@ -4,7 +4,7 @@ interface StatsCardProps {
   title: string
   value: number | string
   icon: string
-  color: 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'indigo'
+  color: 'blue' | 'green' | 'yellow' | 'purple' | 'red' | 'indigo' | 'orange'
   change?: {
     value: number
     type: 'increase' | 'decrease'
@@ -41,6 +41,11 @@ const colorMap = {
     icon: 'text-indigo-500',
     bg: 'bg-indigo-500/10',
     border: 'border-indigo-500/20'
+  },
+  orange: {
+    icon: 'text-orange-500',
+    bg: 'bg-orange-500/10',
+    border: 'border-orange-500/20'
   }
 }
 
@@ -48,18 +53,16 @@ export function StatsCard({ title, value, icon, color, change }: StatsCardProps)
   const colors = colorMap[color]
 
   return (
-    <div className={`bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 hover:bg-gray-800/70 transition-colors`}>
+    <div className={`card-glass rounded-xl p-6 h-full`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-400 text-sm font-medium mb-1">{title}</p>
           <p className="text-2xl font-bold text-gray-100">{value}</p>
           {change && (
-            <div className={`flex items-center mt-2 text-sm ${
-              change.type === 'increase' ? 'text-green-400' : 'text-red-400'
-            }`}>
-              <i className={`fas ${
-                change.type === 'increase' ? 'fa-arrow-up' : 'fa-arrow-down'
-              } mr-1 text-xs`}></i>
+            <div className={`flex items-center mt-2 text-sm ${change.type === 'increase' ? 'text-green-400' : 'text-red-400'
+              }`}>
+              <i className={`fas ${change.type === 'increase' ? 'fa-arrow-up' : 'fa-arrow-down'
+                } mr-1 text-xs`}></i>
               <span>{Math.abs(change.value)}% from last month</span>
             </div>
           )}
