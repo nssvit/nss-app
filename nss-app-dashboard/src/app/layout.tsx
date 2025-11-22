@@ -108,10 +108,10 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ThemeProvider>
-          {children}
+            {children}
             <PWAManager />
+          </ThemeProvider>
         </AuthProvider>
-        </ThemeProvider>
       </body>
     </html>
   );
