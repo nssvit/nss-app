@@ -288,9 +288,8 @@ export default function Dashboard() {
         <main className="flex-1 flex flex-col header-bg">
           {/* Responsive Top Bar */}
           <header
-            className={`flex items-center justify-between border-b border-gray-700/30 sticky top-0 z-20 header-bg safe-area-top ${
-              layout.isMobile ? "mobile-header px-4 py-3" : "px-5 py-4 h-16"
-            }`}
+            className={`flex items-center justify-between border-b border-gray-700/30 sticky top-0 z-20 header-bg safe-area-top ${layout.isMobile ? "mobile-header px-4 py-3" : "px-5 py-4 h-16"
+              }`}
           >
             <div className="flex items-center space-x-3 h-8">
               {/* Mobile menu button */}
@@ -351,9 +350,8 @@ export default function Dashboard() {
               {/* Create Event Button - only show on events page */}
               {activeLink === "events" && (
                 <button
-                  className={`button-glass-primary hover-lift flex items-center rounded-lg font-medium focus-visible ${
-                    layout.isMobile ? "p-2" : "space-x-2 px-4 py-2"
-                  }`}
+                  className={`button-glass-primary hover-lift flex items-center rounded-lg font-medium focus-visible ${layout.isMobile ? "p-2" : "space-x-2 px-4 py-2"
+                    }`}
                   style={{ fontSize: layout.isMobile ? undefined : "0.94rem" }}
                   onClick={() => setIsModalOpen(true)}
                 >
@@ -364,6 +362,7 @@ export default function Dashboard() {
                 </button>
               )}
 
+              <ThemeToggle />
               <button className="pwa-button action-button hover-lift text-gray-400 hover:text-gray-200 p-2 rounded-lg focus-visible">
                 <i
                   className={`far fa-bell ${layout.isMobile ? "text-base" : "fa-sm"}`}

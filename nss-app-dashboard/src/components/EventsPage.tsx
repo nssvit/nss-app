@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { EventCard } from './EventCard'
 import { EventModal } from './EventModal'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { Skeleton } from './Skeleton'
 
 interface Event {
   id: string
@@ -207,12 +208,46 @@ export function EventsPage() {
     ]
   }
 
+  // ... (inside component)
+
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading events...</p>
+      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+        {/* Filters Skeleton */}
+        <div className="flex flex-wrap items-center gap-3 mb-6 px-1">
+          <Skeleton className="h-10 w-32 rounded-lg" />
+          <Skeleton className="h-10 w-40 rounded-lg" />
+          <Skeleton className="h-10 w-24 rounded-lg" />
+        </div>
+
+        {/* Events Grid Skeleton */}
+        <div className={`grid ${layout.getGridColumns()} gap-4 mb-8`}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="card-glass rounded-xl p-4 h-[280px] flex flex-col">
+              <div className="flex justify-between items-start mb-4">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-2/3 mb-4" />
+              <div className="flex gap-2 mb-auto">
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+              <div className="flex justify-between items-center pt-4 mt-4 border-t border-gray-700/20">
+                <div className="flex -space-x-2">
+                  <Skeleton className="h-6 w-6 rounded-full border-2 border-gray-800" />
+                  <Skeleton className="h-6 w-6 rounded-full border-2 border-gray-800" />
+                  <Skeleton className="h-6 w-6 rounded-full border-2 border-gray-800" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                  <Skeleton className="h-8 w-8 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -343,9 +378,8 @@ export function EventsPage() {
               return (
                 <button
                   key={pageNumber}
-                  className={`pagination-button ${currentPage === pageNumber ? 'active' : ''} ${
-                    layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'
-                  } rounded-lg pwa-button focus-visible`}
+                  className={`pagination-button ${currentPage === pageNumber ? 'active' : ''} ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'
+                    } rounded-lg pwa-button focus-visible`}
                   onClick={() => goToPage(pageNumber)}
                 >
                   {pageNumber}

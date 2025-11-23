@@ -1,17 +1,33 @@
 .card-glass {
-  background: var(--bg-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-glass);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(145deg, var(--bg-surface) 0%, rgba(26, 29, 45, 0.4) 100%);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(99, 102, 241, 0.03), transparent 40%);
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+}
+
+.card-glass:hover::before {
+  opacity: 1;
 }
 
 .card-glass:hover {
-  background: var(--bg-surface-hover);
+  background: linear-gradient(145deg, rgba(20, 20, 25, 0.6) 0%, rgba(10, 10, 15, 0.8) 100%);
   border-color: var(--border-medium);
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-glass-hover);
 }
 

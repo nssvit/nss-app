@@ -117,7 +117,7 @@ export function DashboardPage({
         <h2 className="text-xl md:text-2xl font-bold text-gray-100 mb-2">
           Welcome back, Admin!
         </h2>
-        <p className="text-gray-400">
+        <p className="text-gray-300">
           Here&apos;s what&apos;s happening with your NSS activities today.
         </p>
       </div>
@@ -160,15 +160,15 @@ export function DashboardPage({
             {recentEvents.map((event, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-black/60 transition-colors rounded-lg group"
               >
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-200 text-sm">
+                  <h4 className="font-medium text-gray-200 group-hover:text-white transition-colors text-sm">
                     {event.title}
                   </h4>
                   <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-xs text-gray-500">{event.date}</span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">{event.date}</span>
+                    <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
                       {event.participants} participants
                     </span>
                   </div>
@@ -234,8 +234,8 @@ export function DashboardPage({
             >
               <defs>
                 <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient
                   id="colorVolunteers"
@@ -244,34 +244,65 @@ export function DashboardPage({
                   x2="0"
                   y2="1"
                 >
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="month" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+              <XAxis
+                dataKey="month"
+                stroke="var(--chart-text)"
+                tick={{ fill: 'var(--chart-text)' }}
+                axisLine={{ stroke: 'var(--chart-grid)' }}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="var(--chart-text)"
+                tick={{ fill: 'var(--chart-text)' }}
+                axisLine={false}
+                tickLine={false}
+              />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "rgba(17, 24, 39, 0.95)",
-                  border: "1px solid rgba(75, 85, 99, 0.5)",
-                  borderRadius: "8px",
-                  color: "#f3f4f6",
+                content={({ active, payload, label }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
+                        <p className="text-[var(--text-primary)] font-medium mb-2">{label}</p>
+                        {payload.map((entry: any, index: number) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: entry.color === 'url(#colorEvents)' ? 'var(--chart-1)' : 'var(--chart-2)' }}
+                            />
+                            <span className="text-[var(--text-secondary)] capitalize">
+                              {entry.name}:
+                            </span>
+                            <span className="text-[var(--text-primary)] font-semibold">
+                              {entry.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return null;
                 }}
               />
               <Area
                 type="monotone"
                 dataKey="events"
-                stroke="#6366f1"
+                stroke="var(--chart-1)"
                 fillOpacity={1}
                 fill="url(#colorEvents)"
+                strokeWidth={2}
               />
               <Area
                 type="monotone"
                 dataKey="volunteers"
-                stroke="#10b981"
+                stroke="var(--chart-2)"
                 fillOpacity={1}
                 fill="url(#colorVolunteers)"
+                strokeWidth={2}
               />
             </AreaChart>
           </ResponsiveContainer>

@@ -210,11 +210,10 @@ export function ReportsPage() {
             <button
               key={type.id}
               onClick={() => setSelectedReport(type.id)}
-              className={`pwa-button flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible ${
-                selectedReport === type.id
+              className={`pwa-button flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible ${selectedReport === type.id
                   ? "button-glass-primary"
                   : "button-glass-secondary"
-              }`}
+                }`}
             >
               <i className={`${type.icon} fa-sm`}></i>
               <span>{type.name}</span>
@@ -257,11 +256,10 @@ export function ReportsPage() {
                 <i className={`${metric.icon} text-lg`}></i>
               </div>
               <div
-                className={`flex items-center space-x-1 text-sm ${
-                  metric.changeType === "increase"
+                className={`flex items-center space-x-1 text-sm ${metric.changeType === "increase"
                     ? "text-green-400"
                     : "text-red-400"
-                }`}
+                  }`}
               >
                 <i
                   className={`fas fa-arrow-${metric.changeType === "increase" ? "up" : "down"} text-xs`}
@@ -292,31 +290,62 @@ export function ReportsPage() {
                 data={chartData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="month" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  stroke="var(--chart-text)"
+                  tick={{ fill: 'var(--chart-text)' }}
+                  axisLine={{ stroke: 'var(--chart-grid)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="var(--chart-text)"
+                  tick={{ fill: 'var(--chart-text)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(75, 85, 99, 0.5)",
-                    borderRadius: "8px",
-                    color: "#f3f4f6",
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
+                          <p className="text-[var(--text-primary)] font-medium mb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex items-center gap-2 text-sm">
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: entry.color }}
+                              />
+                              <span className="text-[var(--text-secondary)] capitalize">
+                                {entry.name}:
+                              </span>
+                              <span className="text-[var(--text-primary)] font-semibold">
+                                {entry.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: 'var(--chart-text)' }} />
                 <Line
                   type="monotone"
                   dataKey="events"
-                  stroke="#6366f1"
+                  stroke="var(--chart-1)"
                   strokeWidth={2}
-                  dot={{ fill: "#6366f1" }}
+                  dot={{ fill: "var(--chart-1)", strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="volunteers"
-                  stroke="#10b981"
+                  stroke="var(--chart-2)"
                   strokeWidth={2}
-                  dot={{ fill: "#10b981" }}
+                  dot={{ fill: "var(--chart-2)", strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -344,15 +373,31 @@ export function ReportsPage() {
                   dataKey="value"
                 >
                   {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={`var(--chart-${index + 1})`} />
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(75, 85, 99, 0.5)",
-                    borderRadius: "8px",
-                    color: "#f3f4f6",
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
+                          <div className="flex items-center gap-2 text-sm">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: data.fill || data.color }}
+                            />
+                            <span className="text-[var(--text-secondary)]">
+                              {data.name}:
+                            </span>
+                            <span className="text-[var(--text-primary)] font-semibold">
+                              {data.value}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
                 />
               </PieChart>
