@@ -8,6 +8,8 @@ import { EventModal } from './EventModal'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { Skeleton } from './Skeleton'
 import { EmptyState } from './EmptyState'
+import { useToast } from '@/hooks/useToast'
+import { ToastContainer } from './Toast'
 
 interface Event {
   id: string
@@ -31,6 +33,7 @@ interface EventCategory {
 export function EventsPage() {
   const { currentUser, hasAnyRole } = useAuth()
   const layout = useResponsiveLayout()
+  const { toasts, removeToast, success, error: showError, info } = useToast()
 
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
@@ -48,8 +51,8 @@ export function EventsPage() {
   const eventsPerPage = 12
 
   useEffect(() => {
-    loadEvents()
-    loadCategories()
+    // ⚡ Load events and categories in parallel for faster loading
+    Promise.all([loadEvents(), loadCategories()])
   }, [])
 
   useEffect(() => {
@@ -128,43 +131,111 @@ export function EventsPage() {
 
   const handleCreateEvent = async (eventData: any) => {
     try {
-      // Find category ID
-      const category = categories.find(c => c.category_name === eventData.eventCategory)
-      if (!category) {
-        console.error('Category not found')
+      info('Creating event...')
+
+      if (!currentUser) {
+        showError('You must be logged in to create events')
         return
       }
 
-      const { data, error } = await supabase.rpc('create_event', {
-        p_event_name: eventData.eventName,
-        p_event_description: eventData.eventDescription,
-        p_event_date: eventData.eventDate,
-        p_declared_hours: parseInt(eventData.declaredHours),
-        p_category_id: category.id,
-        p_event_location: eventData.eventLocation
+      // Verify user has volunteer_id
+      if (!currentUser.volunteer_id && !currentUser.id) {
+        showError('User account not properly set up. Please contact admin.')
+        console.error('Current user:', currentUser)
+        return
+      }
+
+      console.log('Available categories:', categories)
+      console.log('Selected category:', eventData.eventCategory)
+
+      // Find category ID (try exact match first, then case-insensitive)
+      let category = categories.find(c => c.category_name === eventData.eventCategory)
+      if (!category) {
+        category = categories.find(c => c.category_name.toLowerCase() === eventData.eventCategory.toLowerCase())
+      }
+
+      if (!category) {
+        showError(`Category "${eventData.eventCategory}" not found. Available: ${categories.map(c => c.category_name).join(', ')}`)
+        return
+      }
+
+      // Parse the date and create start/end dates
+      const eventDate = new Date(eventData.eventDate)
+      const declaredHours = parseInt(eventData.declaredHours) || 1
+
+      // Use volunteer_id if available, otherwise id
+      const volunteerUserId = currentUser.volunteer_id || currentUser.id
+
+      console.log('Creating event with data:', {
+        name: eventData.eventName,
+        category: category.category_name,
+        category_id: category.id,
+        date: eventDate.toISOString().split('T')[0],
+        hours: declaredHours,
+        created_by: volunteerUserId
       })
+
+      // Prepare insert data
+      const insertData: any = {
+        name: eventData.eventName,
+        event_name: eventData.eventName, // Compatibility column
+        description: eventData.eventDescription || '',
+        start_date: eventDate.toISOString().split('T')[0],
+        end_date: eventDate.toISOString().split('T')[0],
+        event_date: eventData.eventDate,
+        declared_hours: declaredHours,
+        category_id: parseInt(category.id),
+        location: eventData.eventLocation || null,
+        event_status: 'planned',
+        created_by_volunteer_id: volunteerUserId
+      }
+
+      // Add optional fields
+      if (eventData.minParticipants) {
+        insertData.min_participants = parseInt(eventData.minParticipants)
+      }
+      if (eventData.maxParticipants) {
+        insertData.max_participants = parseInt(eventData.maxParticipants)
+      }
+      if (eventData.registrationDeadline) {
+        insertData.registration_deadline = eventData.registrationDeadline
+      }
+
+      // Insert directly into events table
+      const { data, error } = await supabase
+        .from('events')
+        .insert(insertData)
+        .select()
+        .single()
 
       if (error) {
         console.error('Error creating event:', error)
+        showError(`Failed to create event: ${error.message}`)
         return
       }
+
+      console.log('Event created successfully:', data)
+      success(`Event "${eventData.eventName}" created successfully!`)
 
       // Reload events
       await loadEvents()
       setIsModalOpen(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating event:', error)
+      showError(error?.message || 'Failed to create event')
     }
   }
 
   const handleEditEvent = (eventId: string) => {
+    info('Edit functionality coming soon!')
     console.log('Edit event:', eventId)
-    // TODO: Implement edit functionality
+    // TODO: Implement edit functionality with modal
   }
 
   const handleViewParticipants = (eventId: string) => {
+    info('View participants functionality coming soon!')
     console.log('View participants:', eventId)
-    // TODO: Implement participants view
+    // TODO: Implement participants view - could open a modal or navigate to attendance page
   }
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -255,9 +326,11 @@ export function EventsPage() {
   }
 
   return (
-    <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
-      {/* Mobile Search Bar */}
-      {layout.isMobile && (
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+        {/* Mobile Search Bar */}
+        {layout.isMobile && (
         <div className="mb-4">
           <div className="relative">
             <input
@@ -408,6 +481,7 @@ export function EventsPage() {
         onSubmit={handleCreateEvent}
         categories={categories.map(c => c.category_name)}
       />
-    </div>
+      </div>
+    </>
   )
 }

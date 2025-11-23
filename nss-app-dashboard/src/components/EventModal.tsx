@@ -10,6 +10,9 @@ interface EventFormData {
   academicSession: string;
   eventLocation: string;
   eventDescription: string;
+  minParticipants?: string;
+  maxParticipants?: string;
+  registrationDeadline?: string;
 }
 
 interface EventModalProps {
@@ -18,6 +21,7 @@ interface EventModalProps {
   onSubmit: (eventData: EventFormData) => void;
   title?: string;
   initialData?: EventFormData;
+  categories?: string[];
 }
 
 export function EventModal({
@@ -26,6 +30,7 @@ export function EventModal({
   onSubmit,
   title = "Create New Event",
   initialData,
+  categories = [],
 }: EventModalProps) {
   const [formData, setFormData] = useState({
     eventName: "",
@@ -35,6 +40,9 @@ export function EventModal({
     academicSession: "",
     eventLocation: "",
     eventDescription: "",
+    minParticipants: "",
+    maxParticipants: "",
+    registrationDeadline: "",
   });
 
   useEffect(() => {
@@ -55,8 +63,9 @@ export function EventModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('EventModal: Form submitted with data:', formData);
     onSubmit(formData);
-    onClose();
+    // Don't close immediately - let the parent handle it after success
   };
 
   const handleInputChange = (
@@ -193,14 +202,20 @@ export function EventModal({
                 onChange={handleInputChange}
               >
                 <option value="">Select Category...</option>
-                <option value="Area Based - 1">Area Based - 1</option>
-                <option value="Area Based - 2">Area Based - 2</option>
-                <option value="University Event">University Event</option>
-                <option value="College Event">College Event</option>
-                <option value="Camp">Camp</option>
-                <option value="Competition">Competition</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Other">Other</option>
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Area Based - 1">Area Based - 1</option>
+                    <option value="College Event">College Event</option>
+                    <option value="Camp">Camp</option>
+                    <option value="Workshop">Workshop</option>
+                  </>
+                )}
               </select>
             </div>
             <div>

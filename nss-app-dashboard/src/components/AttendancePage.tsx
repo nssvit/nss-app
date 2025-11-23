@@ -1,21 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useAttendance } from "@/hooks/useAttendance";
+import type { EventParticipant } from "@/hooks/useAttendance";
+import { Skeleton } from "./Skeleton";
 import Image from "next/image";
 
 interface AttendanceRecord {
-  id: number;
+  id: string;
   eventName: string;
   eventDate: string;
   totalRegistered: number;
   totalAttended: number;
   attendanceRate: number;
   status: "Completed" | "Ongoing" | "Upcoming";
+  categoryName: string;
 }
 
 interface ParticipantRecord {
-  id: number;
+  id: string;
   name: string;
   email: string;
   registrationDate: string;
@@ -26,87 +30,38 @@ interface ParticipantRecord {
 
 export function AttendancePage() {
   const layout = useResponsiveLayout();
-  const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
+  const { attendanceRecords: dbRecords, loading, getEventParticipants } = useAttendance();
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [attendanceFilter, setAttendanceFilter] = useState("");
+  const [participants, setParticipants] = useState<EventParticipant[]>([]);
+  const [loadingParticipants, setLoadingParticipants] = useState(false);
 
-  const attendanceRecords: AttendanceRecord[] = [
-    {
-      id: 1,
-      eventName: "Beach Clean-Up Drive",
-      eventDate: "Aug 15, 2024",
-      totalRegistered: 95,
-      totalAttended: 73,
-      attendanceRate: 76.8,
-      status: "Completed",
-    },
-    {
-      id: 2,
-      eventName: "Blood Donation VIT",
-      eventDate: "Sep 10, 2024",
-      totalRegistered: 150,
-      totalAttended: 118,
-      attendanceRate: 78.7,
-      status: "Completed",
-    },
-    {
-      id: 3,
-      eventName: "NSS Camp - Kuderan",
-      eventDate: "Nov 27, 2024",
-      totalRegistered: 60,
-      totalAttended: 48,
-      attendanceRate: 80.0,
-      status: "Completed",
-    },
-    {
-      id: 4,
-      eventName: "Digital Literacy Workshop",
-      eventDate: "Dec 5, 2024",
-      totalRegistered: 40,
-      totalAttended: 32,
-      attendanceRate: 80.0,
-      status: "Ongoing",
-    },
-  ];
+  // Transform database attendance records to component format
+  const attendanceRecords: AttendanceRecord[] = dbRecords.map((record) => ({
+    id: record.event_id,
+    eventName: record.event_name,
+    eventDate: record.event_date
+      ? new Date(record.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : 'No date',
+    totalRegistered: Number(record.total_registered),
+    totalAttended: Number(record.total_present),
+    attendanceRate: Number(record.attendance_rate),
+    status: 'Completed' as const, // You can derive this from event status
+    categoryName: record.category_name
+  }));
 
-  const participants: ParticipantRecord[] = [
-    {
-      id: 1,
-      name: "Arjun Patel",
-      email: "arjun.patel@vitstudent.ac.in",
-      registrationDate: "Aug 12, 2024",
-      attendanceStatus: "Present",
-      checkInTime: "09:15 AM",
-      avatar: "https://i.imgur.com/gVo4gxC.png",
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      email: "priya.sharma@vitstudent.ac.in",
-      registrationDate: "Aug 13, 2024",
-      attendanceStatus: "Present",
-      checkInTime: "09:22 AM",
-      avatar: "https://i.imgur.com/7OtnwP9.png",
-    },
-    {
-      id: 3,
-      name: "Raj Kumar",
-      email: "raj.kumar@vitstudent.ac.in",
-      registrationDate: "Aug 10, 2024",
-      attendanceStatus: "Late",
-      checkInTime: "10:45 AM",
-      avatar: "https://i.imgur.com/xG2942s.png",
-    },
-    {
-      id: 4,
-      name: "Sneha Reddy",
-      email: "sneha.reddy@vitstudent.ac.in",
-      registrationDate: "Aug 14, 2024",
-      attendanceStatus: "Absent",
-      avatar: "https://i.imgur.com/gJgRz7n.png",
-    },
-  ];
+  // Load participants when an event is selected
+  useEffect(() => {
+    if (selectedEvent) {
+      setLoadingParticipants(true);
+      getEventParticipants(selectedEvent).then((data) => {
+        setParticipants(data);
+        setLoadingParticipants(false);
+      });
+    }
+  }, [selectedEvent, getEventParticipants]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

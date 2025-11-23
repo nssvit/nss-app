@@ -38,6 +38,12 @@ export function Sidebar({
       title: "Events",
     },
     {
+      href: "event-registration",
+      icon: "fas fa-clipboard-list",
+      text: "Event Registration",
+      title: "Register for Events",
+    },
+    {
       href: "volunteers",
       icon: "fas fa-users",
       text: "Volunteers",
@@ -58,6 +64,12 @@ export function Sidebar({
   ];
 
   const adminLinks = [
+    {
+      href: "attendance-manager",
+      icon: "fas fa-user-check",
+      text: "Mark Attendance",
+      title: "Mark Event Attendance",
+    },
     {
       href: "user-management",
       icon: "fas fa-user-shield",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import {
   AreaChart,
   Area,
@@ -12,6 +13,8 @@ import {
 } from "recharts";
 import { StatsCard } from "./StatsCard";
 import { getStatusBadgeClass } from "@/utils/styles/badges";
+import { Skeleton } from "./Skeleton";
+import { ErrorState } from "./ErrorState";
 
 interface DashboardPageProps {
   onNavigate?: (page: string) => void;
@@ -23,27 +26,13 @@ export function DashboardPage({
   onCreateEvent,
 }: DashboardPageProps) {
   const layout = useResponsiveLayout();
+  const { stats: dashStats, activityData, recentEvents, loading, error, refetch } = useDashboardStats();
 
-  // Activity chart data
-  const activityData = [
-    { month: "Jan", events: 18, volunteers: 145, hours: 720 },
-    { month: "Feb", events: 22, volunteers: 167, hours: 890 },
-    { month: "Mar", events: 25, volunteers: 189, hours: 1050 },
-    { month: "Apr", events: 28, volunteers: 203, hours: 1200 },
-    { month: "May", events: 24, volunteers: 198, hours: 1100 },
-    { month: "Jun", events: 31, volunteers: 234, hours: 1350 },
-    { month: "Jul", events: 29, volunteers: 221, hours: 1280 },
-    { month: "Aug", events: 26, volunteers: 208, hours: 1180 },
-    { month: "Sep", events: 33, volunteers: 245, hours: 1420 },
-    { month: "Oct", events: 35, volunteers: 267, hours: 1580 },
-    { month: "Nov", events: 32, volunteers: 251, hours: 1450 },
-    { month: "Dec", events: 27, volunteers: 223, hours: 1320 },
-  ];
-
-  const stats = [
+  // Transform dashboard stats for display
+  const stats = dashStats ? [
     {
       title: "Total Events",
-      value: "248",
+      value: dashStats.total_events.toLocaleString(),
       change: "+12%",
       changeType: "increase" as const,
       icon: "fas fa-calendar-check",
@@ -51,7 +40,7 @@ export function DashboardPage({
     },
     {
       title: "Active Volunteers",
-      value: "1,847",
+      value: dashStats.active_volunteers.toLocaleString(),
       change: "+5%",
       changeType: "increase" as const,
       icon: "fas fa-users",
@@ -59,7 +48,7 @@ export function DashboardPage({
     },
     {
       title: "Community Hours",
-      value: "12,486",
+      value: dashStats.total_hours.toLocaleString(),
       change: "+18%",
       changeType: "increase" as const,
       icon: "fas fa-clock",
@@ -67,35 +56,41 @@ export function DashboardPage({
     },
     {
       title: "Ongoing Projects",
-      value: "23",
+      value: dashStats.ongoing_projects.toLocaleString(),
       change: "-2%",
       changeType: "decrease" as const,
       icon: "fas fa-project-diagram",
       variant: "orange" as const,
     },
-  ];
+  ] : [];
 
-  const recentEvents = [
-    {
-      title: "Beach Clean-Up Drive",
-      date: "Aug 15",
-      participants: 73,
-      status: "Completed",
-    },
-    {
-      title: "Blood Donation VIT",
-      date: "Sep 10",
-      participants: 118,
-      status: "Completed",
-    },
-    {
-      title: "Digital Literacy Workshop",
-      date: "Dec 5",
-      participants: 32,
-      status: "Upcoming",
-    },
-  ];
+  // Transform activity data for chart
+  const chartData = activityData.map(item => ({
+    month: item.month,
+    events: Number(item.events_count),
+    volunteers: Number(item.volunteers_count),
+    hours: Number(item.hours_sum)
+  }));
 
+  // Transform recent events for display
+  const formattedRecentEvents = recentEvents.map(event => ({
+    title: event.name,
+    date: event.event_date ? new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) :
+          new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    participants: 0, // Will need to add participant count from event_participation
+    status: event.event_status === 'completed' ? 'Completed' :
+            event.event_status === 'ongoing' ? 'Ongoing' : 'Upcoming',
+  }));
+
+
+  // Show error state if there's an error
+  if (error && !loading) {
+    return (
+      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+        <ErrorState error={error} retry={refetch} />
+      </div>
+    )
+  }
 
   return (
     <div
@@ -115,17 +110,26 @@ export function DashboardPage({
       <div
         className={`grid ${layout.isMobile ? "grid-cols-1" : layout.isTablet ? "grid-cols-2" : "grid-cols-4"} gap-4 mb-6`}
       >
-        {stats.map((stat, index) => (
-          <div key={index} className="h-full">
-            <StatsCard
-              title={stat.title}
-              value={stat.value}
-              change={{ value: parseInt(stat.change), type: stat.changeType }}
-              icon={stat.icon}
-              variant={stat.variant}
-            />
-          </div>
-        ))}
+        {loading ? (
+          <>
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+          </>
+        ) : (
+          stats.map((stat, index) => (
+            <div key={index} className="h-full">
+              <StatsCard
+                title={stat.title}
+                value={stat.value}
+                change={{ value: parseInt(stat.change), type: stat.changeType }}
+                icon={stat.icon}
+                variant={stat.variant}
+              />
+            </div>
+          ))
+        )}
       </div>
 
       {/* Two Column Layout */}
@@ -146,27 +150,37 @@ export function DashboardPage({
             </button>
           </div>
           <div className="space-y-3">
-            {recentEvents.map((event, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-black/60 transition-colors rounded-lg group"
-              >
-                <div className="flex-1">
-                  <h4 className="text-body-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                    {event.title}
-                  </h4>
-                  <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-caption">{event.date}</span>
-                    <span className="text-caption">
-                      {event.participants} participants
-                    </span>
+            {loading ? (
+              <>
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+              </>
+            ) : formattedRecentEvents.length > 0 ? (
+              formattedRecentEvents.map((event, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-black/60 transition-colors rounded-lg group"
+                >
+                  <div className="flex-1">
+                    <h4 className="text-body-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                      {event.title}
+                    </h4>
+                    <div className="flex items-center space-x-4 mt-1">
+                      <span className="text-caption">{event.date}</span>
+                      <span className="text-caption">
+                        {event.participants} participants
+                      </span>
+                    </div>
                   </div>
+                  <span className={getStatusBadgeClass(event.status)}>
+                    {event.status}
+                  </span>
                 </div>
-                <span className={getStatusBadgeClass(event.status)}>
-                  {event.status}
-                </span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-caption text-center py-4">No recent events</p>
+            )}
           </div>
         </div>
 
@@ -216,7 +230,7 @@ export function DashboardPage({
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={activityData}
+              data={chartData}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
               <defs>

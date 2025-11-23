@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { setupDebouncedSubscription } from '@/lib/supabase-realtime'
 import { Volunteer } from '@/types'
 
 export function useVolunteers() {
@@ -12,38 +13,55 @@ export function useVolunteers() {
   const fetchVolunteers = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('volunteers')
-        .select(`
-          *,
-          user_roles!user_roles_volunteer_id_fkey(
-            role_definition_id,
-            role_definitions(role_name, display_name)
-          )
-        `)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
 
-      if (error) throw error
+      // Use optimized database function that includes stats
+      const { data, error } = await supabase.rpc('get_volunteers_with_stats')
+
+      if (error) {
+        // Check if it's a function not found error
+        if (error.message?.includes('does not exist') || error.code === '42883') {
+          throw new Error(
+            'Database function not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
+          )
+        }
+        throw new Error(error.message || 'Failed to fetch volunteers')
+      }
 
       // Transform data to match the existing Volunteer interface
-      const transformedVolunteers: Volunteer[] = (data || []).map(volunteer => ({
-        ...volunteer,
-        status: volunteer.is_active ? 'Active' : 'Inactive' as 'Active' | 'Inactive' | 'Pending',
-        joinDate: new Date(volunteer.created_at).toLocaleDateString('en-US', {
+      const transformedVolunteers: Volunteer[] = (data || []).map((v: any) => ({
+        id: v.volunteer_id,
+        first_name: v.first_name,
+        last_name: v.last_name,
+        roll_number: v.roll_number,
+        email: v.email,
+        branch: v.branch,
+        year: v.year,
+        phone_no: v.phone_no,
+        birth_date: v.birth_date,
+        gender: v.gender,
+        nss_join_year: v.nss_join_year,
+        address: v.address,
+        profile_pic: v.profile_pic,
+        is_active: v.is_active,
+        created_at: v.created_at,
+        updated_at: v.created_at, // Using created_at as fallback
+        status: v.is_active ? 'Active' : 'Inactive' as 'Active' | 'Inactive' | 'Pending',
+        joinDate: new Date(v.created_at).toLocaleDateString('en-US', {
           month: 'short',
           year: 'numeric'
         }),
-        avatar: volunteer.profile_pic || `https://i.imgur.com/gVo4gxC.png`,
-        eventsParticipated: 0, // Will be calculated from participation data
-        totalHours: 0 // Will be calculated from participation data
+        avatar: v.profile_pic || `https://i.imgur.com/gVo4gxC.png`,
+        eventsParticipated: Number(v.events_participated) || 0,
+        totalHours: Number(v.total_hours) || 0
       }))
 
       setVolunteers(transformedVolunteers)
       setError(null)
     } catch (err) {
-      console.error('Error fetching volunteers:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch volunteers')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch volunteers'
+      console.error('Error fetching volunteers:', errorMessage)
+      setError(errorMessage)
+      setVolunteers([])
     } finally {
       setLoading(false)
     }
@@ -118,6 +136,17 @@ export function useVolunteers() {
 
   useEffect(() => {
     fetchVolunteers()
+
+    // Set up real-time subscriptions
+    const cleanup = setupDebouncedSubscription(
+      ['volunteers', 'event_participation', 'user_roles'],
+      () => {
+        fetchVolunteers()
+      },
+      1000
+    )
+
+    return cleanup
   }, [])
 
   return {

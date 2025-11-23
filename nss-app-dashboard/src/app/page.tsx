@@ -21,6 +21,8 @@ import { AdminDashboard } from "@/components/dashboards/AdminDashboard";
 import { HeadsDashboard } from "@/components/dashboards/HeadsDashboard";
 import { VolunteerDashboard } from "@/components/dashboards/VolunteerDashboard";
 import { useAuth } from "@/contexts/AuthContext";
+import { AttendanceManager } from "@/components/AttendanceManager";
+import { EventRegistration } from "@/components/EventRegistration";
 
 // Sample events data matching the prototype
 const sampleEvents = [
@@ -168,10 +170,14 @@ export default function Dashboard() {
         return "Dashboard";
       case "events":
         return "Events";
+      case "event-registration":
+        return "Event Registration";
       case "volunteers":
         return "Volunteers";
       case "attendance":
         return "Attendance";
+      case "attendance-manager":
+        return "Mark Attendance";
       case "reports":
         return "Reports";
       case "user-management":
@@ -191,9 +197,13 @@ export default function Dashboard() {
         return "fas fa-border-all";
       case "events":
         return "fas fa-calendar-check";
+      case "event-registration":
+        return "fas fa-clipboard-list";
       case "volunteers":
         return "fas fa-users";
       case "attendance":
+        return "fas fa-user-check";
+      case "attendance-manager":
         return "fas fa-user-check";
       case "reports":
         return "fas fa-chart-pie";
@@ -226,6 +236,9 @@ export default function Dashboard() {
           return <VolunteerDashboard />;
         }
 
+      case "event-registration":
+        return <EventRegistration />;
+
       case "volunteers":
         return (
           <ProtectedRoute requireAnyRole={['admin', 'program_officer', 'documentation_lead']}>
@@ -237,6 +250,13 @@ export default function Dashboard() {
         return (
           <ProtectedRoute requireAnyRole={['admin', 'program_officer', 'event_lead']}>
             <AttendancePage />
+          </ProtectedRoute>
+        );
+
+      case "attendance-manager":
+        return (
+          <ProtectedRoute requireAnyRole={['admin', 'program_officer', 'heads']}>
+            <AttendanceManager />
           </ProtectedRoute>
         );
 
