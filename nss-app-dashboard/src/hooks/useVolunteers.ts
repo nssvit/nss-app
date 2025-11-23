@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { setupDebouncedSubscription } from '@/lib/supabase-realtime'
 import { Volunteer } from '@/types'
 
 export function useVolunteers() {
@@ -136,17 +135,6 @@ export function useVolunteers() {
 
   useEffect(() => {
     fetchVolunteers()
-
-    // Set up real-time subscriptions
-    const cleanup = setupDebouncedSubscription(
-      ['volunteers', 'event_participation', 'user_roles'],
-      () => {
-        fetchVolunteers()
-      },
-      1000
-    )
-
-    return cleanup
   }, [])
 
   return {

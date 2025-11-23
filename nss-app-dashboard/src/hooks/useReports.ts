@@ -1,11 +1,10 @@
 /**
  * Reports Hook
- * Fetches and manages report data with real-time updates
+ * Fetches and manages report data with parallel fetching
  */
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { setupDebouncedSubscription } from '@/lib/supabase-realtime'
 
 export interface CategoryDistribution {
   category_id: number
@@ -48,38 +47,34 @@ export function useReports(): UseReportsReturn {
       setLoading(true)
       setError(null)
 
-      // Fetch category distribution
-      const { data: categoryData, error: categoryError } = await supabase.rpc(
-        'get_category_distribution'
-      )
+      // Fetch both reports data in parallel for better performance
+      const [categoryResult, topEventsResult] = await Promise.all([
+        supabase.rpc('get_category_distribution'),
+        supabase.rpc('get_top_events_by_impact', { limit_count: 10 })
+      ])
 
-      if (categoryError) {
-        if (categoryError.message?.includes('does not exist') || categoryError.code === '42883') {
+      // Handle category distribution result
+      if (categoryResult.error) {
+        if (categoryResult.error.message?.includes('does not exist') || categoryResult.error.code === '42883') {
           throw new Error(
             'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
           )
         }
-        throw new Error(categoryError.message || 'Failed to fetch category distribution')
+        throw new Error(categoryResult.error.message || 'Failed to fetch category distribution')
       }
 
-      setCategoryDistribution((categoryData || []) as CategoryDistribution[])
-
-      // Fetch top events by impact
-      const { data: topEventsData, error: topEventsError } = await supabase.rpc(
-        'get_top_events_by_impact',
-        { limit_count: 10 }
-      )
-
-      if (topEventsError) {
-        if (topEventsError.message?.includes('does not exist') || topEventsError.code === '42883') {
+      // Handle top events result
+      if (topEventsResult.error) {
+        if (topEventsResult.error.message?.includes('does not exist') || topEventsResult.error.code === '42883') {
           throw new Error(
             'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
           )
         }
-        throw new Error(topEventsError.message || 'Failed to fetch top events')
+        throw new Error(topEventsResult.error.message || 'Failed to fetch top events')
       }
 
-      setTopEvents((topEventsData || []) as TopEvent[])
+      setCategoryDistribution((categoryResult.data || []) as CategoryDistribution[])
+      setTopEvents((topEventsResult.data || []) as TopEvent[])
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to fetch reports data'
       console.error('Error fetching reports data:', errorMessage)
@@ -95,17 +90,6 @@ export function useReports(): UseReportsReturn {
 
   useEffect(() => {
     fetchReportsData()
-
-    // Set up real-time subscriptions
-    const cleanup = setupDebouncedSubscription(
-      ['events', 'event_categories', 'event_participation'],
-      () => {
-        fetchReportsData()
-      },
-      1000
-    )
-
-    return cleanup
   }, [])
 
   return {

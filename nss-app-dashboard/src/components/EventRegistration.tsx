@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/useToast";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { ToastContainer } from "./Toast";
 
 interface Event {
@@ -30,6 +31,7 @@ interface Event {
 }
 
 export function EventRegistration() {
+  const layout = useResponsiveLayout();
   const { currentUser } = useAuth();
   const { toasts, removeToast, success, error: showError, info } = useToast();
 
@@ -221,13 +223,13 @@ export function EventRegistration() {
   return (
     <>
       <ToastContainer toasts={toasts} onClose={removeToast} />
-      <div className="space-y-6">
+      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
         {/* Header */}
-        <div className="card-glass rounded-xl p-6">
+        <div className="mb-6">
           <h2 className="text-heading-2 mb-4">Event Registration</h2>
 
           {/* Filters */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setFilter('upcoming')}
               className={`btn btn-sm ${filter === 'upcoming' ? 'btn-primary' : 'btn-secondary'}`}
@@ -250,21 +252,22 @@ export function EventRegistration() {
         </div>
 
         {/* Events List */}
-        {loading ? (
-          <div className="card-glass rounded-xl p-8 text-center">
-            <i className="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
-            <p className="text-gray-400">Loading events...</p>
-          </div>
-        ) : events.length === 0 ? (
-          <div className="card-glass rounded-xl p-8 text-center">
-            <i className="fas fa-calendar-times text-4xl text-gray-400 mb-4"></i>
-            <h3 className="text-heading-3 mb-2">No Events Found</h3>
-            <p className="text-body">
-              {filter === 'registered' ? 'You have not registered for any events yet' : 'No events available'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mt-6">
+          {loading ? (
+            <div className="card-glass rounded-xl p-8 text-center">
+              <i className="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
+              <p className="text-gray-400">Loading events...</p>
+            </div>
+          ) : events.length === 0 ? (
+            <div className="card-glass rounded-xl p-8 text-center">
+              <i className="fas fa-calendar-times text-4xl text-gray-400 mb-4"></i>
+              <h3 className="text-heading-3 mb-2">No Events Found</h3>
+              <p className="text-body">
+                {filter === 'registered' ? 'You have not registered for any events yet' : 'No events available'}
+              </p>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-1 ${layout.isTablet ? 'md:grid-cols-2' : 'lg:grid-cols-2'} gap-4 md:gap-6`}>
             {events.map((event) => {
               const registration = canRegister(event);
               const isUpcoming = new Date(event.start_date) > new Date();
@@ -375,8 +378,9 @@ export function EventRegistration() {
                 </div>
               );
             })}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

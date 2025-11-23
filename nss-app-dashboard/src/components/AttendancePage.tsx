@@ -120,6 +120,13 @@ export function AttendancePage() {
     return matchesSearch && matchesAttendance;
   });
 
+  // Calculate stats from actual data
+  const totalEvents = dbRecords.length;
+  const totalParticipants = dbRecords.reduce((sum, record) => sum + Number(record.total_registered), 0);
+  const totalPresent = dbRecords.reduce((sum, record) => sum + Number(record.total_present), 0);
+  const avgAttendance = totalParticipants > 0 ? ((totalPresent / totalParticipants) * 100).toFixed(1) : '0.0';
+  const totalHours = dbRecords.reduce((sum, record) => sum + Number(record.total_hours), 0);
+
   return (
     <div
       className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
@@ -128,61 +135,56 @@ export function AttendancePage() {
       <div
         className={`grid ${layout.isMobile ? "grid-cols-1" : layout.isTablet ? "grid-cols-2" : "grid-cols-4"} gap-4 mb-6`}
       >
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
-              <i className="fas fa-calendar-check text-lg text-blue-400"></i>
+        {loading ? (
+          <>
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+          </>
+        ) : (
+          <>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
+                  <i className="fas fa-calendar-check text-lg text-blue-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalEvents}</h3>
+              <p className="text-sm text-gray-400">Total Events</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +5%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">248</h3>
-          <p className="text-sm text-gray-400">Total Events</p>
-        </div>
 
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center">
-              <i className="fas fa-user-check text-lg text-green-400"></i>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center">
+                  <i className="fas fa-user-check text-lg text-green-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{avgAttendance}%</h3>
+              <p className="text-sm text-gray-400">Avg. Attendance</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +12%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">78.5%</h3>
-          <p className="text-sm text-gray-400">Avg. Attendance</p>
-        </div>
 
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center">
-              <i className="fas fa-users text-lg text-purple-400"></i>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center">
+                  <i className="fas fa-users text-lg text-purple-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalParticipants.toLocaleString()}</h3>
+              <p className="text-sm text-gray-400">Total Participants</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +8%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">1,847</h3>
-          <p className="text-sm text-gray-400">Total Participants</p>
-        </div>
 
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-orange-900/30 flex items-center justify-center">
-              <i className="fas fa-clock text-lg text-orange-400"></i>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-orange-900/30 flex items-center justify-center">
+                  <i className="fas fa-clock text-lg text-orange-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalHours.toLocaleString()}</h3>
+              <p className="text-sm text-gray-400">Total Hours</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +15%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">12,486</h3>
-          <p className="text-sm text-gray-400">Total Hours</p>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Search and Filters */}

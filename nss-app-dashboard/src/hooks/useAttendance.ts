@@ -1,11 +1,10 @@
 /**
  * Attendance Hook
- * Fetches and manages attendance data with real-time updates
+ * Fetches and manages attendance data
  */
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { setupDebouncedSubscription } from '@/lib/supabase-realtime'
 
 export interface AttendanceRecord {
   event_id: string
@@ -107,17 +106,6 @@ export function useAttendance(): UseAttendanceReturn {
 
   useEffect(() => {
     fetchAttendanceData()
-
-    // Set up real-time subscriptions
-    const cleanup = setupDebouncedSubscription(
-      ['events', 'event_participation'],
-      () => {
-        fetchAttendanceData()
-      },
-      1000
-    )
-
-    return cleanup
   }, [])
 
   return {

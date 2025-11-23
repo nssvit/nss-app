@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
 import {
   AreaChart,
   Area,
@@ -26,13 +27,81 @@ export function DashboardPage({
   onCreateEvent,
 }: DashboardPageProps) {
   const layout = useResponsiveLayout();
-  const { stats: dashStats, activityData, recentEvents, loading, error, refetch } = useDashboardStats();
 
-  // Transform dashboard stats for display
-  const stats = dashStats ? [
+  const [stats, setStats] = useState({
+    total_events: 0,
+    active_volunteers: 0,
+    total_hours: 0,
+    ongoing_projects: 0
+  });
+  const [activityData, setActivityData] = useState<any[]>([]);
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch all data in parallel
+      const [statsResult, trendsResult, eventsResult] = await Promise.all([
+        supabase.rpc('get_dashboard_stats'),
+        supabase.rpc('get_monthly_activity_trends'),
+        supabase
+          .from('events')
+          .select(`
+            id,
+            name,
+            event_date,
+            start_date,
+            event_status,
+            category_id,
+            event_categories (
+              name,
+              color_hex
+            ),
+            volunteers:created_by_volunteer_id (
+              first_name,
+              last_name
+            )
+          `)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(3),
+      ]);
+
+      // Handle stats
+      if (statsResult.error) throw statsResult.error;
+      if (statsResult.data && statsResult.data.length > 0) {
+        setStats(statsResult.data[0]);
+      }
+
+      // Handle trends
+      if (trendsResult.error) throw trendsResult.error;
+      setActivityData(trendsResult.data || []);
+
+      // Handle recent events
+      if (eventsResult.error) throw eventsResult.error;
+      setRecentEvents(eventsResult.data || []);
+
+    } catch (err: any) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message || 'Failed to fetch dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform stats for display
+  const displayStats = [
     {
       title: "Total Events",
-      value: dashStats.total_events.toLocaleString(),
+      value: stats.total_events.toLocaleString(),
       change: "+12%",
       changeType: "increase" as const,
       icon: "fas fa-calendar-check",
@@ -40,7 +109,7 @@ export function DashboardPage({
     },
     {
       title: "Active Volunteers",
-      value: dashStats.active_volunteers.toLocaleString(),
+      value: stats.active_volunteers.toLocaleString(),
       change: "+5%",
       changeType: "increase" as const,
       icon: "fas fa-users",
@@ -48,7 +117,7 @@ export function DashboardPage({
     },
     {
       title: "Community Hours",
-      value: dashStats.total_hours.toLocaleString(),
+      value: stats.total_hours.toLocaleString(),
       change: "+18%",
       changeType: "increase" as const,
       icon: "fas fa-clock",
@@ -56,13 +125,13 @@ export function DashboardPage({
     },
     {
       title: "Ongoing Projects",
-      value: dashStats.ongoing_projects.toLocaleString(),
-      change: "-2%",
-      changeType: "decrease" as const,
+      value: stats.ongoing_projects.toLocaleString(),
+      change: "0%",
+      changeType: "neutral" as const,
       icon: "fas fa-project-diagram",
       variant: "orange" as const,
     },
-  ] : [];
+  ];
 
   // Transform activity data for chart
   const chartData = activityData.map(item => ({
@@ -77,19 +146,18 @@ export function DashboardPage({
     title: event.name,
     date: event.event_date ? new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) :
           new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    participants: 0, // Will need to add participant count from event_participation
+    participants: 0,
     status: event.event_status === 'completed' ? 'Completed' :
             event.event_status === 'ongoing' ? 'Ongoing' : 'Upcoming',
   }));
 
-
-  // Show error state if there's an error
+  // Show error state
   if (error && !loading) {
     return (
       <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
-        <ErrorState error={error} retry={refetch} />
+        <ErrorState error={error} retry={fetchDashboardData} />
       </div>
-    )
+    );
   }
 
   return (
@@ -118,7 +186,7 @@ export function DashboardPage({
             <Skeleton className="h-32 w-full rounded-xl" />
           </>
         ) : (
-          stats.map((stat, index) => (
+          displayStats.map((stat, index) => (
             <div key={index} className="h-full">
               <StatsCard
                 title={stat.title}
@@ -309,6 +377,6 @@ export function DashboardPage({
           </ResponsiveContainer>
         </div>
       </div>
-    </div >
+    </div>
   );
 }

@@ -295,7 +295,7 @@ export function EventsPage() {
         {/* Events Grid Skeleton */}
         <div className={`grid ${layout.getGridColumns()} gap-4 mb-8`}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="card-glass rounded-xl p-4 h-[280px] flex flex-col">
+            <div key={`skeleton-${i}`} className="card-glass rounded-xl p-4 h-[280px] flex flex-col">
               <div className="flex justify-between items-start mb-4">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-16" />

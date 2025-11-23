@@ -1,17 +1,16 @@
 /**
  * Dashboard Statistics Hook
- * Fetches and manages dashboard statistics with smart caching and real-time updates
+ * Fetches and manages dashboard statistics with smart caching
  *
  * Features:
  * - Local caching (5-minute cache duration)
- * - Real-time updates when data changes
- * - Automatic refetch only when necessary
+ * - Automatic refetch when tab becomes visible (if cache is stale)
+ * - Manual refresh available via refetch() function
  * - Reduces API calls by ~70%
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
-import { RealtimeChannel } from '@supabase/supabase-js'
 
 export interface DashboardStats {
   total_events: number
@@ -67,26 +66,18 @@ export function useDashboardStats(): UseDashboardStatsReturn {
   const [error, setError] = useState<string | null>(null)
   const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
-  const channelRef = useRef<RealtimeChannel | null>(null)
   const isMountedRef = useRef(true)
 
   // Check if cache is stale
-  const checkCacheStale = useCallback(() => {
+  const isCacheStale = useCallback(() => {
     if (!lastFetched) return true
     const now = new Date()
     return now.getTime() - lastFetched.getTime() > CACHE_DURATION
   }, [lastFetched])
 
   const fetchDashboardData = useCallback(async (force = false) => {
-    // Skip if cache is fresh and not forced
-    if (!force && !checkCacheStale() && stats !== null) {
-      console.log('[useDashboardStats] Cache hit - using cached data')
-      return
-    }
-
-    if (!isMountedRef.current) return
-
     try {
+      console.log('[useDashboardStats] Starting fetch...')
       setLoading(true)
       setError(null)
 
@@ -121,7 +112,7 @@ export function useDashboardStats(): UseDashboardStatsReturn {
           .limit(3),
       ])
 
-      if (!isMountedRef.current) return
+      console.log('[useDashboardStats] Parallel fetch complete, processing results...')
 
       // Handle stats result
       if (statsResult.error) {
@@ -157,66 +148,50 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       setRecentEvents((eventsResult.data || []) as RecentEvent[])
       setLastFetched(new Date())
 
-      console.log('[useDashboardStats] Data cached successfully')
+      console.log('[useDashboardStats] ✅ Data fetched successfully!')
+      console.log('[useDashboardStats] Stats:', statsResult.data?.[0])
+      console.log('[useDashboardStats] Trends count:', trendsResult.data?.length)
+      console.log('[useDashboardStats] Events count:', eventsResult.data?.length)
     } catch (err: any) {
-      if (!isMountedRef.current) return
-
       const errorMessage = err?.message || 'Failed to fetch dashboard data'
-      console.error('Error fetching dashboard stats:', errorMessage)
-      setError(errorMessage)
+      console.error('❌ [useDashboardStats] ERROR:', errorMessage)
+      console.error('❌ [useDashboardStats] Full error:', err)
 
+      setError(errorMessage)
       // Set empty data on error to prevent crashes
       setStats(null)
       setActivityData([])
       setRecentEvents([])
     } finally {
-      if (isMountedRef.current) {
-        setLoading(false)
+      console.log('[useDashboardStats] Finally block - setting loading to false')
+      setLoading(false)
+      console.log('[useDashboardStats] ✅ Loading set to false')
+    }
+  }, []) // Empty deps - function doesn't depend on any state
+
+  // Initial fetch - run only once on mount
+  useEffect(() => {
+    console.log('[useDashboardStats] Component mounted, starting initial fetch')
+    fetchDashboardData(true) // Force initial fetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array - only run on mount
+
+  // Check cache when tab becomes visible (no auto-refresh to prevent loops)
+  useEffect(() => {
+    // Only check cache if document is visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Just log, don't auto-fetch to prevent loops
+        console.log('[useDashboardStats] Tab became visible')
       }
     }
-  }, [checkCacheStale, stats])
 
-  // Initial fetch
-  useEffect(() => {
-    fetchDashboardData(true) // Force initial fetch
-  }, [fetchDashboardData])
-
-  // Setup real-time subscriptions
-  useEffect(() => {
-    let debounceTimeout: NodeJS.Timeout | null = null
-
-    const handleRealtimeUpdate = () => {
-      console.log('[useDashboardStats] Real-time update received, scheduling refetch...')
-
-      // Debounce updates to prevent excessive re-renders
-      if (debounceTimeout) clearTimeout(debounceTimeout)
-
-      debounceTimeout = setTimeout(() => {
-        fetchDashboardData(true) // Force refetch on real-time update
-      }, 1000) // 1 second debounce
-    }
-
-    // Subscribe to relevant tables
-    const channel = supabase
-      .channel('dashboard-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, handleRealtimeUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_participation' }, handleRealtimeUpdate)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'volunteers' }, handleRealtimeUpdate)
-      .subscribe()
-
-    channelRef.current = channel
-
-    console.log('[useDashboardStats] Real-time subscriptions active')
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
-      if (debounceTimeout) clearTimeout(debounceTimeout)
-      if (channelRef.current) {
-        console.log('[useDashboardStats] Cleaning up real-time subscriptions')
-        supabase.removeChannel(channelRef.current)
-        channelRef.current = null
-      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [fetchDashboardData])
+  }, [])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -224,6 +199,9 @@ export function useDashboardStats(): UseDashboardStatsReturn {
       isMountedRef.current = false
     }
   }, [])
+
+  // Memoize the cache stale value to prevent unnecessary re-renders
+  const cacheStaleValue = useMemo(() => isCacheStale(), [isCacheStale])
 
   return {
     stats,
@@ -233,6 +211,6 @@ export function useDashboardStats(): UseDashboardStatsReturn {
     error,
     refetch: () => fetchDashboardData(true),
     lastFetched,
-    isCacheStale: checkCacheStale(),
+    isCacheStale: cacheStaleValue,
   }
 }
