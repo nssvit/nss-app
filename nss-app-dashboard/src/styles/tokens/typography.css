@@ -27,6 +27,76 @@
   --tracking-wider: 0.05em;
 }
 
+/* ============================================
+   TYPOGRAPHY UTILITY CLASSES
+   ============================================ */
+
+/* Display Text - Hero/Landing */
+.text-display {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+/* Headings */
+.text-heading-1 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.text-heading-2 {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.text-heading-3 {
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.text-heading-4 {
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+/* Body Text */
+.text-body-lg {
+  font-size: var(--text-lg);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.text-body {
+  font-size: clamp(0.875rem, 1vw, 1rem);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.text-body-sm {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.text-caption {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--text-tertiary);
+}
+
+/* Overline - Labels */
 .overline {
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -34,4 +104,21 @@
   letter-spacing: 0.1em;
   font-weight: 600;
   color: var(--text-tertiary);
+}
+
+/* Text Colors */
+.text-primary-color {
+  color: var(--text-primary);
+}
+
+.text-secondary-color {
+  color: var(--text-secondary);
+}
+
+.text-tertiary-color {
+  color: var(--text-tertiary);
+}
+
+.text-muted-color {
+  color: var(--text-muted);
 }

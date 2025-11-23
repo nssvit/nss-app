@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from 'react'
+
 export interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
@@ -8,8 +10,30 @@ export interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
-  type?: "danger" | "warning" | "info";
+  variant?: "danger" | "warning" | "info";
+  icon?: string;
 }
+
+const VARIANT_CONFIG = {
+  danger: {
+    defaultIcon: 'fa-exclamation-triangle',
+    iconColor: 'var(--status-error-text)',
+    iconBg: 'var(--status-error-bg)',
+    buttonClass: 'btn btn-md btn-danger'
+  },
+  warning: {
+    defaultIcon: 'fa-exclamation-circle',
+    iconColor: 'var(--status-warning-text)',
+    iconBg: 'var(--status-warning-bg)',
+    buttonClass: 'btn btn-md btn-primary'
+  },
+  info: {
+    defaultIcon: 'fa-info-circle',
+    iconColor: 'var(--status-info-text)',
+    iconBg: 'var(--status-info-bg)',
+    buttonClass: 'btn btn-md btn-primary'
+  }
+} as const
 
 export function ConfirmDialog({
   isOpen,
@@ -19,72 +43,82 @@ export function ConfirmDialog({
   cancelText = "Cancel",
   onConfirm,
   onCancel,
-  type = "warning",
+  variant = "danger",
+  icon
 }: ConfirmDialogProps) {
-  if (!isOpen) return null;
-
-  const getButtonStyle = () => {
-    switch (type) {
-      case "danger":
-        return "bg-red-600 hover:bg-red-700 focus:ring-red-500";
-      case "warning":
-        return "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500";
-      default:
-        return "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500";
+  // Handle ESC key and body scroll
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onCancel()
     }
-  };
 
-  const getIcon = () => {
-    switch (type) {
-      case "danger":
-        return "fas fa-exclamation-circle text-red-500";
-      case "warning":
-        return "fas fa-exclamation-triangle text-yellow-500";
-      default:
-        return "fas fa-info-circle text-indigo-500";
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden'
     }
-  };
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen, onCancel])
+
+  if (!isOpen) return null
+
+  const config = VARIANT_CONFIG[variant]
+  const displayIcon = icon || config.defaultIcon
+
+  const handleConfirm = () => {
+    onConfirm()
+    onCancel()
+  }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      style={{ background: 'var(--modal-backdrop)' }}
       onClick={onCancel}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-
       {/* Dialog */}
       <div
-        className="relative bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 animate-scale-in"
+        className="card-elevated rounded-xl max-w-md w-full p-6 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
+        style={{ background: 'var(--modal-bg)' }}
       >
         {/* Icon */}
-        <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gray-700/50">
-          <i className={`${getIcon()} text-2xl`}></i>
+        <div className="flex justify-center mb-4">
+          <div
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{ background: config.iconBg }}
+          >
+            <i
+              className={`fas ${displayIcon} text-2xl`}
+              style={{ color: config.iconColor }}
+            ></i>
+          </div>
         </div>
 
         {/* Title */}
-        <h3 className="text-xl font-semibold text-gray-100 text-center mb-2">
+        <h3 className="text-heading-3 text-center mb-2">
           {title}
         </h3>
 
         {/* Message */}
-        <p className="text-gray-400 text-center mb-6">{message}</p>
+        <p className="text-body text-center mb-6" style={{ color: 'var(--text-secondary)' }}>
+          {message}
+        </p>
 
         {/* Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex gap-3">
           <button
+            className="btn btn-md btn-secondary flex-1"
             onClick={onCancel}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800"
           >
             {cancelText}
           </button>
           <button
-            onClick={() => {
-              onConfirm();
-              onCancel();
-            }}
-            className={`flex-1 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 ${getButtonStyle()}`}
+            className={`${config.buttonClass} flex-1`}
+            onClick={handleConfirm}
           >
             {confirmText}
           </button>

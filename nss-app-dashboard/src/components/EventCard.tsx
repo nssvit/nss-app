@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { getCategoryColor } from "@/utils/colors/categoryColors";
+import { getCategoryBadgeClass } from "@/utils/styles/badges";
 
 interface EventCardProps {
   title: string;
@@ -36,67 +36,66 @@ export function EventCard({
   canEdit = false,
 }: EventCardProps) {
   return (
-    <div className="card-glass hover-lift rounded-xl flex flex-col transition-all duration-300 ease-out px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-2.4 h-full">
+    <div className="card-glass card-interactive rounded-xl flex flex-col px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-3.5 h-full">
       <div className="flex-grow">
         <div className="flex justify-between items-start mb-3 md:mb-2">
           <h3
-            className="font-semibold text-gray-100 truncate pr-2 text-base md:text-sm lg:text-base"
+            className="text-heading-4 truncate pr-2"
             title={title}
           >
             {title}
           </h3>
-          <span className="text-sm md:text-xs text-gray-400 whitespace-nowrap">
+          <span className="text-caption whitespace-nowrap">
             {date}
           </span>
         </div>
-        <p className="text-sm md:text-xs text-gray-400 mb-4 md:mb-3 leading-relaxed line-clamp-3 md:line-clamp-2">
+        <p className="text-body-sm mb-4 md:mb-3 leading-relaxed line-clamp-3 md:line-clamp-2" style={{ color: 'var(--text-tertiary)' }}>
           {description}
         </p>
-        <div className="flex flex-wrap items-center mb-4 md:mb-3 gap-1">
-          <span className="tag text-xs">
-            <span className={`tag-dot ${getCategoryColor(category)}`}></span>
+        <div className="flex flex-wrap items-center mb-4 md:mb-3 gap-2">
+          <span className={getCategoryBadgeClass(category)}>
             {category}
           </span>
-          <span className="tag text-xs">
-            <span className="tag-dot bg-green-500"></span>
+          <span className="badge badge-success text-xs">
             {hours} Hrs
           </span>
         </div>
       </div>
-      <div className="flex items-center justify-between pt-3 border-t border-gray-700/20 mt-auto">
+      <div className="flex items-center justify-between pt-3 border-t mt-auto" style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex items-center -space-x-2">
           {participants.map((participant, index) => (
             <Image
               key={index}
               src={participant.avatar}
               alt={participant.alt}
-              className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2 border-gray-700/50"
+              className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2"
+              style={{ borderColor: 'var(--bg-primary)' }}
               width={24}
               height={24}
             />
           ))}
-          <span className="text-sm md:text-xs text-gray-500 pl-3">
+          <span className="text-caption pl-3">
             +{participantCount}
           </span>
         </div>
-        <div className="flex space-x-3 md:space-x-1.5">
+        <div className="flex gap-1">
           <button
             title="Edit"
-            className="pwa-button action-button text-gray-400 hover:text-blue-400 p-2 md:p-1.5 rounded-lg text-sm md:text-xs focus-visible"
+            className="btn btn-icon btn-sm btn-ghost"
             onClick={onEdit}
           >
             <i className="fas fa-pencil-alt"></i>
           </button>
           <button
             title="Participants"
-            className="pwa-button action-button text-gray-400 hover:text-green-400 p-2 md:p-1.5 rounded-lg text-sm md:text-xs focus-visible"
+            className="btn btn-icon btn-sm btn-ghost"
             onClick={onViewParticipants}
           >
             <i className="fas fa-users"></i>
           </button>
           <button
             title="Delete"
-            className="pwa-button action-button text-gray-400 hover:text-red-500 p-2 md:p-1.5 rounded-lg text-sm md:text-xs focus-visible"
+            className="btn btn-icon btn-sm btn-ghost"
             onClick={onDelete}
           >
             <i className="fas fa-trash-alt"></i>

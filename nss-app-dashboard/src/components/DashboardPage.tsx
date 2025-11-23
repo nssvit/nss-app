@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { StatsCard } from "./StatsCard";
+import { getStatusBadgeClass } from "@/utils/styles/badges";
 
 interface DashboardPageProps {
   onNavigate?: (page: string) => void;
@@ -46,7 +47,7 @@ export function DashboardPage({
       change: "+12%",
       changeType: "increase" as const,
       icon: "fas fa-calendar-check",
-      color: "text-blue-400",
+      variant: "purple" as const,
     },
     {
       title: "Active Volunteers",
@@ -54,7 +55,7 @@ export function DashboardPage({
       change: "+5%",
       changeType: "increase" as const,
       icon: "fas fa-users",
-      color: "text-green-400",
+      variant: "success" as const,
     },
     {
       title: "Community Hours",
@@ -62,7 +63,7 @@ export function DashboardPage({
       change: "+18%",
       changeType: "increase" as const,
       icon: "fas fa-clock",
-      color: "text-purple-400",
+      variant: "primary" as const,
     },
     {
       title: "Ongoing Projects",
@@ -70,7 +71,7 @@ export function DashboardPage({
       change: "-2%",
       changeType: "decrease" as const,
       icon: "fas fa-project-diagram",
-      color: "text-orange-400",
+      variant: "orange" as const,
     },
   ];
 
@@ -95,18 +96,6 @@ export function DashboardPage({
     },
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Completed":
-        return "text-green-400";
-      case "Upcoming":
-        return "text-blue-400";
-      case "Ongoing":
-        return "text-yellow-400";
-      default:
-        return "text-gray-400";
-    }
-  };
 
   return (
     <div
@@ -114,10 +103,10 @@ export function DashboardPage({
     >
       {/* Welcome Section */}
       <div className="mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-100 mb-2">
+        <h2 className="text-heading-2 mb-2">
           Welcome back, Admin!
         </h2>
-        <p className="text-gray-300">
+        <p className="text-body">
           Here&apos;s what&apos;s happening with your NSS activities today.
         </p>
       </div>
@@ -133,7 +122,7 @@ export function DashboardPage({
               value={stat.value}
               change={{ value: parseInt(stat.change), type: stat.changeType }}
               icon={stat.icon}
-              color={stat.color.replace('text-', '').replace('-400', '') as any}
+              variant={stat.variant}
             />
           </div>
         ))}
@@ -146,12 +135,12 @@ export function DashboardPage({
         {/* Recent Events */}
         <div className="card-glass rounded-xl p-5 h-full">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-100">
+            <h3 className="text-heading-3">
               Recent Events
             </h3>
             <button
               onClick={() => onNavigate?.("events")}
-              className="text-sm text-indigo-400 hover:text-indigo-300"
+              className="btn btn-sm btn-ghost"
             >
               View All
             </button>
@@ -163,19 +152,17 @@ export function DashboardPage({
                 className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-black/60 transition-colors rounded-lg group"
               >
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-200 group-hover:text-white transition-colors text-sm">
+                  <h4 className="text-body-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                     {event.title}
                   </h4>
                   <div className="flex items-center space-x-4 mt-1">
-                    <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">{event.date}</span>
-                    <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors">
+                    <span className="text-caption">{event.date}</span>
+                    <span className="text-caption">
                       {event.participants} participants
                     </span>
                   </div>
                 </div>
-                <span
-                  className={`text-xs font-medium ${getStatusColor(event.status)}`}
-                >
+                <span className={getStatusBadgeClass(event.status)}>
                   {event.status}
                 </span>
               </div>
@@ -185,34 +172,34 @@ export function DashboardPage({
 
         {/* Quick Actions */}
         <div className="card-glass rounded-xl p-5 h-full">
-          <h3 className="text-lg font-semibold text-gray-100 mb-4">
+          <h3 className="text-heading-3 mb-4">
             Quick Actions
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => onCreateEvent?.()}
-              className="pwa-button button-glass-primary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+              className="btn btn-secondary hover-lift flex flex-col items-center space-y-2 p-4"
             >
-              <i className="fas fa-plus text-lg text-indigo-400"></i>
+              <i className="fas fa-plus text-lg" style={{ color: 'var(--brand-primary)' }}></i>
               <span className="text-sm font-medium">Create Event</span>
             </button>
             <button
               onClick={() => onNavigate?.("volunteers")}
-              className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+              className="btn btn-secondary hover-lift flex flex-col items-center space-y-2 p-4"
             >
-              <i className="fas fa-user-plus text-lg text-green-400"></i>
+              <i className="fas fa-user-plus text-lg" style={{ color: 'var(--status-success-text)' }}></i>
               <span className="text-sm font-medium">Add Volunteer</span>
             </button>
             <button
               onClick={() => onNavigate?.("reports")}
-              className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+              className="btn btn-secondary hover-lift flex flex-col items-center space-y-2 p-4"
             >
               <i className="fas fa-chart-line text-lg text-purple-400"></i>
               <span className="text-sm font-medium">View Reports</span>
             </button>
             <button
               onClick={() => onCreateEvent?.()}
-              className="pwa-button button-glass-secondary hover-lift flex flex-col items-center space-y-2 p-4 rounded-lg focus-visible"
+              className="btn btn-secondary hover-lift flex flex-col items-center space-y-2 p-4"
             >
               <i className="fas fa-calendar-alt text-lg text-orange-400"></i>
               <span className="text-sm font-medium">Schedule Event</span>
@@ -223,7 +210,7 @@ export function DashboardPage({
 
       {/* Activity Chart Section */}
       <div className="card-glass rounded-xl p-5 mt-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">
+        <h3 className="text-heading-3 mb-4">
           Activity Overview
         </h3>
         <div className="h-64">

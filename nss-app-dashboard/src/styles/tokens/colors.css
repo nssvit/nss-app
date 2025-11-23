@@ -90,11 +90,11 @@
 }
 
 .light {
-  /* Text Colors - Light Mode (High Contrast) */
+  /* Text Colors - Light Mode (Enhanced Contrast) */
   --text-primary: #0f172a;
-  /* Slate 900 */
-  --text-secondary: #334155;
-  /* Slate 700 */
+  /* Slate 900 - Excellent contrast */
+  --text-secondary: #1e293b;
+  /* Slate 800 - Stronger than before */
   --text-tertiary: #475569;
   /* Slate 600 */
   --text-quaternary: #64748b;
@@ -102,48 +102,51 @@
   --text-muted: #94a3b8;
   /* Slate 400 */
 
-  /* Background Colors - Light Mode */
-  --bg-primary: #f1f5f9;
-  /* Slate 100 */
-  --bg-secondary: #e2e8f0;
-  /* Slate 200 */
-  --bg-tertiary: #cbd5e1;
-  /* Slate 300 */
-  --bg-surface: rgba(255, 255, 255, 0.7);
-  /* Glassy White */
-  --bg-surface-hover: rgba(255, 255, 255, 0.85);
+  /* Background Colors - Light Mode (More Depth) */
+  --bg-primary: #f8fafc;
+  /* Slate 50 - Brighter base */
+  --bg-secondary: #f1f5f9;
+  /* Slate 100 - Clear variation */
+  --bg-tertiary: #e2e8f0;
+  /* Slate 200 - Distinct */
+  --bg-surface: rgba(255, 255, 255, 0.95);
+  /* More opaque for contrast */
+  --bg-surface-hover: rgba(255, 255, 255, 1);
 
   /* Sidebar */
-  --sidebar-bg: rgba(255, 255, 255, 0.85);
-  --sidebar-border: rgba(0, 0, 0, 0.06);
+  --sidebar-bg: rgba(255, 255, 255, 0.95);
+  --sidebar-border: rgba(0, 0, 0, 0.08);
 
-  /* Border Colors */
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.2);
+  /* Border Colors (Stronger Definition) */
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  /* Was 0.06 - More visible */
+  --border-medium: rgba(0, 0, 0, 0.15);
+  /* Was 0.12 - Clearer */
+  --border-strong: rgba(0, 0, 0, 0.25);
+  /* Was 0.2 - Stronger */
 
-  /* Status Colors (Darker for Light Mode) */
-  --status-success-text: #15803d;
-  /* Green 700 */
-  --status-success-bg: rgba(22, 163, 74, 0.15);
-  --status-error-text: #b91c1c;
-  /* Red 700 */
-  --status-error-bg: rgba(220, 38, 38, 0.15);
-  --status-warning-text: #a16207;
-  /* Yellow 700 */
-  --status-warning-bg: rgba(202, 138, 4, 0.15);
-  --status-info-text: #1d4ed8;
-  /* Blue 700 */
-  --status-info-bg: rgba(37, 99, 235, 0.15);
+  /* Status Colors (WCAG AA Compliant) */
+  --status-success-text: #047857;
+  /* Green 700 - Higher contrast */
+  --status-success-bg: rgba(16, 185, 129, 0.12);
+  --status-error-text: #991b1b;
+  /* Red 800 - Higher contrast */
+  --status-error-bg: rgba(220, 38, 38, 0.12);
+  --status-warning-text: #92400e;
+  /* Amber 800 - Higher contrast */
+  --status-warning-bg: rgba(245, 158, 11, 0.12);
+  --status-info-text: #1e40af;
+  /* Blue 800 - Higher contrast */
+  --status-info-bg: rgba(59, 130, 246, 0.12);
 
-  /* Brand Colors */
+  /* Brand Colors (Optimized for Light) */
   --brand-primary: #4f46e5;
   /* Indigo 600 */
   --brand-secondary: #6366f1;
   /* Indigo 500 */
-  --brand-primary-light: #4338ca;
-  /* Indigo 700 */
-  --brand-glow: rgba(79, 70, 229, 0.3);
+  --brand-primary-light: #818cf8;
+  /* Indigo 400 - For hover */
+  --brand-glow: rgba(79, 70, 229, 0.15);
 
   /* Chart Colors */
   --chart-1: #4f46e5;
@@ -155,20 +158,22 @@
   /* Amber 600 */
   --chart-5: #9333ea;
   /* Purple 600 */
-  --chart-grid: rgba(0, 0, 0, 0.06);
+  --chart-grid: rgba(0, 0, 0, 0.08);
   --chart-text: #64748b;
 
   /* Input Colors */
-  --input-bg: rgba(255, 255, 255, 0.6);
-  --input-border: rgba(0, 0, 0, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.8);
+  --input-border: rgba(0, 0, 0, 0.12);
   --input-focus-border: rgba(79, 70, 229, 0.5);
   --input-placeholder: #94a3b8;
 
-  /* Modal */
-  --modal-backdrop: rgba(241, 245, 249, 0.8);
+  /* Modal (Enhanced) */
+  --modal-backdrop: rgba(15, 23, 42, 0.6);
   --modal-bg: #ffffff;
 
-  /* Shadows */
-  --shadow-glass: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
-  --shadow-glass-hover: 0 8px 32px -4px rgba(0, 0, 0, 0.1);
+  /* Shadows (Enhanced Depth) */
+  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.12),
+                  0 4px 16px -2px rgba(0, 0, 0, 0.08);
+  --shadow-glass-hover: 0 12px 48px -6px rgba(99, 102, 241, 0.15),
+                        0 8px 24px -4px rgba(0, 0, 0, 0.1);
 }

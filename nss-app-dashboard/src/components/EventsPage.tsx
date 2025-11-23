@@ -7,6 +7,7 @@ import { EventCard } from './EventCard'
 import { EventModal } from './EventModal'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { Skeleton } from './Skeleton'
+import { EmptyState } from './EmptyState'
 
 interface Event {
   id: string
@@ -296,13 +297,13 @@ export function EventsPage() {
           ))}
         </select>
 
-        <button className="pwa-button button-glass-secondary hover-lift flex items-center space-x-2 text-sm py-2 px-3 rounded-lg focus-visible">
+        <button className="btn btn-sm btn-secondary flex items-center gap-2">
           <i className="fas fa-filter fa-sm"></i>
           {!layout.isMobile && <span>Filter</span>}
         </button>
 
         <button
-          className="text-gray-500 hover:text-gray-300 text-sm py-2 px-3 transition-colors focus-visible rounded"
+          className="btn btn-sm btn-ghost"
           onClick={clearFilters}
         >
           Clear
@@ -310,7 +311,7 @@ export function EventsPage() {
       </div>
 
       {/* Results Summary */}
-      <div className="mb-4 text-sm text-gray-400">
+      <div className="mb-4 text-body-sm" style={{ color: 'var(--text-tertiary)' }}>
         Showing {paginatedEvents.length} of {filteredEvents.length} events
         {searchTerm && ` for "${searchTerm}"`}
       </div>
@@ -341,32 +342,35 @@ export function EventsPage() {
 
       {/* Empty State */}
       {filteredEvents.length === 0 && (
-        <div className="text-center py-12">
-          <i className="fas fa-calendar-times text-6xl text-gray-600 mb-4"></i>
-          <h3 className="text-xl font-semibold text-gray-300 mb-2">No Events Found</h3>
-          <p className="text-gray-500 mb-6">
-            {searchTerm || categoryFilter || sessionFilter
+        <EmptyState
+          icon="fa-calendar-times"
+          title="No Events Found"
+          description={
+            searchTerm || categoryFilter || sessionFilter
               ? 'Try adjusting your filters to see more events.'
-              : 'No events have been created yet.'}
-          </p>
-          {hasAnyRole(['admin', 'program_officer', 'event_lead']) && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="button-glass-primary px-6 py-3 rounded-lg font-medium"
-            >
-              <i className="fas fa-plus mr-2"></i>
-              Create First Event
-            </button>
-          )}
-        </div>
+              : 'No events have been created yet.'
+          }
+          size="lg"
+          action={
+            hasAnyRole(['admin', 'program_officer', 'event_lead']) ? (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="btn btn-md btn-primary"
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Create First Event
+              </button>
+            ) : undefined
+          }
+        />
       )}
 
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-8 md:mt-6 safe-area-bottom">
-          <nav className={`flex ${layout.isMobile ? 'space-x-1' : 'space-x-2'}`}>
+          <nav className={`flex ${layout.isMobile ? 'gap-1' : 'gap-2'}`}>
             <button
-              className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed pwa-button focus-visible`}
+              className="btn btn-sm btn-secondary"
               disabled={currentPage === 1}
               onClick={() => goToPage(currentPage - 1)}
             >
@@ -378,8 +382,7 @@ export function EventsPage() {
               return (
                 <button
                   key={pageNumber}
-                  className={`pagination-button ${currentPage === pageNumber ? 'active' : ''} ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'
-                    } rounded-lg pwa-button focus-visible`}
+                  className={`btn btn-sm ${currentPage === pageNumber ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => goToPage(pageNumber)}
                 >
                   {pageNumber}
@@ -388,7 +391,7 @@ export function EventsPage() {
             })}
 
             <button
-              className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
+              className="btn btn-sm btn-secondary"
               disabled={currentPage === totalPages}
               onClick={() => goToPage(currentPage + 1)}
             >

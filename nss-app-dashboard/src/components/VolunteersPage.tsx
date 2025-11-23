@@ -4,8 +4,11 @@ import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useVolunteers } from "@/hooks/useVolunteers";
 import Image from "next/image";
-import { getStatusClasses } from "@/utils/colors/statusColors";
+import { getStatusBadgeClass } from "@/utils/styles/badges";
 import { Skeleton } from "./Skeleton";
+import { EmptyState } from "./EmptyState";
+import { FilterBar, FilterSelect } from "./FilterBar";
+import { usePagination } from "@/hooks";
 
 interface Volunteer {
   id: string;
@@ -142,9 +145,7 @@ export function VolunteersPage() {
                       </h4>
                       <p className="text-sm text-gray-400">{volunteer.email}</p>
                     </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(volunteer.status || 'Pending')}`}
-                    >
+                    <span className={getStatusBadgeClass(volunteer.status || 'Pending')}>
                       {volunteer.status}
                     </span>
                   </div>
@@ -206,9 +207,7 @@ export function VolunteersPage() {
                     {volunteer.totalHours}
                   </div>
                   <div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(volunteer.status || 'Pending')}`}
-                    >
+                    <span className={getStatusBadgeClass(volunteer.status || 'Pending')}>
                       {volunteer.status}
                     </span>
                   </div>
