@@ -3,6 +3,7 @@ import "./globals.css";
 import { PWAManager } from "@/components/PWAManager";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { DashboardCacheProvider } from "@/contexts/DashboardCacheContext";
 import { CommandPalette } from "@/components/CommandPalette";
 import { Inter, JetBrains_Mono } from "next/font/google";
 
@@ -56,9 +57,11 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ThemeProvider>
-            {children}
-            <CommandPalette />
-            <PWAManager />
+            <DashboardCacheProvider>
+              {children}
+              <CommandPalette />
+              <PWAManager />
+            </DashboardCacheProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

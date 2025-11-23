@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useDashboardCache } from "@/contexts/DashboardCacheContext";
 import {
   AreaChart,
   Area,
@@ -27,74 +27,18 @@ export function DashboardPage({
   onCreateEvent,
 }: DashboardPageProps) {
   const layout = useResponsiveLayout();
+  const { cache, fetchDashboardData } = useDashboardCache();
 
-  const [stats, setStats] = useState({
+  // Fetch data only if cache is invalid or empty
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const stats = cache.stats || {
     total_events: 0,
     active_volunteers: 0,
     total_hours: 0,
-    ongoing_projects: 0
-  });
-  const [activityData, setActivityData] = useState<any[]>([]);
-  const [recentEvents, setRecentEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch all data in parallel
-      const [statsResult, trendsResult, eventsResult] = await Promise.all([
-        supabase.rpc('get_dashboard_stats'),
-        supabase.rpc('get_monthly_activity_trends'),
-        supabase
-          .from('events')
-          .select(`
-            id,
-            name,
-            event_date,
-            start_date,
-            event_status,
-            category_id,
-            event_categories (
-              name,
-              color_hex
-            ),
-            volunteers:created_by_volunteer_id (
-              first_name,
-              last_name
-            )
-          `)
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .limit(3),
-      ]);
-
-      // Handle stats
-      if (statsResult.error) throw statsResult.error;
-      if (statsResult.data && statsResult.data.length > 0) {
-        setStats(statsResult.data[0]);
-      }
-
-      // Handle trends
-      if (trendsResult.error) throw trendsResult.error;
-      setActivityData(trendsResult.data || []);
-
-      // Handle recent events
-      if (eventsResult.error) throw eventsResult.error;
-      setRecentEvents(eventsResult.data || []);
-
-    } catch (err: any) {
-      console.error('Error fetching dashboard data:', err);
-      setError(err.message || 'Failed to fetch dashboard data');
-    } finally {
-      setLoading(false);
-    }
+    ongoing_projects: 0,
   };
 
   // Transform stats for display
@@ -134,28 +78,41 @@ export function DashboardPage({
   ];
 
   // Transform activity data for chart
-  const chartData = activityData.map(item => ({
+  const chartData = cache.activityData.map((item) => ({
     month: item.month,
     events: Number(item.events_count),
     volunteers: Number(item.volunteers_count),
-    hours: Number(item.hours_sum)
+    hours: Number(item.hours_sum),
   }));
 
   // Transform recent events for display
-  const formattedRecentEvents = recentEvents.map(event => ({
+  const formattedRecentEvents = cache.recentEvents.map((event) => ({
     title: event.name,
-    date: event.event_date ? new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) :
-          new Date(event.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    date: event.event_date
+      ? new Date(event.event_date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      : new Date(event.start_date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
     participants: 0,
-    status: event.event_status === 'completed' ? 'Completed' :
-            event.event_status === 'ongoing' ? 'Ongoing' : 'Upcoming',
+    status:
+      event.event_status === "completed"
+        ? "Completed"
+        : event.event_status === "ongoing"
+          ? "Ongoing"
+          : "Upcoming",
   }));
 
   // Show error state
-  if (error && !loading) {
+  if (cache.error && !cache.loading) {
     return (
-      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
-        <ErrorState error={error} retry={fetchDashboardData} />
+      <div
+        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      >
+        <ErrorState error={cache.error} retry={() => fetchDashboardData(true)} />
       </div>
     );
   }
@@ -166,9 +123,7 @@ export function DashboardPage({
     >
       {/* Welcome Section */}
       <div className="mb-6">
-        <h2 className="text-heading-2 mb-2">
-          Welcome back, Admin!
-        </h2>
+        <h2 className="text-heading-2 mb-2">Welcome back, Admin!</h2>
         <p className="text-body">
           Here&apos;s what&apos;s happening with your NSS activities today.
         </p>
@@ -178,7 +133,7 @@ export function DashboardPage({
       <div
         className={`grid ${layout.isMobile ? "grid-cols-1" : layout.isTablet ? "grid-cols-2" : "grid-cols-4"} gap-4 mb-6`}
       >
-        {loading ? (
+        {cache.loading ? (
           <>
             <Skeleton className="h-32 w-full rounded-xl" />
             <Skeleton className="h-32 w-full rounded-xl" />
@@ -207,9 +162,7 @@ export function DashboardPage({
         {/* Recent Events */}
         <div className="card-glass rounded-xl p-5 h-full">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-heading-3">
-              Recent Events
-            </h3>
+            <h3 className="text-heading-3">Recent Events</h3>
             <button
               onClick={() => onNavigate?.("events")}
               className="btn btn-sm btn-ghost"
@@ -218,7 +171,7 @@ export function DashboardPage({
             </button>
           </div>
           <div className="space-y-3">
-            {loading ? (
+            {cache.loading ? (
               <>
                 <Skeleton className="h-16 w-full rounded-lg" />
                 <Skeleton className="h-16 w-full rounded-lg" />
@@ -231,7 +184,10 @@ export function DashboardPage({
                   className="flex items-center justify-between p-3 bg-gray-800/30 hover:bg-black/60 transition-colors rounded-lg group"
                 >
                   <div className="flex-1">
-                    <h4 className="text-body-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                    <h4
+                      className="text-body-sm font-medium"
+                      style={{ color: "var(--text-primary)" }}
+                    >
                       {event.title}
                     </h4>
                     <div className="flex items-center space-x-4 mt-1">
@@ -254,22 +210,26 @@ export function DashboardPage({
 
         {/* Quick Actions */}
         <div className="card-glass rounded-xl p-5 h-full">
-          <h3 className="text-heading-3 mb-4">
-            Quick Actions
-          </h3>
+          <h3 className="text-heading-3 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => onCreateEvent?.()}
               className="btn btn-secondary hover-lift flex flex-col items-center space-y-2 p-4"
             >
-              <i className="fas fa-plus text-lg" style={{ color: 'var(--brand-primary)' }}></i>
+              <i
+                className="fas fa-plus text-lg"
+                style={{ color: "var(--brand-primary)" }}
+              ></i>
               <span className="text-sm font-medium">Create Event</span>
             </button>
             <button
               onClick={() => onNavigate?.("volunteers")}
               className="btn btn-secondary hover-lift flex flex-col items-center space-y-2 p-4"
             >
-              <i className="fas fa-user-plus text-lg" style={{ color: 'var(--status-success-text)' }}></i>
+              <i
+                className="fas fa-user-plus text-lg"
+                style={{ color: "var(--status-success-text)" }}
+              ></i>
               <span className="text-sm font-medium">Add Volunteer</span>
             </button>
             <button
@@ -292,9 +252,7 @@ export function DashboardPage({
 
       {/* Activity Chart Section */}
       <div className="card-glass rounded-xl p-5 mt-6">
-        <h3 className="text-heading-3 mb-4">
-          Activity Overview
-        </h3>
+        <h3 className="text-heading-3 mb-4">Activity Overview</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
@@ -321,13 +279,13 @@ export function DashboardPage({
               <XAxis
                 dataKey="month"
                 stroke="var(--chart-text)"
-                tick={{ fill: 'var(--chart-text)' }}
-                axisLine={{ stroke: 'var(--chart-grid)' }}
+                tick={{ fill: "var(--chart-text)" }}
+                axisLine={{ stroke: "var(--chart-grid)" }}
                 tickLine={false}
               />
               <YAxis
                 stroke="var(--chart-text)"
-                tick={{ fill: 'var(--chart-text)' }}
+                tick={{ fill: "var(--chart-text)" }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -341,7 +299,12 @@ export function DashboardPage({
                           <div key={index} className="flex items-center gap-2 text-sm">
                             <div
                               className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: entry.color === 'url(#colorEvents)' ? 'var(--chart-1)' : 'var(--chart-2)' }}
+                              style={{
+                                backgroundColor:
+                                  entry.color === "url(#colorEvents)"
+                                    ? "var(--chart-1)"
+                                    : "var(--chart-2)",
+                              }}
                             />
                             <span className="text-[var(--text-secondary)] capitalize">
                               {entry.name}:
