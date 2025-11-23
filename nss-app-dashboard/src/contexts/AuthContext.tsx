@@ -26,14 +26,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Safety timeout to prevent infinite loading
-    const safetyTimeout = setTimeout(() => {
-      if (loading) {
-        console.warn('Auth check timed out, forcing loading to false')
-        setLoading(false)
-      }
-    }, 3000)
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -42,11 +34,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         getCurrentUserData()
       }
       setLoading(false)
-      clearTimeout(safetyTimeout)
-    }).catch(err => {
-      console.error('Error getting session:', err)
-      setLoading(false)
-      clearTimeout(safetyTimeout)
     })
 
     // Listen for auth changes
@@ -67,13 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       subscription.unsubscribe()
-      clearTimeout(safetyTimeout)
     }
   }, [])
 
   const getCurrentUserData = async () => {
     try {
-      console.log('Fetching current user data...')
       const { data, error } = await supabase.rpc('get_current_volunteer') as { data: CurrentUser[] | null; error: any }
 
       if (error) {
@@ -81,22 +66,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // If function doesn't exist, try direct query as fallback
         if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
-          console.log('Function not found, trying direct query fallback...')
           await getCurrentUserDataFallback()
         }
         return
       }
 
-      console.log('RPC Response:', data)
       if (Array.isArray(data) && data.length > 0) {
         setCurrentUser(data[0])
-        console.log('Current user set:', data[0])
-      } else {
-        console.log('No user data returned from RPC')
       }
     } catch (error) {
       console.error('Unexpected error fetching current user:', error)
-      // Try fallback method
       await getCurrentUserDataFallback()
     }
   }
@@ -154,7 +133,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setCurrentUser(currentUserData)
-        console.log('Fallback method successful:', currentUserData)
       }
     } catch (fallbackError) {
       console.error('Fallback method also failed:', fallbackError)
