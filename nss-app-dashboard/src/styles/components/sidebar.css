@@ -32,6 +32,15 @@
   border-radius: 12px;
 }
 
+.sidebar.collapsed .sidebar-link i {
+  width: auto;
+  margin: 0;
+}
+
+.sidebar.collapsed .active-sidebar-link {
+  border: 2px solid rgba(99, 102, 241, 0.3);
+}
+
 .sidebar.collapsed .sidebar-header-box {
   display: flex;
   align-items: center;
@@ -40,6 +49,11 @@
   width: 44px;
   height: 44px;
   margin: 0.75rem auto;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  width: 100%;
+  height: 100%;
 }
 
 .sidebar.collapsed .branding-section {
@@ -86,6 +100,10 @@
   height: 20px;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
   border-radius: 0 2px 2px 0;
+}
+
+.sidebar.collapsed .active-sidebar-link::before {
+  display: none;
 }
 
 .active-sidebar-link i {
