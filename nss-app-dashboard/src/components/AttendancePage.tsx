@@ -1,21 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useAttendance } from "@/hooks/useAttendance";
+import type { EventParticipant } from "@/hooks/useAttendance";
+import { Skeleton } from "./Skeleton";
 import Image from "next/image";
 
 interface AttendanceRecord {
-  id: number;
+  id: string;
   eventName: string;
   eventDate: string;
   totalRegistered: number;
   totalAttended: number;
   attendanceRate: number;
   status: "Completed" | "Ongoing" | "Upcoming";
+  categoryName: string;
 }
 
 interface ParticipantRecord {
-  id: number;
+  id: string;
   name: string;
   email: string;
   registrationDate: string;
@@ -26,87 +30,38 @@ interface ParticipantRecord {
 
 export function AttendancePage() {
   const layout = useResponsiveLayout();
-  const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
+  const { attendanceRecords: dbRecords, loading, getEventParticipants } = useAttendance();
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [attendanceFilter, setAttendanceFilter] = useState("");
+  const [participants, setParticipants] = useState<EventParticipant[]>([]);
+  const [loadingParticipants, setLoadingParticipants] = useState(false);
 
-  const attendanceRecords: AttendanceRecord[] = [
-    {
-      id: 1,
-      eventName: "Beach Clean-Up Drive",
-      eventDate: "Aug 15, 2024",
-      totalRegistered: 95,
-      totalAttended: 73,
-      attendanceRate: 76.8,
-      status: "Completed",
-    },
-    {
-      id: 2,
-      eventName: "Blood Donation VIT",
-      eventDate: "Sep 10, 2024",
-      totalRegistered: 150,
-      totalAttended: 118,
-      attendanceRate: 78.7,
-      status: "Completed",
-    },
-    {
-      id: 3,
-      eventName: "NSS Camp - Kuderan",
-      eventDate: "Nov 27, 2024",
-      totalRegistered: 60,
-      totalAttended: 48,
-      attendanceRate: 80.0,
-      status: "Completed",
-    },
-    {
-      id: 4,
-      eventName: "Digital Literacy Workshop",
-      eventDate: "Dec 5, 2024",
-      totalRegistered: 40,
-      totalAttended: 32,
-      attendanceRate: 80.0,
-      status: "Ongoing",
-    },
-  ];
+  // Transform database attendance records to component format
+  const attendanceRecords: AttendanceRecord[] = dbRecords.map((record) => ({
+    id: record.event_id,
+    eventName: record.event_name,
+    eventDate: record.event_date
+      ? new Date(record.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : 'No date',
+    totalRegistered: Number(record.total_registered),
+    totalAttended: Number(record.total_present),
+    attendanceRate: Number(record.attendance_rate),
+    status: 'Completed' as const, // You can derive this from event status
+    categoryName: record.category_name
+  }));
 
-  const participants: ParticipantRecord[] = [
-    {
-      id: 1,
-      name: "Arjun Patel",
-      email: "arjun.patel@vitstudent.ac.in",
-      registrationDate: "Aug 12, 2024",
-      attendanceStatus: "Present",
-      checkInTime: "09:15 AM",
-      avatar: "https://i.imgur.com/gVo4gxC.png",
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      email: "priya.sharma@vitstudent.ac.in",
-      registrationDate: "Aug 13, 2024",
-      attendanceStatus: "Present",
-      checkInTime: "09:22 AM",
-      avatar: "https://i.imgur.com/7OtnwP9.png",
-    },
-    {
-      id: 3,
-      name: "Raj Kumar",
-      email: "raj.kumar@vitstudent.ac.in",
-      registrationDate: "Aug 10, 2024",
-      attendanceStatus: "Late",
-      checkInTime: "10:45 AM",
-      avatar: "https://i.imgur.com/xG2942s.png",
-    },
-    {
-      id: 4,
-      name: "Sneha Reddy",
-      email: "sneha.reddy@vitstudent.ac.in",
-      registrationDate: "Aug 14, 2024",
-      attendanceStatus: "Absent",
-      avatar: "https://i.imgur.com/gJgRz7n.png",
-    },
-  ];
+  // Load participants when an event is selected
+  useEffect(() => {
+    if (selectedEvent) {
+      setLoadingParticipants(true);
+      getEventParticipants(selectedEvent).then((data) => {
+        setParticipants(data);
+        setLoadingParticipants(false);
+      });
+    }
+  }, [selectedEvent, getEventParticipants]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -165,6 +120,13 @@ export function AttendancePage() {
     return matchesSearch && matchesAttendance;
   });
 
+  // Calculate stats from actual data
+  const totalEvents = dbRecords.length;
+  const totalParticipants = dbRecords.reduce((sum, record) => sum + Number(record.total_registered), 0);
+  const totalPresent = dbRecords.reduce((sum, record) => sum + Number(record.total_present), 0);
+  const avgAttendance = totalParticipants > 0 ? ((totalPresent / totalParticipants) * 100).toFixed(1) : '0.0';
+  const totalHours = dbRecords.reduce((sum, record) => sum + Number(record.total_hours), 0);
+
   return (
     <div
       className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
@@ -173,61 +135,56 @@ export function AttendancePage() {
       <div
         className={`grid ${layout.isMobile ? "grid-cols-1" : layout.isTablet ? "grid-cols-2" : "grid-cols-4"} gap-4 mb-6`}
       >
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
-              <i className="fas fa-calendar-check text-lg text-blue-400"></i>
+        {loading ? (
+          <>
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+            <Skeleton className="h-28 rounded-xl" />
+          </>
+        ) : (
+          <>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
+                  <i className="fas fa-calendar-check text-lg text-blue-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalEvents}</h3>
+              <p className="text-sm text-gray-400">Total Events</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +5%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">248</h3>
-          <p className="text-sm text-gray-400">Total Events</p>
-        </div>
 
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center">
-              <i className="fas fa-user-check text-lg text-green-400"></i>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center">
+                  <i className="fas fa-user-check text-lg text-green-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{avgAttendance}%</h3>
+              <p className="text-sm text-gray-400">Avg. Attendance</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +12%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">78.5%</h3>
-          <p className="text-sm text-gray-400">Avg. Attendance</p>
-        </div>
 
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center">
-              <i className="fas fa-users text-lg text-purple-400"></i>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center">
+                  <i className="fas fa-users text-lg text-purple-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalParticipants.toLocaleString()}</h3>
+              <p className="text-sm text-gray-400">Total Participants</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +8%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">1,847</h3>
-          <p className="text-sm text-gray-400">Total Participants</p>
-        </div>
 
-        <div className="card-glass rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="w-12 h-12 rounded-lg bg-orange-900/30 flex items-center justify-center">
-              <i className="fas fa-clock text-lg text-orange-400"></i>
+            <div className="card-glass rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-12 h-12 rounded-lg bg-orange-900/30 flex items-center justify-center">
+                  <i className="fas fa-clock text-lg text-orange-400"></i>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalHours.toLocaleString()}</h3>
+              <p className="text-sm text-gray-400">Total Hours</p>
             </div>
-            <div className="text-sm text-green-400">
-              <i className="fas fa-arrow-up text-xs mr-1"></i>
-              +15%
-            </div>
-          </div>
-          <h3 className="text-2xl font-bold text-gray-100 mb-1">12,486</h3>
-          <p className="text-sm text-gray-400">Total Hours</p>
-        </div>
+          </>
+        )}
       </div>
 
       {/* Search and Filters */}

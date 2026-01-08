@@ -18,8 +18,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
+
+    if (typeof window === 'undefined') return;
+
     // Check localStorage for saved theme preference
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
+    const savedTheme = window.localStorage.getItem("theme") as Theme | null;
     if (savedTheme) {
       setThemeState(savedTheme);
       document.documentElement.classList.toggle("light", savedTheme === "light");
@@ -34,8 +37,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("light", newTheme === "light");
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem("theme", newTheme);
+      document.documentElement.classList.toggle("light", newTheme === "light");
+    }
   };
 
   const toggleTheme = () => {
