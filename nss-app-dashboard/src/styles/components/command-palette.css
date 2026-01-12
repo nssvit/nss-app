@@ -1,0 +1,76 @@
+/* Command Palette Styles */
+.command-palette {
+    background: rgba(17, 24, 39, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.light .command-palette {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[cmdk-input-wrapper] {
+    position: relative;
+}
+
+[cmdk-item] {
+    content-visibility: auto;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+[cmdk-item][aria-selected="true"] {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--brand-primary);
+}
+
+.light [cmdk-item][aria-selected="true"] {
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--brand-primary);
+}
+
+[cmdk-group-heading] {
+    user-select: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 0 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+[cmdk-empty] {
+    font-size: 0.875rem;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem 0;
+}
+
+/* Animation for opening */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.95);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.animate-in {
+    animation: fadeIn 0.2s ease-out, zoomIn 0.2s ease-out;
+}
