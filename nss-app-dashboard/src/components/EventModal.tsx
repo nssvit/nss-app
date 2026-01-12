@@ -274,8 +274,8 @@ export function EventModal({
               >
                 <option value="">Select Category...</option>
                 {categories.length > 0 ? (
-                  categories.map((category) => (
-                    <option key={category} value={category}>
+                  categories.map((category, index) => (
+                    <option key={`modal-cat-${index}`} value={category}>
                       {category}
                     </option>
                   ))
@@ -394,9 +394,9 @@ export function EventModal({
                   ) : filteredVolunteers.length === 0 ? (
                     <p className="text-sm text-gray-400 text-center py-4">No volunteers found</p>
                   ) : (
-                    filteredVolunteers.map((volunteer) => (
+                    filteredVolunteers.map((volunteer, index) => (
                       <label
-                        key={volunteer.id}
+                        key={`vol-${volunteer.id || index}`}
                         className="flex items-center gap-3 p-2 rounded hover:bg-gray-800/30 cursor-pointer"
                       >
                         <input

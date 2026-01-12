@@ -25,9 +25,8 @@ interface ParticipantWithSelection extends EventParticipant {
 const STATUS_OPTIONS: { value: ParticipationStatus; label: string; color: string }[] = [
   { value: "registered", label: "Registered", color: "text-blue-400 bg-blue-900/30" },
   { value: "present", label: "Present", color: "text-green-400 bg-green-900/30" },
-  { value: "attended", label: "Attended", color: "text-green-400 bg-green-900/30" },
   { value: "absent", label: "Absent", color: "text-red-400 bg-red-900/30" },
-  { value: "partial", label: "Partial", color: "text-yellow-400 bg-yellow-900/30" },
+  { value: "partially_present", label: "Partial", color: "text-yellow-400 bg-yellow-900/30" },
   { value: "excused", label: "Excused", color: "text-gray-400 bg-gray-700/30" },
 ];
 
@@ -298,7 +297,7 @@ export function AttendanceManager() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-400">
-                  {participants.filter((p) => ["present", "attended"].includes(p.participation_status)).length}
+                  {participants.filter((p) => ["present", "partially_present"].includes(p.participation_status)).length}
                 </div>
                 <div className="text-xs text-gray-500">Present</div>
               </div>

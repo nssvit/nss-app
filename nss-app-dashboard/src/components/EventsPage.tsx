@@ -12,6 +12,11 @@ import { EmptyState } from './EmptyState'
 import { useToast } from '@/hooks/useToast'
 import { ToastContainer } from './Toast'
 
+interface EventParticipantAvatar {
+  avatar: string
+  alt: string
+}
+
 interface Event {
   id: string
   event_name: string
@@ -23,6 +28,7 @@ interface Event {
   participant_count: number
   is_active: boolean
   created_at: string
+  participant_avatars?: EventParticipantAvatar[]
 }
 
 interface EventCategory {
@@ -71,7 +77,47 @@ export function EventsPage() {
         return
       }
 
-      setEvents(data || [])
+      // Fetch participant avatars for events that have participants
+      const eventsWithAvatars = await Promise.all(
+        (data || []).map(async (event: Event) => {
+          try {
+            if (event.participant_count === 0) {
+              return { ...event, participant_avatars: [] }
+            }
+
+            // Get participation records first
+            const { data: participations } = await supabase
+              .from('event_participation')
+              .select('volunteer_id')
+              .eq('event_id', event.id)
+              .limit(3)
+
+            if (!participations || participations.length === 0) {
+              return { ...event, participant_avatars: [] }
+            }
+
+            // Get volunteer details
+            const volunteerIds = participations.map(p => p.volunteer_id).filter(Boolean)
+            const { data: volunteers } = await supabase
+              .from('volunteers')
+              .select('first_name, last_name, profile_pic')
+              .in('id', volunteerIds)
+
+            const avatars: EventParticipantAvatar[] = (volunteers || [])
+              .map((v: any) => ({
+                avatar: v.profile_pic || '',
+                alt: `${v.first_name} ${v.last_name}`
+              }))
+              .filter((a: EventParticipantAvatar) => a.avatar) // Only include those with profile pics
+
+            return { ...event, participant_avatars: avatars }
+          } catch {
+            return { ...event, participant_avatars: [] }
+          }
+        })
+      )
+
+      setEvents(eventsWithAvatars)
     } catch (error) {
       console.error('Error loading events:', error)
     } finally {
@@ -407,8 +453,8 @@ export function EventsPage() {
           value={sessionFilter}
           onChange={(e) => setSessionFilter(e.target.value)}
         >
-          {getSessionOptions().map(option => (
-            <option key={option.value} value={option.value}>{option.label}</option>
+          {getSessionOptions().map((option, index) => (
+            <option key={`session-${index}`} value={option.value}>{option.label}</option>
           ))}
         </select>
 
@@ -418,8 +464,8 @@ export function EventsPage() {
           onChange={(e) => setCategoryFilter(e.target.value)}
         >
           <option value="">All Categories</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.category_name}>
+          {categories.map((category, index) => (
+            <option key={`cat-${category.id || index}`} value={category.category_name}>
               {category.category_name}
             </option>
           ))}
@@ -446,9 +492,9 @@ export function EventsPage() {
 
       {/* Events Grid */}
       <div className={`grid ${layout.getGridColumns()} gap-4 mb-8`}>
-        {paginatedEvents.map((event) => (
+        {paginatedEvents.map((event, index) => (
           <EventCard
-            key={event.id}
+            key={`event-${event.id || index}`}
             title={event.event_name}
             date={new Date(event.event_date).toLocaleDateString('en-US', {
               month: 'short',
@@ -457,7 +503,7 @@ export function EventsPage() {
             description={event.event_description}
             category={event.category_name}
             hours={event.declared_hours.toString()}
-            participants={[]} // TODO: Load actual participant avatars
+            participants={event.participant_avatars || []}
             participantCount={event.participant_count}
             onEdit={() => handleEditEvent(event.id)}
             onViewParticipants={() => handleViewParticipants(event.id)}
@@ -512,7 +558,7 @@ export function EventsPage() {
               const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
               return (
                 <button
-                  key={pageNumber}
+                  key={`page-${i}`}
                   className={`btn btn-sm ${currentPage === pageNumber ? 'btn-primary' : 'btn-secondary'}`}
                   onClick={() => goToPage(pageNumber)}
                 >

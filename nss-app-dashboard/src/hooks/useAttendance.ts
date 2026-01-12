@@ -32,7 +32,7 @@ export interface EventParticipant {
   notes: string | null
 }
 
-export type ParticipationStatus = 'registered' | 'attended' | 'present' | 'absent' | 'partial' | 'excused'
+export type ParticipationStatus = 'registered' | 'present' | 'absent' | 'partially_present' | 'excused'
 
 export interface UpdateAttendanceParams {
   participantId: string
@@ -103,21 +103,59 @@ export function useAttendance(): UseAttendanceReturn {
     eventId: string
   ): Promise<EventParticipant[]> => {
     try {
-      const { data, error } = await supabase.rpc('get_event_participants', {
-        event_uuid: eventId,
-      })
+      // First get participation records
+      const { data: participationData, error: participationError } = await supabase
+        .from('event_participation')
+        .select('*')
+        .eq('event_id', eventId)
+        .order('registration_date', { ascending: true })
 
-      if (error) {
-        if (error.message?.includes('does not exist') || error.code === '42883') {
-          console.error(
-            'Database function not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
-          )
-          return []
-        }
-        throw new Error(error.message || 'Failed to fetch participants')
+      if (participationError) {
+        console.error('Error fetching participation:', participationError)
+        throw participationError
       }
 
-      return (data || []) as EventParticipant[]
+      if (!participationData || participationData.length === 0) {
+        return []
+      }
+
+      // Get volunteer IDs
+      const volunteerIds = participationData.map(p => p.volunteer_id).filter(Boolean)
+
+      // Fetch volunteer details
+      const { data: volunteersData, error: volunteersError } = await supabase
+        .from('volunteers')
+        .select('id, first_name, last_name, roll_number, branch, year')
+        .in('id', volunteerIds)
+
+      if (volunteersError) {
+        console.error('Error fetching volunteers:', volunteersError)
+      }
+
+      // Create a map of volunteers by ID
+      const volunteersMap = new Map(
+        (volunteersData || []).map(v => [v.id, v])
+      )
+
+      // Combine data
+      return participationData.map((p: any) => {
+        const volunteer = volunteersMap.get(p.volunteer_id)
+        return {
+          participant_id: p.id,
+          volunteer_id: p.volunteer_id,
+          volunteer_name: volunteer
+            ? `${volunteer.first_name} ${volunteer.last_name}`
+            : 'Unknown',
+          roll_number: volunteer?.roll_number || '',
+          branch: volunteer?.branch || '',
+          year: volunteer?.year || '',
+          participation_status: p.participation_status || 'registered',
+          hours_attended: p.hours_attended || 0,
+          attendance_date: p.attendance_date,
+          registration_date: p.registration_date,
+          notes: p.notes,
+        }
+      })
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to fetch event participants'
       console.error('Error fetching event participants:', errorMessage)
@@ -143,8 +181,8 @@ export function useAttendance(): UseAttendanceReturn {
         updateData.notes = params.notes
       }
 
-      // Set attendance_date if marking as attended/present
-      if (['attended', 'present', 'partial'].includes(params.status)) {
+      // Set attendance_date if marking as present/partially_present
+      if (['present', 'partially_present'].includes(params.status)) {
         updateData.attendance_date = new Date().toISOString()
       }
 
@@ -181,7 +219,7 @@ export function useAttendance(): UseAttendanceReturn {
         updateData.notes = params.notes
       }
 
-      if (['attended', 'present', 'partial'].includes(params.status)) {
+      if (['present', 'partially_present'].includes(params.status)) {
         updateData.attendance_date = new Date().toISOString()
       }
 

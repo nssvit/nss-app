@@ -31,9 +31,8 @@ interface EventParticipantsModalProps {
 const STATUS_COLORS: Record<string, string> = {
   registered: "text-blue-400 bg-blue-900/30",
   present: "text-green-400 bg-green-900/30",
-  attended: "text-green-400 bg-green-900/30",
   absent: "text-red-400 bg-red-900/30",
-  partial: "text-yellow-400 bg-yellow-900/30",
+  partially_present: "text-yellow-400 bg-yellow-900/30",
   excused: "text-gray-400 bg-gray-700/30",
 };
 
@@ -67,52 +66,70 @@ export function EventParticipantsModal({
   const loadParticipants = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // First get participation data
+      const { data: participationData, error: participationError } = await supabase
         .from("event_participation")
-        .select(`
-          id,
-          volunteer_id,
-          participation_status,
-          hours_attended,
-          registration_date,
-          attendance_date,
-          notes,
-          volunteers (
-            id,
-            first_name,
-            last_name,
-            roll_number,
-            branch,
-            year,
-            email,
-            profile_pic
-          )
-        `)
+        .select("*")
         .eq("event_id", eventId)
         .order("registration_date", { ascending: true });
 
-      if (error) throw error;
+      if (participationError) {
+        console.error("Participation query error:", participationError);
+        throw participationError;
+      }
 
-      const formattedParticipants: Participant[] = (data || []).map((p: any) => ({
-        id: p.id,
-        volunteer_id: p.volunteer_id,
-        first_name: p.volunteers?.first_name || "",
-        last_name: p.volunteers?.last_name || "",
-        roll_number: p.volunteers?.roll_number || "",
-        branch: p.volunteers?.branch || "",
-        year: p.volunteers?.year || "",
-        email: p.volunteers?.email || "",
-        profile_pic: p.volunteers?.profile_pic,
-        participation_status: p.participation_status,
-        hours_attended: p.hours_attended,
-        registration_date: p.registration_date,
-        attendance_date: p.attendance_date,
-        notes: p.notes,
-      }));
+      if (!participationData || participationData.length === 0) {
+        setParticipants([]);
+        return;
+      }
+
+      // Get volunteer IDs
+      const volunteerIds = participationData.map(p => p.volunteer_id).filter(Boolean);
+
+      // Fetch volunteer details (only if we have volunteer IDs)
+      let volunteersData: any[] = [];
+      if (volunteerIds.length > 0) {
+        const { data, error: volunteersError } = await supabase
+          .from("volunteers")
+          .select("id, first_name, last_name, roll_number, branch, year, email, profile_pic")
+          .in("id", volunteerIds);
+
+        if (volunteersError) {
+          console.error("Volunteers query error:", volunteersError?.message || volunteersError);
+        }
+        volunteersData = data || [];
+      }
+
+      // Create a map of volunteers by ID
+      const volunteersMap = new Map(
+        volunteersData.map(v => [v.id, v])
+      );
+
+      // Combine the data
+      const formattedParticipants: Participant[] = participationData.map((p: any) => {
+        const volunteer = volunteersMap.get(p.volunteer_id);
+        return {
+          id: p.id,
+          volunteer_id: p.volunteer_id,
+          first_name: volunteer?.first_name || "",
+          last_name: volunteer?.last_name || "",
+          roll_number: volunteer?.roll_number || "",
+          branch: volunteer?.branch || "",
+          year: volunteer?.year || "",
+          email: volunteer?.email || "",
+          profile_pic: volunteer?.profile_pic || null,
+          participation_status: p.participation_status || "registered",
+          hours_attended: p.hours_attended || 0,
+          registration_date: p.registration_date,
+          attendance_date: p.attendance_date,
+          notes: p.notes,
+        };
+      });
 
       setParticipants(formattedParticipants);
-    } catch (err) {
-      console.error("Error loading participants:", err);
+    } catch (err: any) {
+      console.error("Error loading participants:", err?.message || err?.code || JSON.stringify(err) || "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -129,7 +146,7 @@ export function EventParticipantsModal({
 
   const stats = {
     total: participants.length,
-    present: participants.filter((p) => ["present", "attended"].includes(p.participation_status)).length,
+    present: participants.filter((p) => ["present", "partially_present"].includes(p.participation_status)).length,
     absent: participants.filter((p) => p.participation_status === "absent").length,
     registered: participants.filter((p) => p.participation_status === "registered").length,
     totalHours: participants.reduce((sum, p) => sum + (p.hours_attended || 0), 0),
@@ -222,9 +239,8 @@ export function EventParticipantsModal({
             <option value="">All Status</option>
             <option value="registered">Registered</option>
             <option value="present">Present</option>
-            <option value="attended">Attended</option>
             <option value="absent">Absent</option>
-            <option value="partial">Partial</option>
+            <option value="partially_present">Partial</option>
             <option value="excused">Excused</option>
           </select>
           <button
@@ -241,7 +257,7 @@ export function EventParticipantsModal({
           {loading ? (
             <div className="space-y-2">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
+                <Skeleton key={`modal-skeleton-${i}`} className="h-16 rounded-lg" />
               ))}
             </div>
           ) : filteredParticipants.length === 0 ? (
@@ -251,9 +267,9 @@ export function EventParticipantsModal({
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredParticipants.map((participant) => (
+              {filteredParticipants.map((participant, index) => (
                 <div
-                  key={participant.id}
+                  key={`participant-${participant.id || index}`}
                   className="card-glass rounded-lg p-3 flex items-center gap-4"
                 >
                   {/* Avatar */}

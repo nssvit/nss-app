@@ -63,19 +63,44 @@ export function EventCard({
       </div>
       <div className="flex items-center justify-between pt-3 border-t mt-auto" style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex items-center -space-x-2">
-          {participants.map((participant, index) => (
-            <Image
-              key={index}
-              src={participant.avatar}
-              alt={participant.alt}
-              className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2"
-              style={{ borderColor: 'var(--bg-primary)' }}
-              width={24}
-              height={24}
-            />
-          ))}
+          {participants.length > 0 ? (
+            participants.map((participant, index) => (
+              participant.avatar ? (
+                <Image
+                  key={`avatar-${index}`}
+                  src={participant.avatar}
+                  alt={participant.alt}
+                  className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2"
+                  style={{ borderColor: 'var(--bg-primary)' }}
+                  width={24}
+                  height={24}
+                />
+              ) : (
+                <div
+                  key={`avatar-${index}`}
+                  className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2 bg-indigo-600 flex items-center justify-center text-white text-xs font-medium"
+                  style={{ borderColor: 'var(--bg-primary)' }}
+                  title={participant.alt}
+                >
+                  {participant.alt?.charAt(0) || '?'}
+                </div>
+              )
+            ))
+          ) : (
+            <div className="flex items-center -space-x-1">
+              {[0, 1, 2].slice(0, Math.min(3, participantCount)).map((i) => (
+                <div
+                  key={`placeholder-${i}`}
+                  className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2 bg-gray-600 flex items-center justify-center"
+                  style={{ borderColor: 'var(--bg-primary)' }}
+                >
+                  <i className="fas fa-user text-gray-400 text-xs"></i>
+                </div>
+              ))}
+            </div>
+          )}
           <span className="text-caption pl-3">
-            +{participantCount}
+            {participantCount > 0 ? `+${participantCount}` : '0'}
           </span>
         </div>
         <div className="flex gap-1">
