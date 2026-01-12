@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { EventCard } from './EventCard'
 import { EventModal } from './EventModal'
+import { EventParticipantsModal } from './EventParticipantsModal'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { Skeleton } from './Skeleton'
 import { EmptyState } from './EmptyState'
@@ -45,6 +46,8 @@ export function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [sessionFilter, setSessionFilter] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null)
+  const [participantsModalEvent, setParticipantsModalEvent] = useState<Event | null>(null)
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -227,15 +230,67 @@ export function EventsPage() {
   }
 
   const handleEditEvent = (eventId: string) => {
-    info('Edit functionality coming soon!')
-    console.log('Edit event:', eventId)
-    // TODO: Implement edit functionality with modal
+    const event = events.find(e => e.id === eventId)
+    if (event) {
+      setEditingEvent(event)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleUpdateEvent = async (eventData: any) => {
+    if (!editingEvent) return
+
+    try {
+      info('Updating event...')
+
+      // Find category ID
+      let category = categories.find(c => c.category_name === eventData.eventCategory)
+      if (!category) {
+        category = categories.find(c => c.category_name.toLowerCase() === eventData.eventCategory.toLowerCase())
+      }
+
+      if (!category) {
+        showError(`Category "${eventData.eventCategory}" not found`)
+        return
+      }
+
+      const updateData: any = {
+        name: eventData.eventName,
+        event_name: eventData.eventName,
+        description: eventData.eventDescription || '',
+        event_date: eventData.eventDate,
+        declared_hours: parseInt(eventData.declaredHours) || 1,
+        category_id: parseInt(category.id),
+        location: eventData.eventLocation || null,
+        updated_at: new Date().toISOString()
+      }
+
+      const { error } = await supabase
+        .from('events')
+        .update(updateData)
+        .eq('id', editingEvent.id)
+
+      if (error) {
+        console.error('Error updating event:', error)
+        showError(`Failed to update event: ${error.message}`)
+        return
+      }
+
+      success(`Event "${eventData.eventName}" updated successfully!`)
+      await loadEvents()
+      setIsModalOpen(false)
+      setEditingEvent(null)
+    } catch (error: any) {
+      console.error('Error updating event:', error)
+      showError(error?.message || 'Failed to update event')
+    }
   }
 
   const handleViewParticipants = (eventId: string) => {
-    info('View participants functionality coming soon!')
-    console.log('View participants:', eventId)
-    // TODO: Implement participants view - could open a modal or navigate to attendance page
+    const event = events.find(e => e.id === eventId)
+    if (event) {
+      setParticipantsModalEvent(event)
+    }
   }
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -427,7 +482,10 @@ export function EventsPage() {
           action={
             hasAnyRole(['admin', 'program_officer', 'event_lead']) ? (
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  setEditingEvent(null)
+                  setIsModalOpen(true)
+                }}
                 className="btn btn-md btn-primary"
               >
                 <i className="fas fa-plus mr-2"></i>
@@ -477,10 +535,33 @@ export function EventsPage() {
       {/* Event Modal */}
       <EventModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleCreateEvent}
+        onClose={() => {
+          setIsModalOpen(false)
+          setEditingEvent(null)
+        }}
+        onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
+        title={editingEvent ? "Edit Event" : "Create New Event"}
         categories={categories.map(c => c.category_name)}
+        initialData={editingEvent ? {
+          eventName: editingEvent.event_name,
+          eventDate: editingEvent.event_date?.split('T')[0] || '',
+          declaredHours: editingEvent.declared_hours?.toString() || '',
+          eventCategory: editingEvent.category_name || '',
+          academicSession: new Date(editingEvent.event_date).getFullYear().toString(),
+          eventLocation: '',
+          eventDescription: editingEvent.event_description || '',
+        } : undefined}
       />
+
+      {/* Event Participants Modal */}
+      {participantsModalEvent && (
+        <EventParticipantsModal
+          isOpen={!!participantsModalEvent}
+          onClose={() => setParticipantsModalEvent(null)}
+          eventId={participantsModalEvent.id}
+          eventName={participantsModalEvent.event_name}
+        />
+      )}
       </div>
     </>
   )

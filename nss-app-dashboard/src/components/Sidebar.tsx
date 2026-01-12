@@ -71,6 +71,24 @@ export function Sidebar({
       title: "Mark Event Attendance",
     },
     {
+      href: "hours-approval",
+      icon: "fas fa-clock",
+      text: "Hours Approval",
+      title: "Approve Volunteer Hours",
+    },
+    {
+      href: "role-management",
+      icon: "fas fa-user-tag",
+      text: "Role Management",
+      title: "Manage User Roles",
+    },
+    {
+      href: "categories",
+      icon: "fas fa-folder-open",
+      text: "Categories",
+      title: "Event Categories",
+    },
+    {
       href: "user-management",
       icon: "fas fa-user-shield",
       text: "User Management",

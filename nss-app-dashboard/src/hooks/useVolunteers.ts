@@ -4,6 +4,20 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Volunteer } from '@/types'
 
+export interface AdminDeleteResult {
+  success: boolean
+  volunteer_name?: string
+  auth_user_id?: string
+  deleted_counts?: {
+    event_participation: number
+    user_roles: number
+    events_updated: number
+    volunteer: number
+  }
+  error?: string
+  note?: string
+}
+
 export function useVolunteers() {
   const [volunteers, setVolunteers] = useState<Volunteer[]>([])
   const [loading, setLoading] = useState(true)
@@ -13,22 +27,42 @@ export function useVolunteers() {
     try {
       setLoading(true)
 
-      // Use optimized database function that includes stats
-      const { data, error } = await supabase.rpc('get_volunteers_with_stats')
+      // Try admin function first (gets all volunteers), fallback to regular function
+      let data: any[] | null = null
+      let fetchError: any = null
 
-      if (error) {
+      // Try admin function first
+      const adminResult = await supabase.rpc('admin_get_all_volunteers')
+
+      if (adminResult.error) {
+        // Not admin or function not available, try regular function
+        const regularResult = await supabase.rpc('get_volunteers_with_stats')
+        data = regularResult.data
+        fetchError = regularResult.error
+      } else {
+        data = adminResult.data
+      }
+
+      if (fetchError) {
         // Check if it's a function not found error
-        if (error.message?.includes('does not exist') || error.code === '42883') {
-          throw new Error(
-            'Database function not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
-          )
+        if (fetchError.message?.includes('does not exist') || fetchError.code === '42883') {
+          // Final fallback: direct table query
+          const { data: directData, error: directError } = await supabase
+            .from('volunteers')
+            .select('*')
+            .order('created_at', { ascending: false })
+
+          if (directError) throw directError
+          data = directData
+        } else {
+          throw new Error(fetchError.message || 'Failed to fetch volunteers')
         }
-        throw new Error(error.message || 'Failed to fetch volunteers')
       }
 
       // Transform data to match the existing Volunteer interface
       const transformedVolunteers: Volunteer[] = (data || []).map((v: any) => ({
-        id: v.volunteer_id,
+        id: v.id || v.volunteer_id,
+        auth_user_id: v.auth_user_id,
         first_name: v.first_name,
         last_name: v.last_name,
         roll_number: v.roll_number,
@@ -43,7 +77,7 @@ export function useVolunteers() {
         profile_pic: v.profile_pic,
         is_active: v.is_active,
         created_at: v.created_at,
-        updated_at: v.created_at, // Using created_at as fallback
+        updated_at: v.updated_at || v.created_at,
         status: v.is_active ? 'Active' : 'Inactive' as 'Active' | 'Inactive' | 'Pending',
         joinDate: new Date(v.created_at).toLocaleDateString('en-US', {
           month: 'short',
@@ -116,6 +150,7 @@ export function useVolunteers() {
     }
   }
 
+  // Soft delete (deactivate) - safe operation
   const deleteVolunteer = async (id: string) => {
     try {
       const { error } = await supabase
@@ -133,6 +168,84 @@ export function useVolunteers() {
     }
   }
 
+  // Admin: Permanently delete volunteer and all related data
+  const adminPermanentDelete = async (volunteerId: string): Promise<{ data: AdminDeleteResult | null; error: string | null }> => {
+    try {
+      // Call the admin delete function
+      const { data, error } = await supabase.rpc('admin_delete_volunteer', {
+        p_volunteer_id: volunteerId
+      })
+
+      if (error) throw error
+
+      const result = data as AdminDeleteResult
+
+      if (!result.success) {
+        return { data: null, error: result.error || 'Failed to delete volunteer' }
+      }
+
+      // If we have the auth_user_id, attempt to delete from auth.users via admin API
+      // Note: This requires the Supabase Admin API call from a server-side function
+      // For now, we'll just return the auth_user_id so the UI can handle it
+
+      await fetchVolunteers() // Refresh the list
+      return { data: result, error: null }
+    } catch (err) {
+      console.error('Error permanently deleting volunteer:', err)
+      return {
+        data: null,
+        error: err instanceof Error ? err.message : 'Failed to permanently delete volunteer'
+      }
+    }
+  }
+
+  // Admin: Update any volunteer (bypasses RLS)
+  const adminUpdateVolunteer = async (volunteerId: string, updates: Partial<Volunteer>) => {
+    try {
+      // Try admin function first
+      const { data, error } = await supabase.rpc('admin_update_volunteer', {
+        p_volunteer_id: volunteerId,
+        p_updates: updates
+      })
+
+      if (error) {
+        // Fallback to direct update (will use RLS policies)
+        const { data: directData, error: directError } = await supabase
+          .from('volunteers')
+          .update(updates)
+          .eq('id', volunteerId)
+          .select()
+          .single()
+
+        if (directError) throw directError
+        await fetchVolunteers()
+        return { data: directData, error: null }
+      }
+
+      const result = data as { success: boolean; error?: string }
+      if (!result.success) {
+        return { data: null, error: result.error || 'Failed to update volunteer' }
+      }
+
+      await fetchVolunteers()
+      return { data: result, error: null }
+    } catch (err) {
+      console.error('Error updating volunteer:', err)
+      return { data: null, error: err instanceof Error ? err.message : 'Failed to update volunteer' }
+    }
+  }
+
+  // Check if current user is admin (for UI decisions)
+  const checkIsAdmin = async (): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('is_admin')
+      if (error) return false
+      return data === true
+    } catch {
+      return false
+    }
+  }
+
   useEffect(() => {
     fetchVolunteers()
   }, [])
@@ -144,6 +257,10 @@ export function useVolunteers() {
     fetchVolunteers,
     addVolunteer,
     updateVolunteer,
-    deleteVolunteer
+    deleteVolunteer,
+    // Admin operations
+    adminPermanentDelete,
+    adminUpdateVolunteer,
+    checkIsAdmin,
   }
 }

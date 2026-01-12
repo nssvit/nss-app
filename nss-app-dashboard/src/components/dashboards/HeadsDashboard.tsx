@@ -20,7 +20,11 @@ interface VolunteerHours {
   last_activity: string
 }
 
-export function HeadsDashboard() {
+interface HeadsDashboardProps {
+  onNavigate?: (page: string) => void
+}
+
+export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
   const { currentUser } = useAuth()
   const [stats, setStats] = useState<HeadsDashboardStats>({
     myEvents: 0,
@@ -159,7 +163,10 @@ export function HeadsDashboard() {
               <i className="fas fa-calendar-alt text-blue-500 mr-3"></i>
               My Recent Events
             </h3>
-            <button className="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+            <button
+              onClick={() => onNavigate?.('events')}
+              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+            >
               View All →
             </button>
           </div>
@@ -209,7 +216,10 @@ export function HeadsDashboard() {
               <i className="fas fa-chart-bar text-green-500 mr-3"></i>
               Volunteer Hours Overview
             </h3>
-            <button className="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+            <button
+              onClick={() => onNavigate?.('volunteers')}
+              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+            >
               View Details →
             </button>
           </div>
@@ -250,19 +260,28 @@ export function HeadsDashboard() {
 
       {/* Quick Actions */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button className="p-6 bg-gradient-to-r from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-xl hover:from-blue-600/30 hover:to-blue-800/30 transition-colors text-left">
+        <button
+          onClick={() => onNavigate?.('events')}
+          className="p-6 bg-gradient-to-r from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-xl hover:from-blue-600/30 hover:to-blue-800/30 transition-colors text-left"
+        >
           <i className="fas fa-calendar-plus text-2xl text-blue-400 mb-3"></i>
           <h4 className="font-semibold text-gray-100 mb-2">Create New Event</h4>
           <p className="text-sm text-gray-400">Organize a new NSS activity</p>
         </button>
 
-        <button className="p-6 bg-gradient-to-r from-green-600/20 to-green-800/20 border border-green-500/30 rounded-xl hover:from-green-600/30 hover:to-green-800/30 transition-colors text-left">
+        <button
+          onClick={() => onNavigate?.('attendance-manager')}
+          className="p-6 bg-gradient-to-r from-green-600/20 to-green-800/20 border border-green-500/30 rounded-xl hover:from-green-600/30 hover:to-green-800/30 transition-colors text-left"
+        >
           <i className="fas fa-user-check text-2xl text-green-400 mb-3"></i>
-          <h4 className="font-semibold text-gray-100 mb-2">Review Hours</h4>
-          <p className="text-sm text-gray-400">Approve volunteer hours</p>
+          <h4 className="font-semibold text-gray-100 mb-2">Mark Attendance</h4>
+          <p className="text-sm text-gray-400">Record event attendance</p>
         </button>
 
-        <button className="p-6 bg-gradient-to-r from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-xl hover:from-purple-600/30 hover:to-purple-800/30 transition-colors text-left">
+        <button
+          onClick={() => onNavigate?.('reports')}
+          className="p-6 bg-gradient-to-r from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-xl hover:from-purple-600/30 hover:to-purple-800/30 transition-colors text-left"
+        >
           <i className="fas fa-file-alt text-2xl text-purple-400 mb-3"></i>
           <h4 className="font-semibold text-gray-100 mb-2">Generate Report</h4>
           <p className="text-sm text-gray-400">Create activity reports</p>

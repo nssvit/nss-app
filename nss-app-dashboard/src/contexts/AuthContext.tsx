@@ -148,91 +148,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signUpWithEmail = async (email: string, password: string, userData: any) => {
+    // Pass user data as metadata - the database trigger will handle volunteer creation
+    // This works even before email confirmation because the trigger runs with SECURITY DEFINER
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          roll_number: userData.roll_number,
+          branch: userData.branch,
+          year: userData.year
+        }
+      }
     })
 
-    if (error) return { error }
-
-    // If signup successful and user confirmed, create volunteer record
-    if (data.user && !error) {
-      // First check if volunteer record already exists
-      const { data: existingVolunteer } = await supabase
-        .from('volunteers')
-        .select('id')
-        .eq('auth_user_id', data.user.id)
-        .maybeSingle() // Use maybeSingle() instead of single() to handle 0 results gracefully
-
-      let volunteerData
-      let volunteerError
-
-      if (existingVolunteer) {
-        // Volunteer record already exists, use it
-        console.log('Volunteer record already exists, using existing record')
-        volunteerData = [existingVolunteer]
-        volunteerError = null
-      } else {
-        // Create new volunteer record
-        const result = await supabase
-          .from('volunteers')
-          .insert({
-            auth_user_id: data.user.id,
-            email: email,
-            ...userData
-          })
-          .select()
-
-        volunteerData = result.data
-        volunteerError = result.error
-
-        if (volunteerError) {
-          console.error('Error creating volunteer record:', volunteerError)
-          console.error('Volunteer Error Details:', {
-            message: volunteerError.message,
-            details: volunteerError.details,
-            hint: volunteerError.hint,
-            code: volunteerError.code
-          })
-          console.error('User Data being inserted:', { auth_user_id: data.user.id, email, ...userData })
-          return { error: volunteerError }
-        }
-      }
-
-      // Assign default 'volunteer' role to new user
-      if (volunteerData && volunteerData.length > 0) {
-        const volunteerId = (volunteerData[0] as any).id
-
-        // Get the volunteer role definition
-        const { data: roleData, error: roleError } = await supabase
-          .from('role_definitions')
-          .select('id')
-          .eq('role_name', 'volunteer')
-          .eq('is_active', true)
-          .maybeSingle()
-
-        if (roleError) {
-          console.error('Error fetching volunteer role:', roleError)
-          return { error: roleError }
-        }
-
-        if (roleData) {
-          // Assign the volunteer role
-          const { error: userRoleError } = await supabase
-            .from('user_roles')
-            .insert({
-              volunteer_id: volunteerId,
-              role_definition_id: (roleData as any).id,
-              is_active: true
-            } as any)
-
-          if (userRoleError) {
-            console.error('Error assigning volunteer role:', userRoleError)
-            return { error: userRoleError }
-          }
-        }
-      }
+    if (error) {
+      console.error('Signup error:', error)
+      return { error }
     }
+
+    // The database trigger (handle_new_user) automatically:
+    // 1. Creates the volunteer record from auth.users metadata
+    // 2. Assigns the default 'volunteer' role
+    // No need to manually insert - it's handled server-side with proper permissions
 
     return { error: null }
   }

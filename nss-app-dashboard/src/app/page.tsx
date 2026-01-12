@@ -22,6 +22,10 @@ import { HeadsDashboard } from "@/components/dashboards/HeadsDashboard";
 import { VolunteerDashboard } from "@/components/dashboards/VolunteerDashboard";
 import { useAuth } from "@/contexts/AuthContext";
 import { EventRegistration } from "@/components/EventRegistration";
+import { RoleManagementPage } from "@/components/RoleManagementPage";
+import { CategoryManagementPage } from "@/components/CategoryManagementPage";
+import { HoursApprovalPage } from "@/components/HoursApprovalPage";
+import { AttendanceManager } from "@/components/AttendanceManager";
 
 // Sample events data matching the prototype
 const sampleEvents = [
@@ -177,6 +181,14 @@ export default function Dashboard() {
         return "Attendance";
       case "reports":
         return "Reports";
+      case "hours-approval":
+        return "Hours Approval";
+      case "attendance-manager":
+        return "Mark Attendance";
+      case "role-management":
+        return "Role Management";
+      case "categories":
+        return "Categories";
       case "user-management":
         return "User Management";
       case "settings":
@@ -202,6 +214,14 @@ export default function Dashboard() {
         return "fas fa-user-check";
       case "reports":
         return "fas fa-chart-pie";
+      case "hours-approval":
+        return "fas fa-clock";
+      case "attendance-manager":
+        return "fas fa-clipboard-check";
+      case "role-management":
+        return "fas fa-user-tag";
+      case "categories":
+        return "fas fa-folder-open";
       case "user-management":
         return "fas fa-user-shield";
       case "settings":
@@ -216,19 +236,13 @@ export default function Dashboard() {
   const renderPageContent = () => {
     switch (activeLink) {
       case "dashboard":
-        return (
-          <DashboardPage
-            onNavigate={(page) => setActiveLink(page)}
-            onCreateEvent={() => setIsModalOpen(true)}
-          />
-        );
         // Role-based dashboard rendering
         if (hasRole('admin')) {
-          return <AdminDashboard />;
+          return <AdminDashboard onNavigate={(page) => setActiveLink(page)} />;
         } else if (hasAnyRole(['program_officer', 'documentation_lead', 'event_lead'])) {
-          return <HeadsDashboard />;
+          return <HeadsDashboard onNavigate={(page) => setActiveLink(page)} />;
         } else {
-          return <VolunteerDashboard />;
+          return <VolunteerDashboard onNavigate={(page) => setActiveLink(page)} />;
         }
 
       case "event-registration":
@@ -252,6 +266,34 @@ export default function Dashboard() {
         return (
           <ProtectedRoute requireAnyRole={['admin', 'program_officer']}>
             <ReportsPage />
+          </ProtectedRoute>
+        );
+
+      case "hours-approval":
+        return (
+          <ProtectedRoute requireAnyRole={['admin', 'program_officer']}>
+            <HoursApprovalPage />
+          </ProtectedRoute>
+        );
+
+      case "attendance-manager":
+        return (
+          <ProtectedRoute requireAnyRole={['admin', 'program_officer', 'event_lead', 'head']}>
+            <AttendanceManager />
+          </ProtectedRoute>
+        );
+
+      case "role-management":
+        return (
+          <ProtectedRoute requireRoles={['admin']}>
+            <RoleManagementPage />
+          </ProtectedRoute>
+        );
+
+      case "categories":
+        return (
+          <ProtectedRoute requireRoles={['admin']}>
+            <CategoryManagementPage />
           </ProtectedRoute>
         );
 

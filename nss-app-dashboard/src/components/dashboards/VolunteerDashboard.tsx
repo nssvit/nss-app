@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { StatsCard } from '@/components/StatsCard'
+import { HourRequestModal } from '@/components/HourRequestModal'
 
 interface VolunteerStats {
   totalHours: number
@@ -17,7 +18,10 @@ interface MyEventParticipation {
   event_name: string
   event_date: string
   declared_hours: number
+  hours_attended: number
   approved_hours: number | null
+  approval_status: string
+  participation_status: string
   status: 'pending' | 'approved' | 'rejected'
   feedback: string | null
 }
@@ -33,7 +37,11 @@ interface AvailableEvent {
   is_registered: boolean
 }
 
-export function VolunteerDashboard() {
+interface VolunteerDashboardProps {
+  onNavigate?: (page: string) => void
+}
+
+export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
   const { currentUser } = useAuth()
   const [stats, setStats] = useState<VolunteerStats>({
     totalHours: 0,
@@ -74,10 +82,14 @@ export function VolunteerDashboard() {
         event_id: p.event_id,
         event_name: p.events?.event_name || 'Unknown Event',
         event_date: p.events?.event_date || '',
-        declared_hours: p.declared_hours || 0,
+        declared_hours: p.events?.declared_hours || p.declared_hours || 0,
+        hours_attended: p.hours_attended || 0,
         approved_hours: p.approved_hours,
-        status: p.approved_hours !== null ? 'approved' : 'pending' as 'pending' | 'approved' | 'rejected',
-        feedback: p.feedback
+        approval_status: p.approval_status || 'pending',
+        participation_status: p.participation_status || 'registered',
+        status: (p.approval_status === 'approved' ? 'approved' :
+                 p.approval_status === 'rejected' ? 'rejected' : 'pending') as 'pending' | 'approved' | 'rejected',
+        feedback: p.notes || null
       })) || []
 
       setMyParticipation(myParticipationFormatted)
@@ -219,7 +231,10 @@ export function VolunteerDashboard() {
               <i className="fas fa-history text-blue-500 mr-3"></i>
               My Participation
             </h3>
-            <button className="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+            <button
+              onClick={() => onNavigate?.('event-registration')}
+              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+            >
               View All →
             </button>
           </div>
@@ -252,18 +267,33 @@ export function VolunteerDashboard() {
                   <span className="text-gray-400">
                     {new Date(participation.event_date).toLocaleDateString()}
                   </span>
-                  <span className="text-indigo-400">
-                    {participation.declared_hours} hours declared
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {participation.hours_attended > 0 && (
+                      <span className="text-green-400">
+                        {participation.hours_attended}h attended
+                      </span>
+                    )}
+                    <span className="text-indigo-400">
+                      / {participation.declared_hours}h max
+                    </span>
+                  </div>
                 </div>
 
-                {participation.status === 'pending' && (
+                {participation.status === 'pending' && participation.participation_status !== 'registered' && (
                   <button
                     onClick={() => handleRequestHourReview(participation)}
                     className="text-xs text-blue-400 hover:text-blue-300"
                   >
+                    <i className="fas fa-clock mr-1"></i>
                     Request Hour Review →
                   </button>
+                )}
+
+                {participation.participation_status === 'registered' && (
+                  <span className="text-xs text-gray-500">
+                    <i className="fas fa-info-circle mr-1"></i>
+                    Awaiting attendance marking
+                  </span>
                 )}
 
                 {participation.feedback && (
@@ -291,7 +321,10 @@ export function VolunteerDashboard() {
               <i className="fas fa-calendar-alt text-green-500 mr-3"></i>
               Available Events
             </h3>
-            <button className="text-indigo-400 hover:text-indigo-300 text-sm font-medium">
+            <button
+              onClick={() => onNavigate?.('event-registration')}
+              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+            >
               Browse All →
             </button>
           </div>
@@ -367,7 +400,10 @@ export function VolunteerDashboard() {
               <span className="text-gray-100 truncate">{currentUser?.email}</span>
             </div>
           </div>
-          <button className="w-full mt-4 p-2 bg-gray-700/50 hover:bg-gray-700/70 rounded-lg text-gray-300 hover:text-gray-100 transition-colors">
+          <button
+            onClick={() => onNavigate?.('profile')}
+            className="w-full mt-4 p-2 bg-gray-700/50 hover:bg-gray-700/70 rounded-lg text-gray-300 hover:text-gray-100 transition-colors"
+          >
             <i className="fas fa-edit mr-2"></i>
             Edit Profile
           </button>
@@ -380,21 +416,41 @@ export function VolunteerDashboard() {
             Quick Actions
           </h3>
           <div className="space-y-3">
-            <button className="w-full p-3 bg-gradient-to-r from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-lg hover:from-blue-600/30 hover:to-blue-800/30 transition-colors text-left">
+            <button
+              onClick={() => onNavigate?.('event-registration')}
+              className="w-full p-3 bg-gradient-to-r from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-lg hover:from-blue-600/30 hover:to-blue-800/30 transition-colors text-left"
+            >
               <i className="fas fa-calendar-plus mr-3 text-blue-400"></i>
               <span className="text-gray-100">Browse Events</span>
             </button>
-            <button className="w-full p-3 bg-gradient-to-r from-green-600/20 to-green-800/20 border border-green-500/30 rounded-lg hover:from-green-600/30 hover:to-green-800/30 transition-colors text-left">
+            <button
+              onClick={() => onNavigate?.('reports')}
+              className="w-full p-3 bg-gradient-to-r from-green-600/20 to-green-800/20 border border-green-500/30 rounded-lg hover:from-green-600/30 hover:to-green-800/30 transition-colors text-left"
+            >
               <i className="fas fa-file-alt mr-3 text-green-400"></i>
-              <span className="text-gray-100">View Certificates</span>
+              <span className="text-gray-100">View My Reports</span>
             </button>
-            <button className="w-full p-3 bg-gradient-to-r from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-lg hover:from-purple-600/30 hover:to-purple-800/30 transition-colors text-left">
-              <i className="fas fa-download mr-3 text-purple-400"></i>
-              <span className="text-gray-100">Download Report</span>
+            <button
+              onClick={() => onNavigate?.('profile')}
+              className="w-full p-3 bg-gradient-to-r from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-lg hover:from-purple-600/30 hover:to-purple-800/30 transition-colors text-left"
+            >
+              <i className="fas fa-user mr-3 text-purple-400"></i>
+              <span className="text-gray-100">My Profile</span>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Hour Request Modal */}
+      <HourRequestModal
+        isOpen={showHourRequestModal}
+        onClose={() => {
+          setShowHourRequestModal(false)
+          setSelectedParticipation(null)
+        }}
+        participation={selectedParticipation}
+        onSuccess={loadVolunteerDashboardData}
+      />
     </div>
   )
 }
