@@ -17,6 +17,39 @@ import {
   getPendingCount,
 } from '@/app/actions/hours'
 
+export interface VolunteerForApproval {
+  id: string
+  firstName: string
+  lastName: string
+  email: string | null
+  rollNumber: string | null
+  profilePic: string | null
+  // Snake case aliases
+  first_name?: string
+  last_name?: string
+  roll_number?: string
+  profile_pic?: string
+}
+
+export interface EventForApproval {
+  id: string
+  eventName: string
+  startDate: string | null
+  endDate: string | null
+  description: string | null
+  // Snake case aliases
+  event_name?: string
+  start_date?: string | null
+}
+
+export interface ApproverForApproval {
+  id: string
+  firstName: string
+  lastName: string
+  first_name?: string
+  last_name?: string
+}
+
 export interface ParticipationForApproval {
   id: string
   eventId: string
@@ -33,6 +66,22 @@ export interface ParticipationForApproval {
   attendanceDate: Date | null
   notes: string | null
   createdAt: Date | null
+  // Nested objects
+  volunteer?: VolunteerForApproval
+  event?: EventForApproval
+  approvedByVolunteer?: ApproverForApproval
+  // Snake case aliases
+  hours_attended?: number
+  declared_hours?: number | null
+  approved_hours?: number | null
+  participation_status?: string
+  approval_status?: string
+  approved_by?: string | null
+  approved_at?: Date | null
+  approval_notes?: string | null
+  registration_date?: Date | null
+  attendance_date?: Date | null
+  approved_by_volunteer?: ApproverForApproval
 }
 
 export type ApprovalFilter = 'pending' | 'approved' | 'rejected' | 'all'
@@ -45,11 +94,25 @@ export interface UseHoursApprovalReturn {
   pendingCount: number
   setFilter: (filter: ApprovalFilter) => void
   refetch: () => Promise<void>
-  approveHours: (id: string, approvedHours?: number, notes?: string) => Promise<{ error: string | null }>
+  approveHours: (
+    id: string,
+    approvedHours?: number,
+    notes?: string
+  ) => Promise<{ error: string | null }>
   rejectHours: (id: string, notes?: string) => Promise<{ error: string | null }>
-  bulkApproveHours: (ids: string[], notes?: string) => Promise<{ count: number; error: string | null }>
+  bulkApproveHours: (
+    ids: string[],
+    notes?: string
+  ) => Promise<{ count: number; error: string | null }>
   resetApproval: (id: string) => Promise<{ error: string | null }>
-  getStats: () => { pending: number; approved: number; rejected: number; total: number; totalHoursPending: number; totalHoursApproved: number }
+  getStats: () => {
+    pending: number
+    approved: number
+    rejected: number
+    total: number
+    totalHoursPending: number
+    totalHoursApproved: number
+  }
 }
 
 export function useHoursApproval(): UseHoursApprovalReturn {
@@ -69,8 +132,51 @@ export function useHoursApproval(): UseHoursApprovalReturn {
         getPendingCount().catch(() => 0),
       ])
 
+      // Transform data to include both camelCase and snake_case aliases
+      const transformed = (data as any[]).map((p) => ({
+        ...p,
+        // Snake case aliases for main properties
+        hours_attended: p.hoursAttended,
+        declared_hours: p.declaredHours,
+        approved_hours: p.approvedHours,
+        participation_status: p.participationStatus,
+        approval_status: p.approvalStatus,
+        approved_by: p.approvedBy,
+        approved_at: p.approvedAt,
+        approval_notes: p.approvalNotes,
+        registration_date: p.registrationDate,
+        attendance_date: p.attendanceDate,
+        // Transform nested volunteer
+        volunteer: p.volunteer
+          ? {
+              ...p.volunteer,
+              first_name: p.volunteer.firstName,
+              last_name: p.volunteer.lastName,
+              roll_number: p.volunteer.rollNumber,
+              profile_pic: p.volunteer.profilePic,
+            }
+          : undefined,
+        // Transform nested event
+        event: p.event
+          ? {
+              ...p.event,
+              event_name: p.event.eventName,
+              start_date: p.event.startDate,
+            }
+          : undefined,
+        // Transform nested approver
+        approved_by_volunteer: p.approvedByVolunteer
+          ? {
+              ...p.approvedByVolunteer,
+              first_name: p.approvedByVolunteer.firstName,
+              last_name: p.approvedByVolunteer.lastName,
+            }
+          : undefined,
+        approvedByVolunteer: p.approvedByVolunteer,
+      })) as ParticipationForApproval[]
+
       // Filter based on current filter
-      let filtered = data as ParticipationForApproval[]
+      let filtered = transformed
       if (filter !== 'all') {
         filtered = filtered.filter((p) => p.approvalStatus === filter)
       }
@@ -119,7 +225,7 @@ export function useHoursApproval(): UseHoursApprovalReturn {
         if (ids.length === 0) return { count: 0, error: null }
         const result = await bulkApproveAction(ids, notes)
         await fetchData()
-        return { count: result?.length || ids.length, error: null }
+        return { count: result?.count || ids.length, error: null }
       } catch (err) {
         return { count: 0, error: err instanceof Error ? err.message : 'Failed to bulk approve' }
       }
@@ -151,7 +257,14 @@ export function useHoursApproval(): UseHoursApprovalReturn {
       .filter((p) => p.approvalStatus === 'approved')
       .reduce((sum, p) => sum + (p.approvedHours || 0), 0)
 
-    return { pending, approved, rejected, total: pending + approved + rejected, totalHoursPending, totalHoursApproved }
+    return {
+      pending,
+      approved,
+      rejected,
+      total: pending + approved + rejected,
+      totalHoursPending,
+      totalHoursApproved,
+    }
   }, [participations])
 
   useEffect(() => {

@@ -1,71 +1,69 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
-import { useVolunteers } from "@/hooks/useVolunteers";
-import Image from "next/image";
-import { getStatusBadgeClass } from "@/utils/styles/badges";
-import { Skeleton } from "./Skeleton";
-import { EmptyState } from "./EmptyState";
-import { FilterBar, FilterSelect } from "./FilterBar";
-import { usePagination } from "@/hooks";
+import { useState } from 'react'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { useVolunteers } from '@/hooks/useVolunteers'
+import Image from 'next/image'
+import { getStatusBadgeClass } from '@/utils/styles/badges'
+import { Skeleton } from './Skeleton'
+import { EmptyState } from './EmptyState'
+import { FilterBar, FilterSelect } from './FilterBar'
+import { usePagination } from '@/hooks'
 
 interface Volunteer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  year: string;
-  branch: string;
-  eventsParticipated: number;
-  totalHours: number;
-  status: "Active" | "Inactive" | "Pending";
-  joinDate: string;
-  avatar: string;
-  first_name: string;
-  last_name: string;
-  roll_number: string;
+  id: string
+  name: string
+  email: string
+  phone: string
+  year: string
+  branch: string
+  eventsParticipated: number
+  totalHours: number
+  status: 'Active' | 'Inactive' | 'Pending'
+  joinDate: string
+  avatar: string
+  first_name: string
+  last_name: string
+  roll_number: string
 }
 
 export function VolunteersPage() {
-  const layout = useResponsiveLayout();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
-  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
+  const layout = useResponsiveLayout()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [yearFilter, setYearFilter] = useState('')
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([])
 
-  const { volunteers, loading, error } = useVolunteers();
+  const { volunteers, loading, error } = useVolunteers()
 
   // ... (loading and error states)
 
   const filteredVolunteers = volunteers.filter((volunteer) => {
-    const fullName = `${volunteer.first_name} ${volunteer.last_name}`;
+    const fullName = `${volunteer.first_name} ${volunteer.last_name}`
     const matchesSearch =
       fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       volunteer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       volunteer.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      volunteer.roll_number.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || volunteer.status === statusFilter;
-    const matchesYear = !yearFilter || volunteer.year === yearFilter;
+      volunteer.rollNumber.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = !statusFilter || volunteer.status === statusFilter
+    const matchesYear = !yearFilter || volunteer.year === yearFilter
 
-    return matchesSearch && matchesStatus && matchesYear;
-  });
+    return matchesSearch && matchesStatus && matchesYear
+  })
 
   const handleSelectVolunteer = (id: string) => {
     setSelectedVolunteers((prev) =>
-      prev.includes(id)
-        ? prev.filter((volunteerId) => volunteerId !== id)
-        : [...prev, id],
-    );
-  };
+      prev.includes(id) ? prev.filter((volunteerId) => volunteerId !== id) : [...prev, id]
+    )
+  }
 
   const handleSelectAll = () => {
     setSelectedVolunteers(
       selectedVolunteers.length === filteredVolunteers.length
         ? []
-        : filteredVolunteers.map((v) => v.id),
-    );
-  };
+        : filteredVolunteers.map((v) => v.id)
+    )
+  }
 
   // ... (clearFilters)
 
@@ -82,7 +80,7 @@ export function VolunteersPage() {
         {/* Table Header */}
         <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
           <div
-            className={`grid ${layout.isMobile ? "grid-cols-1" : "grid-cols-8"} gap-4 items-center`}
+            className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-8'} gap-4 items-center`}
           >
             {!layout.isMobile && (
               <>
@@ -97,9 +95,7 @@ export function VolunteersPage() {
                     onChange={handleSelectAll}
                   />
                 </div>
-                <div className="col-span-2 text-sm font-medium text-gray-300">
-                  Name
-                </div>
+                <div className="col-span-2 text-sm font-medium text-gray-300">Name</div>
                 <div className="text-sm font-medium text-gray-300">Year</div>
                 <div className="text-sm font-medium text-gray-300">Branch</div>
                 <div className="text-sm font-medium text-gray-300">Events</div>
@@ -118,10 +114,7 @@ export function VolunteersPage() {
         {/* Table Body */}
         <div className="divide-y divide-gray-700/30">
           {filteredVolunteers.map((volunteer) => (
-            <div
-              key={volunteer.id}
-              className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
-            >
+            <div key={volunteer.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
               {layout.isMobile ? (
                 // Mobile Layout
                 <div className="space-y-3">
@@ -151,20 +144,16 @@ export function VolunteersPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-500">Year:</span>{" "}
-                      {volunteer.year}
+                      <span className="text-gray-500">Year:</span> {volunteer.year}
                     </div>
                     <div>
-                      <span className="text-gray-500">Branch:</span>{" "}
-                      {volunteer.branch}
+                      <span className="text-gray-500">Branch:</span> {volunteer.branch}
                     </div>
                     <div>
-                      <span className="text-gray-500">Events:</span>{" "}
-                      {volunteer.eventsParticipated}
+                      <span className="text-gray-500">Events:</span> {volunteer.eventsParticipated}
                     </div>
                     <div>
-                      <span className="text-gray-500">Hours:</span>{" "}
-                      {volunteer.totalHours}
+                      <span className="text-gray-500">Hours:</span> {volunteer.totalHours}
                     </div>
                   </div>
                 </div>
@@ -191,21 +180,13 @@ export function VolunteersPage() {
                       <div className="font-medium text-gray-200 text-sm">
                         {volunteer.first_name} {volunteer.last_name}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        {volunteer.email}
-                      </div>
+                      <div className="text-xs text-gray-500">{volunteer.email}</div>
                     </div>
                   </div>
                   <div className="text-sm text-gray-300">{volunteer.year}</div>
-                  <div className="text-sm text-gray-300">
-                    {volunteer.branch}
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    {volunteer.eventsParticipated}
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    {volunteer.totalHours}
-                  </div>
+                  <div className="text-sm text-gray-300">{volunteer.branch}</div>
+                  <div className="text-sm text-gray-300">{volunteer.eventsParticipated}</div>
+                  <div className="text-sm text-gray-300">{volunteer.totalHours}</div>
                   <div>
                     <span className={getStatusBadgeClass(volunteer.status || 'Pending')}>
                       {volunteer.status}
@@ -220,30 +201,30 @@ export function VolunteersPage() {
 
       {/* Pagination */}
       <div className="flex justify-center mt-6 safe-area-bottom">
-        <nav className={`flex ${layout.isMobile ? "space-x-1" : "space-x-2"}`}>
+        <nav className={`flex ${layout.isMobile ? 'space-x-1' : 'space-x-2'}`}>
           <button
-            className={`pagination-button ${layout.isMobile ? "px-2 py-2 text-sm" : "px-3 py-2 text-sm"} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed pwa-button focus-visible`}
+            className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed pwa-button focus-visible`}
             disabled
           >
-            {layout.isMobile ? "‹" : "Previous"}
+            {layout.isMobile ? '‹' : 'Previous'}
           </button>
           <button
-            className={`pagination-button active ${layout.isMobile ? "px-3 py-2 text-sm" : "px-3 py-2 text-sm"} rounded-lg pwa-button focus-visible`}
+            className={`pagination-button active ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
           >
             1
           </button>
           <button
-            className={`pagination-button ${layout.isMobile ? "px-3 py-2 text-sm" : "px-3 py-2 text-sm"} rounded-lg pwa-button focus-visible`}
+            className={`pagination-button ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
           >
             2
           </button>
           <button
-            className={`pagination-button ${layout.isMobile ? "px-2 py-2 text-sm" : "px-3 py-2 text-sm"} rounded-lg pwa-button focus-visible`}
+            className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
           >
-            {layout.isMobile ? "›" : "Next"}
+            {layout.isMobile ? '›' : 'Next'}
           </button>
         </nav>
       </div>
     </div>
-  );
+  )
 }

@@ -32,7 +32,8 @@ export function ProfileHistory({ history }: ProfileHistoryProps) {
               <div>
                 <h4 className="font-medium text-gray-100">{item.eventName}</h4>
                 <p className="text-sm text-gray-400">
-                  {new Date(item.eventDate).toLocaleDateString()} &bull; {item.categoryName}
+                  {item.eventDate ? new Date(item.eventDate).toLocaleDateString() : 'TBD'} &bull;{' '}
+                  {item.categoryName || 'General'}
                 </p>
               </div>
               <span

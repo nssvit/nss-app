@@ -55,15 +55,35 @@ export type {
 // Extended Types (with computed/joined fields)
 // ============================================================================
 
-import type { Volunteer, Event, EventCategory, EventParticipation, RoleDefinition } from '@/db/schema'
+import type {
+  Volunteer,
+  Event,
+  EventCategory,
+  EventParticipation,
+  RoleDefinition,
+} from '@/db/schema'
 
 /**
  * Volunteer with computed statistics
+ * Extends Drizzle Volunteer type with stats and snake_case aliases for compatibility
  */
 export interface VolunteerWithStats extends Volunteer {
+  // Stats
   eventsParticipated?: number
   totalHours?: number
   approvedHours?: number
+  joinDate?: string
+  // Snake_case aliases for compatibility
+  first_name?: string
+  last_name?: string
+  roll_number?: string
+  phone_no?: string | null
+  birth_date?: string | null
+  nss_join_year?: number | null
+  profile_pic?: string | null
+  is_active?: boolean | null
+  auth_user_id?: string | null
+  avatar?: string | null // alias for profilePic
 }
 
 /**
@@ -155,48 +175,100 @@ export interface CurrentUser {
  * Dashboard statistics
  */
 export interface DashboardStats {
-  total_events: number
-  active_volunteers: number
-  total_hours: number
-  ongoing_projects: number
+  // Primary camelCase (Drizzle)
+  totalEvents: number
+  activeVolunteers: number
+  totalHours: number
+  ongoingProjects: number
+  // Snake_case aliases
+  total_events?: number
+  active_volunteers?: number
+  total_hours?: number
+  ongoing_projects?: number
 }
 
 /**
  * Monthly activity trend data point
  */
-export interface MonthlyActivityTrend {
+export interface ActivityTrend {
   month: string
-  month_number: number
-  year_number: number
-  events_count: number
-  volunteers_count: number
-  hours_sum: number
+  monthNumber: number
+  yearNumber: number
+  eventsCount: number
+  volunteersCount: number
+  hoursSum: number
+  // Snake_case aliases
+  month_number?: number
+  year_number?: number
+  events_count?: number
+  volunteers_count?: number
+  hours_sum?: number
 }
+export type MonthlyActivityTrend = ActivityTrend
 
 /**
  * Category distribution for reports
  */
 export interface CategoryDistribution {
-  category_id: number
-  category_name: string
-  event_count: number
-  color_hex: string
-  participant_count: number
-  total_hours: number
+  // Primary camelCase
+  categoryId: number
+  categoryName: string
+  eventCount: number
+  colorHex: string
+  participantCount: number
+  totalHours: number
+  // Snake_case aliases
+  category_id?: number
+  category_name?: string
+  event_count?: number
+  color_hex?: string
+  participant_count?: number
+  total_hours?: number
+}
+
+/**
+ * Top event for reports
+ */
+export interface TopEvent {
+  eventId: string
+  eventName: string
+  eventDate: string | null
+  categoryName: string
+  participantCount: number
+  totalHours: number
+  impactScore: string
+  // Snake_case aliases
+  event_id?: string
+  event_name?: string
+  event_date?: string | null
+  category_name?: string
+  participant_count?: number
+  total_hours?: number
+  impact_score?: string
 }
 
 /**
  * Event impact metrics
  */
 export interface EventImpact {
-  event_id: string
-  event_name: string
-  event_date: string | null
-  category_name: string
-  participant_count: number
-  total_hours: number
-  impact_score: string
-  event_status: string
+  // Primary camelCase
+  eventId: string
+  eventName: string
+  eventDate: string | null
+  categoryName: string
+  participantCount: number
+  totalHours: number
+  impactScore: string
+  eventStatus: string
+  // Snake_case aliases
+  event_id?: string
+  event_name?: string
+  event_date?: string | null
+  category_name?: string
+  participant_count?: number
+  total_hours?: number
+  impact_score?: string
+  event_status?: string
 }
 
 /**

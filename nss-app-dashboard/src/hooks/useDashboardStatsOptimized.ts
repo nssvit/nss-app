@@ -33,6 +33,16 @@ export interface ActivityTrend {
   hours_sum: number
 }
 
+interface EventCategory {
+  name: string
+  color_hex: string | null
+}
+
+interface EventVolunteer {
+  first_name: string
+  last_name: string
+}
+
 export interface RecentEvent {
   id: string
   name: string
@@ -40,14 +50,9 @@ export interface RecentEvent {
   start_date: string
   event_status: string
   category_id: number
-  event_categories: {
-    name: string
-    color_hex: string | null
-  } | null
-  volunteers: {
-    first_name: string
-    last_name: string
-  } | null
+  // Supabase can return single object or array depending on relation
+  event_categories: EventCategory | EventCategory[] | null
+  volunteers: EventVolunteer | EventVolunteer[] | null
 }
 
 export interface UseDashboardStatsReturn {
@@ -81,28 +86,29 @@ export function useDashboardStatsOptimized(): UseDashboardStatsReturn {
     return now.getTime() - lastFetched.getTime() > CACHE_DURATION
   }, [lastFetched])
 
-  const fetchDashboardData = useCallback(async (force = false) => {
-    if (!force && !checkCacheStale() && stats !== null) {
-      console.log('[useDashboardStats] Cache hit - using cached data')
-      return
-    }
+  const fetchDashboardData = useCallback(
+    async (force = false) => {
+      if (!force && !checkCacheStale() && stats !== null) {
+        console.log('[useDashboardStats] Cache hit - using cached data')
+        return
+      }
 
-    if (!isMountedRef.current) return
+      if (!isMountedRef.current) return
 
-    try {
-      setLoading(true)
-      setError(null)
+      try {
+        setLoading(true)
+        setError(null)
 
-      console.log('[useDashboardStats] Fetching fresh data from database')
+        console.log('[useDashboardStats] Fetching fresh data from database')
 
-      // Fetch all data in parallel
-      const [statsResult, trendsResult, eventsResult] = await Promise.all([
-        supabase.rpc('get_dashboard_stats'),
-        supabase.rpc('get_monthly_activity_trends'),
-        supabase
-          .from('events')
-          .select(
-            `
+        // Fetch all data in parallel
+        const [statsResult, trendsResult, eventsResult] = await Promise.all([
+          supabase.rpc('get_dashboard_stats'),
+          supabase.rpc('get_monthly_activity_trends'),
+          supabase
+            .from('events')
+            .select(
+              `
             id,
             name,
             event_date,
@@ -118,71 +124,73 @@ export function useDashboardStatsOptimized(): UseDashboardStatsReturn {
               last_name
             )
           `
-          )
-          .eq('is_active', true)
-          .order('created_at', { ascending: false })
-          .limit(3),
-      ])
+            )
+            .eq('is_active', true)
+            .order('created_at', { ascending: false })
+            .limit(3),
+        ])
 
-      if (!isMountedRef.current) return
+        if (!isMountedRef.current) return
 
-      // Handle stats
-      if (statsResult.error) {
-        if (
-          statsResult.error.message?.includes('does not exist') ||
-          statsResult.error.code === '42883'
-        ) {
-          throw new Error(
-            'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
-          )
+        // Handle stats
+        if (statsResult.error) {
+          if (
+            statsResult.error.message?.includes('does not exist') ||
+            statsResult.error.code === '42883'
+          ) {
+            throw new Error(
+              'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
+            )
+          }
+          throw new Error(statsResult.error.message || 'Failed to fetch dashboard statistics')
         }
-        throw new Error(statsResult.error.message || 'Failed to fetch dashboard statistics')
-      }
 
-      if (statsResult.data && statsResult.data.length > 0) {
-        setStats(statsResult.data[0] as DashboardStats)
-      }
-
-      // Handle trends
-      if (trendsResult.error) {
-        if (
-          trendsResult.error.message?.includes('does not exist') ||
-          trendsResult.error.code === '42883'
-        ) {
-          throw new Error(
-            'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
-          )
+        if (statsResult.data && statsResult.data.length > 0) {
+          setStats(statsResult.data[0] as DashboardStats)
         }
-        throw new Error(trendsResult.error.message || 'Failed to fetch activity trends')
+
+        // Handle trends
+        if (trendsResult.error) {
+          if (
+            trendsResult.error.message?.includes('does not exist') ||
+            trendsResult.error.code === '42883'
+          ) {
+            throw new Error(
+              'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
+            )
+          }
+          throw new Error(trendsResult.error.message || 'Failed to fetch activity trends')
+        }
+
+        setActivityData((trendsResult.data || []) as ActivityTrend[])
+
+        // Handle recent events
+        if (eventsResult.error) {
+          throw new Error(eventsResult.error.message || 'Failed to fetch recent events')
+        }
+
+        setRecentEvents((eventsResult.data || []) as RecentEvent[])
+        setLastFetched(new Date())
+
+        console.log('[useDashboardStats] Data cached successfully')
+      } catch (err: any) {
+        if (!isMountedRef.current) return
+
+        const errorMessage = err?.message || 'Failed to fetch dashboard data'
+        console.error('Error fetching dashboard stats:', errorMessage)
+        setError(errorMessage)
+
+        setStats(null)
+        setActivityData([])
+        setRecentEvents([])
+      } finally {
+        if (isMountedRef.current) {
+          setLoading(false)
+        }
       }
-
-      setActivityData((trendsResult.data || []) as ActivityTrend[])
-
-      // Handle recent events
-      if (eventsResult.error) {
-        throw new Error(eventsResult.error.message || 'Failed to fetch recent events')
-      }
-
-      setRecentEvents((eventsResult.data || []) as RecentEvent[])
-      setLastFetched(new Date())
-
-      console.log('[useDashboardStats] Data cached successfully')
-    } catch (err: any) {
-      if (!isMountedRef.current) return
-
-      const errorMessage = err?.message || 'Failed to fetch dashboard data'
-      console.error('Error fetching dashboard stats:', errorMessage)
-      setError(errorMessage)
-
-      setStats(null)
-      setActivityData([])
-      setRecentEvents([])
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false)
-      }
-    }
-  }, [checkCacheStale, stats])
+    },
+    [checkCacheStale, stats]
+  )
 
   // Initial fetch
   useEffect(() => {

@@ -20,6 +20,13 @@ export interface Volunteer {
   eventsParticipated?: number
   totalHours?: number
   joinDate?: string
+  // CamelCase aliases for compatibility
+  firstName?: string
+  lastName?: string
+  rollNumber?: string
+  phoneNo?: string
+  nssJoinYear?: number
+  isActive?: boolean
 }
 
 export interface UserStats {

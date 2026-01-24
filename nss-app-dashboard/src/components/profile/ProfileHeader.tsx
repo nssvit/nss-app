@@ -95,7 +95,7 @@ export function ProfileHeader({
             {profileData.branch} - Year {profileData.year} | {profileData.rollNumber}
           </p>
           <div className="flex items-center gap-4 text-sm text-gray-500 flex-wrap justify-center md:justify-start">
-            {profileData.nssJoinYear > 0 && (
+            {Number(profileData.nssJoinYear || 0) > 0 && (
               <span>
                 <i className="fas fa-calendar mr-1"></i> NSS since {profileData.nssJoinYear}
               </span>

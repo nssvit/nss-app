@@ -70,10 +70,10 @@ export async function getDashboardStats() {
     .where(and(eq(events.isActive, true), eq(events.eventStatus, 'ongoing')))
 
   return {
-    total_events: eventsCount?.count ?? 0,
-    active_volunteers: volunteersCount?.count ?? 0,
-    total_hours: Number(hoursSum?.total) || 0,
-    ongoing_projects: ongoingCount?.count ?? 0,
+    totalEvents: eventsCount?.count ?? 0,
+    activeVolunteers: volunteersCount?.count ?? 0,
+    totalHours: Number(hoursSum?.total) || 0,
+    ongoingProjects: ongoingCount?.count ?? 0,
   }
 }
 
@@ -98,7 +98,7 @@ export async function getMonthlyActivityTrends() {
     ORDER BY DATE_TRUNC('month', e.start_date)
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     month: string
     month_number: number
     year_number: number
@@ -149,7 +149,7 @@ export async function getVolunteersWithStats() {
     ORDER BY v.created_at DESC
   `)
 
-  return result.rows
+  return result as unknown[]
 }
 
 /**
@@ -237,7 +237,7 @@ export async function getEventsWithStats() {
     ORDER BY e.created_at DESC
   `)
 
-  return result.rows
+  return result as unknown[]
 }
 
 /**
@@ -265,10 +265,7 @@ export async function getEventById(eventId: string) {
  */
 export async function getUpcomingEvents(limit: number = 10) {
   const result = await db.query.events.findMany({
-    where: and(
-      eq(events.isActive, true),
-      gte(events.startDate, sql`CURRENT_DATE`)
-    ),
+    where: and(eq(events.isActive, true), gte(events.startDate, sql`CURRENT_DATE`)),
     with: {
       category: true,
       createdBy: true,
@@ -305,7 +302,7 @@ export async function getCategoryDistribution() {
     ORDER BY event_count DESC
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     category_id: number
     category_name: string
     event_count: number
@@ -339,7 +336,7 @@ export async function getTopEventsByImpact(limitCount: number = 10) {
     LIMIT ${limitCount}
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     event_id: string
     event_name: string
     event_date: string | null
@@ -405,10 +402,7 @@ export async function getPendingParticipations() {
  */
 export async function getVolunteerRoles(volunteerId: string) {
   const result = await db.query.userRoles.findMany({
-    where: and(
-      eq(userRoles.volunteerId, volunteerId),
-      eq(userRoles.isActive, true)
-    ),
+    where: and(eq(userRoles.volunteerId, volunteerId), eq(userRoles.isActive, true)),
     with: {
       roleDefinition: true,
     },
@@ -441,7 +435,10 @@ export async function volunteerHasRole(volunteerId: string, roleName: string): P
  * Check if a volunteer has any of the specified roles
  * Replaces: has_any_role RPC function (server-side version)
  */
-export async function volunteerHasAnyRole(volunteerId: string, roleNames: string[]): Promise<boolean> {
+export async function volunteerHasAnyRole(
+  volunteerId: string,
+  roleNames: string[]
+): Promise<boolean> {
   const result = await db
     .select({ count: count() })
     .from(userRoles)
@@ -744,16 +741,17 @@ export async function updateEventAttendance(
 export async function syncEventAttendance(eventId: string, selectedVolunteerIds: string[]) {
   return await db.transaction(async (tx) => {
     // Remove all current participants not in the new list
-    const result = await tx
-      .delete(eventParticipation)
-      .where(
-        and(
-          eq(eventParticipation.eventId, eventId),
-          selectedVolunteerIds.length > 0
-            ? sql`${eventParticipation.volunteerId} NOT IN (${sql.join(selectedVolunteerIds.map(id => sql`${id}`), sql`, `)})`
-            : sql`true`
-        )
+    const result = await tx.delete(eventParticipation).where(
+      and(
+        eq(eventParticipation.eventId, eventId),
+        selectedVolunteerIds.length > 0
+          ? sql`${eventParticipation.volunteerId} NOT IN (${sql.join(
+              selectedVolunteerIds.map((id) => sql`${id}`),
+              sql`, `
+            )})`
+          : sql`true`
       )
+    )
 
     return {
       removedCount: 0, // Note: Drizzle doesn't return affected rows count easily
@@ -766,7 +764,11 @@ export async function syncEventAttendance(eventId: string, selectedVolunteerIds:
  * Register a volunteer for an event
  * Replaces: register_for_event RPC function (server-side version)
  */
-export async function registerForEvent(eventId: string, volunteerId: string, declaredHours: number = 0) {
+export async function registerForEvent(
+  eventId: string,
+  volunteerId: string,
+  declaredHours: number = 0
+) {
   return await db.transaction(async (tx) => {
     // Check if already registered
     const [existing] = await tx
@@ -838,7 +840,7 @@ export async function getEventParticipants(eventId: string) {
     ORDER BY v.first_name, v.last_name
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     participant_id: string
     volunteer_id: string
     volunteer_name: string
@@ -871,10 +873,7 @@ export async function adminGetAllVolunteers() {
  */
 export async function adminUpdateVolunteer(volunteerId: string, updates: Partial<Volunteer>) {
   return await db.transaction(async (tx) => {
-    const [volunteer] = await tx
-      .select()
-      .from(volunteers)
-      .where(eq(volunteers.id, volunteerId))
+    const [volunteer] = await tx.select().from(volunteers).where(eq(volunteers.id, volunteerId))
 
     if (!volunteer) {
       throw new Error('Volunteer not found')
@@ -1127,7 +1126,7 @@ export async function getAttendanceSummary() {
     ORDER BY e.event_date DESC
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     event_id: string
     event_name: string
     event_date: Date | null
@@ -1160,7 +1159,7 @@ export async function getVolunteerHoursSummary() {
     ORDER BY total_hours DESC
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     volunteer_id: string
     volunteer_name: string
     total_hours: number
@@ -1191,7 +1190,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     ORDER BY e.event_date DESC
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     event_id: string
     event_name: string
     event_date: Date | null
@@ -1208,8 +1207,14 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
  */
 export async function getUserStats() {
   const [totalUsers] = await db.select({ count: count() }).from(volunteers)
-  const [activeUsers] = await db.select({ count: count() }).from(volunteers).where(eq(volunteers.isActive, true))
-  const [pendingUsers] = await db.select({ count: count() }).from(volunteers).where(eq(volunteers.isActive, false))
+  const [activeUsers] = await db
+    .select({ count: count() })
+    .from(volunteers)
+    .where(eq(volunteers.isActive, true))
+  const [pendingUsers] = await db
+    .select({ count: count() })
+    .from(volunteers)
+    .where(eq(volunteers.isActive, false))
 
   // Count admins
   const [adminCount] = await db
@@ -1334,7 +1339,7 @@ export async function getEventsForAttendance(limit: number = 50) {
     LIMIT ${limit}
   `)
 
-  return result.rows as {
+  return result as unknown[] as {
     id: string
     event_name: string
     event_date: string

@@ -38,7 +38,14 @@ export function EventsPage() {
   const { toasts, removeToast, success, error: showError, info } = useToast()
 
   // Use hooks for data fetching (Server Actions -> Drizzle)
-  const { events: rawEvents, loading: eventsLoading, createEvent, updateEvent, deleteEvent, refetch } = useEvents()
+  const {
+    events: rawEvents,
+    loading: eventsLoading,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+    refetch,
+  } = useEvents()
   const { categories: rawCategories, loading: categoriesLoading } = useCategories()
 
   const loading = eventsLoading || categoriesLoading
@@ -52,7 +59,9 @@ export function EventsPage() {
       event_date: e.startDate || e.event_date || e.start_date || '',
       declared_hours: e.declaredHours || e.declared_hours || 0,
       category_name: e.category?.categoryName || e.category?.category_name || 'General',
-      created_by_name: e.createdBy ? `${e.createdBy.firstName || ''} ${e.createdBy.lastName || ''}`.trim() : 'Unknown',
+      created_by_name: e.createdBy
+        ? `${e.createdBy.firstName || ''} ${e.createdBy.lastName || ''}`.trim()
+        : 'Unknown',
       participant_count: e.participantCount || 0,
       is_active: e.eventStatus === 'upcoming' || e.eventStatus === 'ongoing' || e.isActive,
       created_at: e.createdAt || e.created_at || '',
@@ -86,18 +95,19 @@ export function EventsPage() {
     let filtered = events
 
     if (searchTerm) {
-      filtered = filtered.filter(event =>
-        event.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.event_description.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (event) =>
+          event.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.event_description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
     if (categoryFilter) {
-      filtered = filtered.filter(event => event.category_name === categoryFilter)
+      filtered = filtered.filter((event) => event.category_name === categoryFilter)
     }
 
     if (sessionFilter) {
-      filtered = filtered.filter(event => {
+      filtered = filtered.filter((event) => {
         const eventYear = new Date(event.event_date).getFullYear()
         return eventYear.toString() === sessionFilter
       })
@@ -126,9 +136,10 @@ export function EventsPage() {
         return
       }
 
-      const category = categories.find(c =>
-        c.category_name === eventData.eventCategory ||
-        c.category_name.toLowerCase() === eventData.eventCategory?.toLowerCase()
+      const category = categories.find(
+        (c) =>
+          c.category_name === eventData.eventCategory ||
+          c.category_name.toLowerCase() === eventData.eventCategory?.toLowerCase()
       )
 
       if (!category) {
@@ -138,7 +149,7 @@ export function EventsPage() {
 
       const result = await createEvent({
         eventName: eventData.eventName,
-        eventDescription: eventData.eventDescription || '',
+        description: eventData.eventDescription || '',
         startDate: eventData.eventDate,
         endDate: eventData.eventDate,
         declaredHours: parseInt(eventData.declaredHours) || 1,
@@ -161,7 +172,7 @@ export function EventsPage() {
   }
 
   const handleEditEvent = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
+    const event = events.find((e) => e.id === eventId)
     if (event) {
       setEditingEvent(event)
       setIsModalOpen(true)
@@ -174,9 +185,10 @@ export function EventsPage() {
     try {
       info('Updating event...')
 
-      const category = categories.find(c =>
-        c.category_name === eventData.eventCategory ||
-        c.category_name.toLowerCase() === eventData.eventCategory?.toLowerCase()
+      const category = categories.find(
+        (c) =>
+          c.category_name === eventData.eventCategory ||
+          c.category_name.toLowerCase() === eventData.eventCategory?.toLowerCase()
       )
 
       if (!category) {
@@ -186,7 +198,7 @@ export function EventsPage() {
 
       const result = await updateEvent(editingEvent.id, {
         eventName: eventData.eventName,
-        eventDescription: eventData.eventDescription || '',
+        description: eventData.eventDescription || '',
         startDate: eventData.eventDate,
         declaredHours: parseInt(eventData.declaredHours) || 1,
         categoryId: parseInt(category.id),
@@ -208,7 +220,7 @@ export function EventsPage() {
   }
 
   const handleViewParticipants = (eventId: string) => {
-    const event = events.find(e => e.id === eventId)
+    const event = events.find((e) => e.id === eventId)
     if (event) {
       setParticipantsModalEvent(event)
     }
@@ -245,13 +257,15 @@ export function EventsPage() {
       { value: '', label: 'All Sessions' },
       { value: currentYear.toString(), label: `${currentYear}-${currentYear + 1}` },
       { value: (currentYear - 1).toString(), label: `${currentYear - 1}-${currentYear}` },
-      { value: (currentYear - 2).toString(), label: `${currentYear - 2}-${currentYear - 1}` }
+      { value: (currentYear - 2).toString(), label: `${currentYear - 2}-${currentYear - 1}` },
     ]
   }
 
   if (loading) {
     return (
-      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+      <div
+        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      >
         <div className="flex flex-wrap items-center gap-3 mb-6 px-1">
           <Skeleton className="h-10 w-32 rounded-lg" />
           <Skeleton className="h-10 w-40 rounded-lg" />
@@ -259,7 +273,10 @@ export function EventsPage() {
         </div>
         <div className={`grid ${layout.getGridColumns()} gap-4 mb-8`}>
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={`skeleton-${i}`} className="card-glass rounded-xl p-4 h-[280px] flex flex-col">
+            <div
+              key={`skeleton-${i}`}
+              className="card-glass rounded-xl p-4 h-[280px] flex flex-col"
+            >
               <div className="flex justify-between items-start mb-4">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-16" />
@@ -280,7 +297,9 @@ export function EventsPage() {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+      <div
+        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      >
         {/* Mobile Search Bar */}
         {layout.isMobile && (
           <div className="mb-4">
@@ -298,14 +317,18 @@ export function EventsPage() {
         )}
 
         {/* Filters Row */}
-        <div className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? 'px-0' : 'px-1'}`}>
+        <div
+          className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? 'px-0' : 'px-1'}`}
+        >
           <select
             className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible flex-1 min-w-0"
             value={sessionFilter}
             onChange={(e) => setSessionFilter(e.target.value)}
           >
             {getSessionOptions().map((option, index) => (
-              <option key={`session-${index}`} value={option.value}>{option.label}</option>
+              <option key={`session-${index}`} value={option.value}>
+                {option.label}
+              </option>
             ))}
           </select>
 
@@ -327,7 +350,9 @@ export function EventsPage() {
             {!layout.isMobile && <span>Filter</span>}
           </button>
 
-          <button className="btn btn-sm btn-ghost" onClick={clearFilters}>Clear</button>
+          <button className="btn btn-sm btn-ghost" onClick={clearFilters}>
+            Clear
+          </button>
         </div>
 
         {/* Results Summary */}
@@ -342,7 +367,10 @@ export function EventsPage() {
             <EventCard
               key={`event-${event.id || index}`}
               title={event.event_name}
-              date={new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              date={new Date(event.event_date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
               description={event.event_description}
               category={event.category_name}
               hours={event.declared_hours.toString()}
@@ -370,7 +398,13 @@ export function EventsPage() {
             size="lg"
             action={
               hasAnyRole(['admin', 'program_officer', 'event_lead']) ? (
-                <button onClick={() => { setEditingEvent(null); setIsModalOpen(true) }} className="btn btn-md btn-primary">
+                <button
+                  onClick={() => {
+                    setEditingEvent(null)
+                    setIsModalOpen(true)
+                  }}
+                  className="btn btn-md btn-primary"
+                >
                   <i className="fas fa-plus mr-2"></i>Create First Event
                 </button>
               ) : undefined
@@ -382,7 +416,11 @@ export function EventsPage() {
         {totalPages > 1 && (
           <div className="flex justify-center mt-8 md:mt-6 safe-area-bottom">
             <nav className={`flex ${layout.isMobile ? 'gap-1' : 'gap-2'}`}>
-              <button className="btn btn-sm btn-secondary" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
+              <button
+                className="btn btn-sm btn-secondary"
+                disabled={currentPage === 1}
+                onClick={() => goToPage(currentPage - 1)}
+              >
                 {layout.isMobile ? '‹' : 'Previous'}
               </button>
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -397,7 +435,11 @@ export function EventsPage() {
                   </button>
                 )
               })}
-              <button className="btn btn-sm btn-secondary" disabled={currentPage === totalPages} onClick={() => goToPage(currentPage + 1)}>
+              <button
+                className="btn btn-sm btn-secondary"
+                disabled={currentPage === totalPages}
+                onClick={() => goToPage(currentPage + 1)}
+              >
                 {layout.isMobile ? '›' : 'Next'}
               </button>
             </nav>
@@ -407,19 +449,26 @@ export function EventsPage() {
         {/* Event Modal */}
         <EventModal
           isOpen={isModalOpen}
-          onClose={() => { setIsModalOpen(false); setEditingEvent(null) }}
+          onClose={() => {
+            setIsModalOpen(false)
+            setEditingEvent(null)
+          }}
           onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
-          title={editingEvent ? "Edit Event" : "Create New Event"}
-          categories={categories.map(c => c.category_name)}
-          initialData={editingEvent ? {
-            eventName: editingEvent.event_name,
-            eventDate: editingEvent.event_date?.split('T')[0] || '',
-            declaredHours: editingEvent.declared_hours?.toString() || '',
-            eventCategory: editingEvent.category_name || '',
-            academicSession: new Date(editingEvent.event_date).getFullYear().toString(),
-            eventLocation: '',
-            eventDescription: editingEvent.event_description || '',
-          } : undefined}
+          title={editingEvent ? 'Edit Event' : 'Create New Event'}
+          categories={categories.map((c) => c.category_name)}
+          initialData={
+            editingEvent
+              ? {
+                  eventName: editingEvent.event_name,
+                  eventDate: editingEvent.event_date?.split('T')[0] || '',
+                  declaredHours: editingEvent.declared_hours?.toString() || '',
+                  eventCategory: editingEvent.category_name || '',
+                  academicSession: new Date(editingEvent.event_date).getFullYear().toString(),
+                  eventLocation: '',
+                  eventDescription: editingEvent.event_description || '',
+                }
+              : undefined
+          }
         />
 
         {/* Event Participants Modal */}

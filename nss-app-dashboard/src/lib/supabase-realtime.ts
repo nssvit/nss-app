@@ -6,10 +6,13 @@
 import { supabase } from './supabase'
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
+// Type constraint for RealtimePostgresChangesPayload
+type RecordType = { [key: string]: any }
+
 /**
  * Subscribe to changes in a specific table
  */
-export function subscribeToTable<T = any>(
+export function subscribeToTable<T extends RecordType = RecordType>(
   tableName: string,
   onInsert?: (payload: RealtimePostgresChangesPayload<T>) => void,
   onUpdate?: (payload: RealtimePostgresChangesPayload<T>) => void,
@@ -18,38 +21,38 @@ export function subscribeToTable<T = any>(
   const channel = supabase.channel(`${tableName}_changes`)
 
   if (onInsert) {
-    channel.on(
-      'postgres_changes',
+    channel.on<T>(
+      'postgres_changes' as const,
       {
         event: 'INSERT',
         schema: 'public',
         table: tableName,
-      },
-      onInsert
+      } as any,
+      onInsert as any
     )
   }
 
   if (onUpdate) {
-    channel.on(
-      'postgres_changes',
+    channel.on<T>(
+      'postgres_changes' as const,
       {
         event: 'UPDATE',
         schema: 'public',
         table: tableName,
-      },
-      onUpdate
+      } as any,
+      onUpdate as any
     )
   }
 
   if (onDelete) {
-    channel.on(
-      'postgres_changes',
+    channel.on<T>(
+      'postgres_changes' as const,
       {
         event: 'DELETE',
         schema: 'public',
         table: tableName,
-      },
-      onDelete
+      } as any,
+      onDelete as any
     )
   }
 
@@ -61,22 +64,19 @@ export function subscribeToTable<T = any>(
 /**
  * Subscribe to multiple tables with a single callback
  */
-export function subscribeToTables(
-  tableNames: string[],
-  onChange: () => void
-): RealtimeChannel[] {
+export function subscribeToTables(tableNames: string[], onChange: () => void): RealtimeChannel[] {
   return tableNames.map((tableName) => {
     const channel = supabase.channel(`${tableName}_multi_changes`)
 
     channel
       .on(
-        'postgres_changes',
+        'postgres_changes' as const,
         {
           event: '*',
           schema: 'public',
           table: tableName,
-        },
-        onChange
+        } as any,
+        onChange as any
       )
       .subscribe()
 
@@ -94,16 +94,14 @@ export async function unsubscribe(channel: RealtimeChannel): Promise<void> {
 /**
  * Unsubscribe from multiple channels
  */
-export async function unsubscribeAll(
-  channels: RealtimeChannel[]
-): Promise<void> {
+export async function unsubscribeAll(channels: RealtimeChannel[]): Promise<void> {
   await Promise.all(channels.map((channel) => supabase.removeChannel(channel)))
 }
 
 /**
  * Subscribe to specific row changes using filters
  */
-export function subscribeToRow<T = any>(
+export function subscribeToRow<T extends RecordType = RecordType>(
   tableName: string,
   filter: string, // e.g., 'id=eq.123'
   onChange: (payload: RealtimePostgresChangesPayload<T>) => void
@@ -111,15 +109,15 @@ export function subscribeToRow<T = any>(
   const channel = supabase.channel(`${tableName}_row_${filter}`)
 
   channel
-    .on(
-      'postgres_changes',
+    .on<T>(
+      'postgres_changes' as const,
       {
         event: '*',
         schema: 'public',
         table: tableName,
         filter,
-      },
-      onChange
+      } as any,
+      onChange as any
     )
     .subscribe()
 
@@ -130,10 +128,7 @@ export function subscribeToRow<T = any>(
  * Hook-friendly real-time subscription setup
  * Returns cleanup function for useEffect
  */
-export function setupRealtimeSubscription(
-  tables: string[],
-  onDataChange: () => void
-): () => void {
+export function setupRealtimeSubscription(tables: string[], onDataChange: () => void): () => void {
   const channels = subscribeToTables(tables, onDataChange)
 
   // Return cleanup function

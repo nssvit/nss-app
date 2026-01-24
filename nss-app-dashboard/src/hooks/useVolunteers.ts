@@ -15,13 +15,23 @@ import {
 import { isCurrentUserAdmin } from '@/app/actions/roles'
 import type { Volunteer } from '@/db/schema'
 
-// Extended volunteer type with computed fields
+// Extended volunteer type with computed fields and snake_case aliases
 export interface VolunteerWithStats extends Volunteer {
   eventsParticipated?: number
   totalHours?: number
   status?: 'Active' | 'Inactive' | 'Pending'
   joinDate?: string
   avatar?: string
+  // Snake_case aliases for compatibility
+  first_name?: string
+  last_name?: string
+  roll_number?: string
+  phone_no?: string | null
+  birth_date?: string | null
+  nss_join_year?: number | null
+  profile_pic?: string | null
+  is_active?: boolean | null
+  auth_user_id?: string | null
 }
 
 export interface UseVolunteersReturn {
@@ -50,7 +60,7 @@ export function useVolunteers(): UseVolunteersReturn {
         isCurrentUserAdmin().catch(() => false),
       ])
 
-      // Transform data with computed fields
+      // Transform data with computed fields and snake_case aliases
       const transformed: VolunteerWithStats[] = volunteersData.map((v: any) => ({
         ...v,
         status: v.isActive ? 'Active' : 'Inactive',
@@ -60,6 +70,16 @@ export function useVolunteers(): UseVolunteersReturn {
         avatar: v.profilePic || 'https://i.imgur.com/gVo4gxC.png',
         eventsParticipated: v.eventsParticipated || 0,
         totalHours: v.totalHours || 0,
+        // Snake_case aliases
+        first_name: v.firstName,
+        last_name: v.lastName,
+        roll_number: v.rollNumber,
+        phone_no: v.phoneNo,
+        birth_date: v.birthDate,
+        nss_join_year: v.nssJoinYear,
+        profile_pic: v.profilePic,
+        is_active: v.isActive,
+        auth_user_id: v.authUserId,
       }))
 
       setVolunteers(transformed)

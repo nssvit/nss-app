@@ -8,10 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import {
-  getCategoryDistribution,
-  getTopEventsByImpact,
-} from '@/app/actions/reports'
+import { getCategoryDistribution, getTopEventsByImpact } from '@/app/actions/reports'
 
 export interface CategoryDistribution {
   categoryId: number
@@ -20,6 +17,13 @@ export interface CategoryDistribution {
   colorHex: string | null
   participantCount: number
   totalHours: number
+  // Snake_case aliases
+  category_id?: number
+  category_name?: string
+  event_count?: number
+  color_hex?: string | null
+  participant_count?: number
+  total_hours?: number
 }
 
 export interface TopEvent {
@@ -31,6 +35,14 @@ export interface TopEvent {
   totalHours: number
   impactScore: number
   eventStatus: string
+  // Snake_case aliases
+  event_id?: string
+  event_name?: string
+  event_date?: Date | null
+  category_name?: string
+  participant_count?: number
+  total_hours?: number
+  impact_score?: number
 }
 
 export interface UseReportsReturn {
@@ -58,8 +70,30 @@ export function useReports(): UseReportsReturn {
         getTopEventsByImpact(10),
       ])
 
-      setCategoryDistribution(categoryData as CategoryDistribution[])
-      setTopEvents(eventsData as TopEvent[])
+      // Transform with snake_case aliases
+      const categoryWithAliases = (categoryData || []).map((c: any) => ({
+        ...c,
+        category_id: c.categoryId,
+        category_name: c.categoryName,
+        event_count: c.eventCount,
+        color_hex: c.colorHex,
+        participant_count: c.participantCount,
+        total_hours: c.totalHours,
+      }))
+
+      const eventsWithAliases = (eventsData || []).map((e: any) => ({
+        ...e,
+        event_id: e.eventId,
+        event_name: e.eventName,
+        event_date: e.eventDate,
+        category_name: e.categoryName,
+        participant_count: e.participantCount,
+        total_hours: e.totalHours,
+        impact_score: e.impactScore,
+      }))
+
+      setCategoryDistribution(categoryWithAliases)
+      setTopEvents(eventsWithAliases)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch reports data'
       console.error('[useReports] Error:', message)

@@ -1,174 +1,182 @@
-"use client";
+'use client'
 
 /**
  * EventModal Component
  * Uses Server Actions via useVolunteers hook (full Drizzle consistency)
  */
 
-import { useState, useEffect } from "react";
-import { useVolunteers } from "@/hooks/useVolunteers";
+import { useState, useEffect } from 'react'
+import { useVolunteers } from '@/hooks/useVolunteers'
 
 interface Volunteer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  roll_number: string;
-  email: string;
+  id: string
+  firstName: string
+  lastName: string
+  rollNumber: string
+  email: string
 }
 
 interface EventFormData {
-  eventName: string;
-  eventDate: string;
-  declaredHours: string;
-  eventCategory: string;
-  academicSession: string;
-  eventLocation: string;
-  eventDescription: string;
-  minParticipants?: string;
-  maxParticipants?: string;
-  registrationDeadline?: string;
-  selectedVolunteers?: string[];
+  eventName: string
+  eventDate: string
+  declaredHours: string
+  eventCategory: string
+  academicSession: string
+  eventLocation: string
+  eventDescription: string
+  minParticipants?: string
+  maxParticipants?: string
+  registrationDeadline?: string
+  selectedVolunteers?: string[]
 }
 
 interface EventModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (eventData: EventFormData) => void;
-  title?: string;
-  initialData?: EventFormData;
-  categories?: string[];
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (eventData: EventFormData) => void
+  title?: string
+  initialData?: EventFormData
+  categories?: string[]
 }
 
 export function EventModal({
   isOpen,
   onClose,
   onSubmit,
-  title = "Create New Event",
+  title = 'Create New Event',
   initialData,
   categories = [],
 }: EventModalProps) {
   const [formData, setFormData] = useState({
-    eventName: "",
-    eventDate: "",
-    declaredHours: "",
-    eventCategory: "",
-    academicSession: "",
-    eventLocation: "",
-    eventDescription: "",
-    minParticipants: "",
-    maxParticipants: "",
-    registrationDeadline: "",
+    eventName: '',
+    eventDate: '',
+    declaredHours: '',
+    eventCategory: '',
+    academicSession: '',
+    eventLocation: '',
+    eventDescription: '',
+    minParticipants: '',
+    maxParticipants: '',
+    registrationDeadline: '',
     selectedVolunteers: [] as string[],
-  });
+  })
 
   // Use hook for volunteers data (Server Actions -> Drizzle)
-  const { volunteers: rawVolunteers, loading: loadingVolunteers } = useVolunteers();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showVolunteerSection, setShowVolunteerSection] = useState(false);
+  const { volunteers: rawVolunteers, loading: loadingVolunteers } = useVolunteers()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showVolunteerSection, setShowVolunteerSection] = useState(false)
 
   // Transform volunteers to expected format
   const volunteers: Volunteer[] = (rawVolunteers || []).map((v: any) => ({
     id: v.id || v.volunteer_id,
-    first_name: v.first_name || v.firstName || '',
-    last_name: v.last_name || v.lastName || '',
-    roll_number: v.roll_number || v.rollNumber || '',
+    firstName: v.firstName || v.first_name || '',
+    lastName: v.lastName || v.last_name || '',
+    rollNumber: v.rollNumber || v.roll_number || '',
     email: v.email || '',
-  }));
+  }))
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        minParticipants: initialData.minParticipants || '',
+        maxParticipants: initialData.maxParticipants || '',
+        registrationDeadline: initialData.registrationDeadline || '',
+        selectedVolunteers: initialData.selectedVolunteers || [],
+      })
     } else {
       setFormData({
-        eventName: "",
-        eventDate: "",
-        declaredHours: "",
-        eventCategory: "",
-        academicSession: "",
-        eventLocation: "",
-        eventDescription: "",
-      });
+        eventName: '',
+        eventDate: '',
+        declaredHours: '',
+        eventCategory: '',
+        academicSession: '',
+        eventLocation: '',
+        eventDescription: '',
+        minParticipants: '',
+        maxParticipants: '',
+        registrationDeadline: '',
+        selectedVolunteers: [],
+      })
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen])
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('EventModal: Form submitted with data:', formData);
-    onSubmit(formData);
-  };
+    e.preventDefault()
+    console.log('EventModal: Form submitted with data:', formData)
+    onSubmit(formData)
+  }
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose();
+      onClose()
     }
-  };
+  }
 
   const toggleVolunteerSelection = (volunteerId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       selectedVolunteers: prev.selectedVolunteers?.includes(volunteerId)
-        ? prev.selectedVolunteers.filter(id => id !== volunteerId)
-        : [...(prev.selectedVolunteers || []), volunteerId]
-    }));
-  };
+        ? prev.selectedVolunteers.filter((id) => id !== volunteerId)
+        : [...(prev.selectedVolunteers || []), volunteerId],
+    }))
+  }
 
   const selectAllVolunteers = () => {
-    const filtered = filteredVolunteers.map(v => v.id);
-    setFormData(prev => ({
+    const filtered = filteredVolunteers.map((v) => v.id)
+    setFormData((prev) => ({
       ...prev,
-      selectedVolunteers: filtered
-    }));
-  };
+      selectedVolunteers: filtered,
+    }))
+  }
 
   const deselectAllVolunteers = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      selectedVolunteers: []
-    }));
-  };
+      selectedVolunteers: [],
+    }))
+  }
 
-  const filteredVolunteers = volunteers.filter(v =>
-    `${v.first_name} ${v.last_name} ${v.roll_number} ${v.email}`
+  const filteredVolunteers = volunteers.filter((v) =>
+    `${v.firstName} ${v.lastName} ${v.rollNumber} ${v.email}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
-  );
+  )
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
+      if (e.key === 'Escape' && isOpen) {
+        onClose()
       }
-    };
+    }
 
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = ''
     }
 
     return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div
@@ -177,9 +185,7 @@ export function EventModal({
     >
       <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 p-6 md:p-5 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6 md:mb-4">
-          <h2 className="text-xl md:text-lg font-semibold text-gray-100">
-            {title}
-          </h2>
+          <h2 className="text-xl md:text-lg font-semibold text-gray-100">{title}</h2>
           <button
             onClick={onClose}
             className="pwa-button text-gray-500 hover:text-white text-3xl md:text-2xl leading-none p-2 md:p-1 transition-colors focus-visible rounded"
@@ -395,10 +401,10 @@ export function EventModal({
                         />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-200 truncate">
-                            {volunteer.first_name} {volunteer.last_name}
+                            {volunteer.firstName} {volunteer.lastName}
                           </p>
                           <p className="text-xs text-gray-400">
-                            {volunteer.roll_number} • {volunteer.email}
+                            {volunteer.rollNumber} • {volunteer.email}
                           </p>
                         </div>
                       </label>
@@ -427,5 +433,5 @@ export function EventModal({
         </form>
       </div>
     </div>
-  );
+  )
 }

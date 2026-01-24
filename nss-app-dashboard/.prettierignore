@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Cache
+.cache/
+
+# Generated files
+*.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Misc
+*.min.js
+*.min.css
+coverage/
+.vercel/

@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase'
 import { CurrentUser } from '@/types'
+import { type SupabaseClient } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
@@ -20,6 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [supabase] = useState(() => createClient())
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
@@ -27,7 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session with error handling for stale tokens
-    supabase.auth.getSession()
+    supabase.auth
+      .getSession()
       .then(({ data: { session }, error }) => {
         if (error) {
           console.warn('[Auth] Session error, clearing stale session:', error.message)
@@ -55,30 +58,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Handle token refresh failures
-        if (event === 'TOKEN_REFRESHED' && !session) {
-          console.warn('[Auth] Token refresh failed, clearing session')
-          setSession(null)
-          setUser(null)
-          setCurrentUser(null)
-          setLoading(false)
-          return
-        }
-
-        setSession(session)
-        setUser(session?.user ?? null)
-
-        if (session?.user) {
-          await getCurrentUserData()
-        } else {
-          setCurrentUser(null)
-        }
-
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Handle token refresh failures
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        console.warn('[Auth] Token refresh failed, clearing session')
+        setSession(null)
+        setUser(null)
+        setCurrentUser(null)
         setLoading(false)
+        return
       }
-    )
+
+      setSession(session)
+      setUser(session?.user ?? null)
+
+      if (session?.user) {
+        await getCurrentUserData()
+      } else {
+        setCurrentUser(null)
+      }
+
+      setLoading(false)
+    })
 
     return () => {
       subscription.unsubscribe()
@@ -87,7 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getCurrentUserData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (!user) {
         console.log('[Auth] No authenticated user found')
@@ -119,7 +124,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('volunteer_id', (volunteerData as any)?.id)
         .eq('is_active', true)
 
-      const roles = rolesData?.map((ur: any) => ur.role_definitions?.role_name).filter(Boolean) || ['volunteer']
+      const roles = rolesData?.map((ur: any) => ur.role_definitions?.role_name).filter(Boolean) || [
+        'volunteer',
+      ]
 
       const vol = volunteerData as any
       const currentUserData: CurrentUser = {
@@ -137,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         address: vol.address,
         profile_pic: vol.profile_pic,
         is_active: vol.is_active,
-        roles: roles
+        roles: roles,
       }
 
       setCurrentUser(currentUserData)
@@ -166,9 +173,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           last_name: userData.last_name,
           roll_number: userData.roll_number,
           branch: userData.branch,
-          year: userData.year
-        }
-      }
+          year: userData.year,
+        },
+      },
     })
 
     if (error) {
@@ -194,21 +201,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const hasAnyRole = (roleNames: string[]): boolean => {
-    return roleNames.some(role => currentUser?.roles?.includes(role)) ?? false
+    return roleNames.some((role) => currentUser?.roles?.includes(role)) ?? false
   }
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      session,
-      currentUser,
-      loading,
-      signInWithEmail,
-      signUpWithEmail,
-      signOut,
-      hasRole,
-      hasAnyRole
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        currentUser,
+        loading,
+        signInWithEmail,
+        signUpWithEmail,
+        signOut,
+        hasRole,
+        hasAnyRole,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
