@@ -4,33 +4,24 @@
   "private": true,
   "scripts": {
     "prepare": "husky",
-    "lint": "eslint nss-app-dashboard/src --config nss-app-dashboard/eslint.config.mjs",
-    "lint:fix": "eslint nss-app-dashboard/src --config nss-app-dashboard/eslint.config.mjs --fix",
     "typecheck": "tsc --noEmit -p nss-app-dashboard/tsconfig.json",
     "format": "prettier --write \"nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "format:check": "prettier --check \"nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "check": "npm run typecheck && npm run lint && npm run format:check",
-    "fix": "npm run lint:fix && npm run format"
+    "check": "npm run typecheck && npm run format:check",
+    "fix": "npm run format",
+    "lint": "cd nss-app-dashboard && npm run lint",
+    "lint:fix": "cd nss-app-dashboard && npm run lint:fix"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9.39.2",
-    "eslint-config-next": "15.3.4",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
     "typescript": "^5"
   },
   "lint-staged": {
-    "nss-app-dashboard/src/**/*.{ts,tsx}": [
-      "eslint --fix --config nss-app-dashboard/eslint.config.mjs",
-      "prettier --write"
-    ],
-    "nss-app-dashboard/src/**/*.{js,jsx,json,css,md}": [
-      "prettier --write"
-    ]
+    "nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
   }
 }

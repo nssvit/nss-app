@@ -1,171 +1,154 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase'
-import { Event, EventWithDetails } from '@/types'
-import { type SupabaseClient } from '@supabase/supabase-js'
+/**
+ * Events Hook
+ * Uses Server Actions (Drizzle ORM) - no direct Supabase client
+ */
+
+import { useState, useEffect, useCallback } from 'react'
+import {
+  getEvents,
+  getEventById,
+  createEvent as createEventAction,
+  updateEvent as updateEventAction,
+  deleteEvent as deleteEventAction,
+  registerForEvent as registerForEventAction,
+  type CreateEventInput,
+  type UpdateEventInput,
+} from '@/app/actions/events'
+
+export interface EventWithDetails {
+  id: string
+  eventName: string
+  description: string | null
+  startDate: string
+  endDate: string
+  eventDate: Date | null
+  declaredHours: number
+  categoryId: number
+  minParticipants: number | null
+  maxParticipants: number | null
+  eventStatus: string
+  location: string | null
+  registrationDeadline: Date | null
+  createdByVolunteerId: string
+  isActive: boolean | null
+  createdAt: Date
+  updatedAt: Date
+  // Stats from query
+  participantCount?: number
+  categoryName?: string
+  categoryColor?: string
+  // Legacy aliases
+  event_name?: string
+  start_date?: string
+  end_date?: string
+  declared_hours?: number
+  category_id?: number
+  event_status?: string
+  is_active?: boolean
+}
 
 export function useEvents() {
-  const [supabase] = useState(() => createClient())
   const [events, setEvents] = useState<EventWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
-        .from('events')
-        .select(
-          `
-          *,
-          event_categories(
-            id,
-            category_name,
-            display_name,
-            description,
-            color_hex
-          ),
-          volunteers!events_created_by_volunteer_id_fkey(
-            id,
-            first_name,
-            last_name,
-            email
-          ),
-          event_participation(
-            id,
-            volunteer_id,
-            participation_status,
-            hours_attended,
-            volunteers(
-              id,
-              first_name,
-              last_name,
-              profile_pic
-            )
-          )
-        `
-        )
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
+      setError(null)
+      const data = await getEvents()
 
-      if (error) throw error
-
-      // Transform data to match the existing interface
-      const transformedEvents: EventWithDetails[] = (data || []).map((event) => ({
+      // Transform and add legacy aliases for compatibility
+      const transformed = (data || []).map((event: any) => ({
         ...event,
-        category: event.event_categories,
-        created_by: event.volunteers,
-        participants: event.event_participation || [],
-        // Legacy fields for compatibility
-        participantCount: event.event_participation?.length || 0,
-        capacity: event.max_participants
-          ? `${event.event_participation?.length || 0}/${event.max_participants}`
-          : undefined,
+        // Snake case aliases
+        event_name: event.eventName,
+        start_date: event.startDate,
+        end_date: event.endDate,
+        declared_hours: event.declaredHours,
+        category_id: event.categoryId,
+        event_status: event.eventStatus,
+        is_active: event.isActive,
       }))
 
-      setEvents(transformedEvents)
-      setError(null)
+      setEvents(transformed)
     } catch (err) {
-      console.error('Error fetching events:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch events')
+      const message = err instanceof Error ? err.message : 'Failed to fetch events'
+      console.error('[useEvents] Error:', message)
+      setError(message)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const addEvent = async (eventData: {
-    event_name: string
-    description?: string
-    start_date: string
-    end_date?: string
-    location?: string
-    max_participants?: number
-    min_participants?: number
-    registration_deadline?: string
-    category_id?: string
-    created_by_volunteer_id: string
-  }) => {
-    try {
-      const { data, error } = await supabase.from('events').insert(eventData).select().single()
-
-      if (error) throw error
-
-      await fetchEvents() // Refresh the list
-      return { data, error: null }
-    } catch (err) {
-      console.error('Error adding event:', err)
-      return { data: null, error: err instanceof Error ? err.message : 'Failed to add event' }
-    }
-  }
-
-  const updateEvent = async (id: string, updates: Partial<Event>) => {
-    try {
-      const { data, error } = await supabase
-        .from('events')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      await fetchEvents() // Refresh the list
-      return { data, error: null }
-    } catch (err) {
-      console.error('Error updating event:', err)
-      return { data: null, error: err instanceof Error ? err.message : 'Failed to update event' }
-    }
-  }
-
-  const deleteEvent = async (id: string) => {
-    try {
-      const { error } = await supabase.from('events').update({ is_active: false }).eq('id', id)
-
-      if (error) throw error
-
-      await fetchEvents() // Refresh the list
-      return { error: null }
-    } catch (err) {
-      console.error('Error deleting event:', err)
-      return { error: err instanceof Error ? err.message : 'Failed to delete event' }
-    }
-  }
-
-  const registerForEvent = async (eventId: string, volunteerId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('event_participation')
-        .insert({
-          event_id: eventId,
-          volunteer_id: volunteerId,
-          participation_status: 'registered',
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      await fetchEvents() // Refresh the list
-      return { data, error: null }
-    } catch (err) {
-      console.error('Error registering for event:', err)
-      return {
-        data: null,
-        error: err instanceof Error ? err.message : 'Failed to register for event',
+  const addEvent = useCallback(
+    async (eventData: CreateEventInput) => {
+      try {
+        const result = await createEventAction(eventData)
+        await fetchEvents()
+        return { data: result, error: null }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to create event'
+        return { data: null, error: message }
       }
-    }
-  }
+    },
+    [fetchEvents]
+  )
+
+  const updateEvent = useCallback(
+    async (id: string, updates: UpdateEventInput) => {
+      try {
+        const result = await updateEventAction(id, updates)
+        await fetchEvents()
+        return { data: result, error: null }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to update event'
+        return { data: null, error: message }
+      }
+    },
+    [fetchEvents]
+  )
+
+  const deleteEvent = useCallback(
+    async (id: string) => {
+      try {
+        await deleteEventAction(id)
+        await fetchEvents()
+        return { error: null }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to delete event'
+        return { error: message }
+      }
+    },
+    [fetchEvents]
+  )
+
+  const registerForEvent = useCallback(
+    async (eventId: string, declaredHours?: number) => {
+      try {
+        const result = await registerForEventAction(eventId, declaredHours)
+        await fetchEvents()
+        return { data: result, error: null }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to register for event'
+        return { data: null, error: message }
+      }
+    },
+    [fetchEvents]
+  )
 
   useEffect(() => {
     fetchEvents()
-  }, [])
+  }, [fetchEvents])
 
   return {
     events,
     loading,
     error,
-    fetchEvents,
+    refetch: fetchEvents,
+    fetchEvents, // Legacy alias
     addEvent,
     updateEvent,
     deleteEvent,
