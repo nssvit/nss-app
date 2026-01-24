@@ -5,7 +5,6 @@ import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useAttendance } from "@/hooks/useAttendance";
 import type { EventParticipant } from "@/hooks/useAttendance";
 import { Skeleton } from "./Skeleton";
-import Image from "next/image";
 
 interface AttendanceRecord {
   id: string;
@@ -112,11 +111,15 @@ export function AttendancePage() {
   });
 
   const filteredParticipants = participants.filter((participant) => {
+    const name = participant.volunteer_name || participant.volunteerName || '';
+    const email = participant.rollNumber || participant.roll_number || '';
     const matchesSearch =
-      participant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      participant.email.toLowerCase().includes(searchTerm.toLowerCase());
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase());
+    const status = participant.participation_status || participant.participationStatus || '';
+    const attendanceStatus = status === 'present' ? 'Present' : status === 'absent' ? 'Absent' : status === 'excused' ? 'Excused' : 'Registered';
     const matchesAttendance =
-      !attendanceFilter || participant.attendanceStatus === attendanceFilter;
+      !attendanceFilter || attendanceStatus === attendanceFilter;
     return matchesSearch && matchesAttendance;
   });
 
@@ -308,47 +311,47 @@ export function AttendancePage() {
           <div className="max-h-96 overflow-y-auto">
             {selectedEvent ? (
               <div className="divide-y divide-gray-700/30">
-                {filteredParticipants.map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Image
-                        src={participant.avatar}
-                        alt={participant.name}
-                        width={32}
-                        height={32}
-                        className="w-8 h-8 rounded-full"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-200 text-sm">
-                            {participant.name}
-                          </h4>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${getAttendanceColor(participant.attendanceStatus)}`}
-                          >
-                            {participant.attendanceStatus}
-                          </span>
+                {filteredParticipants.map((participant) => {
+                  const name = participant.volunteer_name || participant.volunteerName || 'Unknown';
+                  const rollNumber = participant.roll_number || participant.rollNumber || '';
+                  const status = participant.participation_status || participant.participationStatus || 'registered';
+                  const attendanceStatus = status === 'present' ? 'Present' : status === 'absent' ? 'Absent' : status === 'excused' ? 'Excused' : 'Registered';
+                  const hours = participant.hours_attended ?? participant.hoursAttended ?? 0;
+                  const regDate = participant.registration_date || participant.registrationDate;
+
+                  return (
+                    <div
+                      key={participant.participant_id || participant.participantId}
+                      className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+                          {name.charAt(0).toUpperCase()}
                         </div>
-                        <p className="text-xs text-gray-500">
-                          {participant.email}
-                        </p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs text-gray-400">
-                            Registered: {participant.registrationDate}
-                          </span>
-                          {participant.checkInTime && (
-                            <span className="text-xs text-gray-400">
-                              Check-in: {participant.checkInTime}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-gray-200 text-sm">
+                              {name}
+                            </h4>
+                            <span
+                              className={`text-xs px-2 py-1 rounded-full ${getAttendanceColor(attendanceStatus)}`}
+                            >
+                              {attendanceStatus}
                             </span>
-                          )}
+                          </div>
+                          <p className="text-xs text-gray-500">
+                            {rollNumber} | {hours}h attended
+                          </p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-xs text-gray-400">
+                              {regDate ? `Registered: ${new Date(regDate).toLocaleDateString()}` : ''}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex items-center justify-center h-64 text-gray-500">

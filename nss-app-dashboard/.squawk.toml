@@ -1,0 +1,41 @@
+# Squawk Configuration
+# PostgreSQL migration linter - https://squawkhq.com/docs/
+
+# Assume Postgres version (Supabase uses 15)
+pg-version = "15"
+
+# Excluded rules for Drizzle-generated migrations
+# These rules are useful for large production databases but can be overly strict
+# for initial migrations on fresh databases
+excluded-rules = [
+  # SERIAL is fine for small tables like event_categories
+  # Drizzle uses SERIAL by default for auto-increment
+  "prefer-identity",
+
+  # Integer (32-bit) is sufficient for most fields in this app
+  # We're not expecting billions of records
+  "prefer-bigint-over-int",
+
+  # For INITIAL migrations only, IF NOT EXISTS isn't critical
+  # since we're creating from scratch. Enable for incremental migrations.
+  # "prefer-robust-stmts",
+
+  # Concurrent index creation is only needed for large tables with existing data
+  # Initial migrations have empty tables
+  "require-concurrent-index-creation",
+
+  # Timeout settings are Supabase-managed
+  "require-timeout-settings",
+]
+
+# Note: For INCREMENTAL migrations (after v1), re-enable:
+# - prefer-robust-stmts (for IF NOT EXISTS patterns)
+# - require-concurrent-index-creation (for non-blocking index creation)
+
+# Custom rule configurations
+[rule.prefer-robust-stmts]
+# Ensures migrations use IF EXISTS/IF NOT EXISTS patterns
+# Important for incremental migrations
+
+[rule.ban-drop-database]
+# Prevents accidentally dropping databases

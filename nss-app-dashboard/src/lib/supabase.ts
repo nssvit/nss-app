@@ -1,5 +1,4 @@
 import { createBrowserClient } from '@supabase/ssr'
-import { Database } from '@/types/database.types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -14,6 +13,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key`)
 }
 
-export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
+/**
+ * Browser Supabase Client (Singleton)
+ *
+ * Note: We use Drizzle ORM for database queries via Server Actions.
+ * This client is primarily used for authentication.
+ */
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
 export type SupabaseClient = typeof supabase

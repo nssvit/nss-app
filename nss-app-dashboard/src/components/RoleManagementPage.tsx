@@ -2,12 +2,32 @@
 
 import { useState, useEffect } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
-import { useRoles, UserRoleWithDetails } from "@/hooks/useRoles";
+import { useRoles } from "@/hooks/useRoles";
 import { useVolunteers } from "@/hooks/useVolunteers";
 import { Skeleton } from "./Skeleton";
 import { useToast } from "@/hooks/useToast";
-import { Role } from "@/types";
 import Image from "next/image";
+
+// Type alias for backwards compatibility
+interface Role {
+  id: string;
+  role_name: string;
+  display_name: string;
+  description: string | null;
+  permissions: Record<string, unknown>;
+  hierarchy_level: number;
+  is_active: boolean;
+}
+
+interface UserRoleWithDetails {
+  id: string;
+  volunteer_id: string;
+  role_definition_id: string;
+  assigned_at: string;
+  is_active: boolean;
+  volunteer?: { id: string; first_name: string; last_name: string; email: string; profile_pic?: string | null };
+  role_definition?: Role;
+}
 
 type TabType = "definitions" | "assignments";
 
@@ -297,19 +317,42 @@ export function RoleManagementPage() {
   const layout = useResponsiveLayout();
   const { showToast } = useToast();
   const {
-    roleDefinitions,
-    userRoles,
+    roles,
     loading,
     error,
-    fetchAll,
+    refetch,
     assignRole,
     revokeRole,
-    createRoleDefinition,
-    updateRoleDefinition,
-    deactivateRoleDefinition,
   } = useRoles();
 
   const { volunteers } = useVolunteers();
+
+  // Map new hook structure to expected format
+  const roleDefinitions: Role[] = (roles || []).map((r: any) => ({
+    id: r.id,
+    role_name: r.roleName || r.role_name || '',
+    display_name: r.displayName || r.display_name || '',
+    description: r.description || null,
+    permissions: r.permissions || {},
+    hierarchy_level: r.hierarchyLevel || r.hierarchy_level || 10,
+    is_active: r.isActive ?? r.is_active ?? true,
+  }));
+  const userRoles: UserRoleWithDetails[] = []; // Not fetching user roles in simplified version
+  const fetchAll = refetch;
+
+  // Stub functions for role management (not yet implemented with Drizzle)
+  const createRoleDefinition = async (_data: any) => {
+    showToast("Role creation not yet available", "info");
+    return { error: "Not implemented" };
+  };
+  const updateRoleDefinition = async (_id: string, _data: any) => {
+    showToast("Role editing not yet available", "info");
+    return { error: "Not implemented" };
+  };
+  const deactivateRoleDefinition = async (_id: string) => {
+    showToast("Role deactivation not yet available", "info");
+    return { error: "Not implemented" };
+  };
 
   const [activeTab, setActiveTab] = useState<TabType>("assignments");
   const [searchTerm, setSearchTerm] = useState("");

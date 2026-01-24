@@ -1,7 +1,12 @@
 "use client";
 
+/**
+ * EventModal Component
+ * Uses Server Actions via useVolunteers hook (full Drizzle consistency)
+ */
+
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useVolunteers } from "@/hooks/useVolunteers";
 
 interface Volunteer {
   id: string;
@@ -56,10 +61,19 @@ export function EventModal({
     selectedVolunteers: [] as string[],
   });
 
-  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
-  const [loadingVolunteers, setLoadingVolunteers] = useState(false);
+  // Use hook for volunteers data (Server Actions -> Drizzle)
+  const { volunteers: rawVolunteers, loading: loadingVolunteers } = useVolunteers();
   const [searchTerm, setSearchTerm] = useState("");
   const [showVolunteerSection, setShowVolunteerSection] = useState(false);
+
+  // Transform volunteers to expected format
+  const volunteers: Volunteer[] = (rawVolunteers || []).map((v: any) => ({
+    id: v.id || v.volunteer_id,
+    first_name: v.first_name || v.firstName || '',
+    last_name: v.last_name || v.lastName || '',
+    roll_number: v.roll_number || v.rollNumber || '',
+    email: v.email || '',
+  }));
 
   useEffect(() => {
     if (initialData) {
@@ -81,7 +95,6 @@ export function EventModal({
     e.preventDefault();
     console.log('EventModal: Form submitted with data:', formData);
     onSubmit(formData);
-    // Don't close immediately - let the parent handle it after success
   };
 
   const handleInputChange = (
@@ -99,31 +112,6 @@ export function EventModal({
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
-    }
-  };
-
-  // Fetch volunteers when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchVolunteers();
-    }
-  }, [isOpen]);
-
-  const fetchVolunteers = async () => {
-    try {
-      setLoadingVolunteers(true);
-      const { data, error } = await supabase
-        .from('volunteers')
-        .select('id, first_name, last_name, roll_number, email')
-        .eq('is_active', true)
-        .order('first_name');
-
-      if (error) throw error;
-      setVolunteers(data || []);
-    } catch (err) {
-      console.error('Error fetching volunteers:', err);
-    } finally {
-      setLoadingVolunteers(false);
     }
   };
 

@@ -1,24 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+/**
+ * HeadsDashboard Component
+ * Uses Server Actions via useHeadsDashboard hook (full Drizzle consistency)
+ */
+
 import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
+import { useHeadsDashboard } from '@/hooks/useHeadsDashboard'
 import { StatsCard } from '@/components/StatsCard'
-
-interface HeadsDashboardStats {
-  myEvents: number
-  totalParticipants: number
-  hoursManaged: number
-  activeEvents: number
-}
-
-interface VolunteerHours {
-  volunteer_id: string
-  volunteer_name: string
-  total_hours: number
-  events_count: number
-  last_activity: string
-}
 
 interface HeadsDashboardProps {
   onNavigate?: (page: string) => void
@@ -26,76 +15,7 @@ interface HeadsDashboardProps {
 
 export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
   const { currentUser } = useAuth()
-  const [stats, setStats] = useState<HeadsDashboardStats>({
-    myEvents: 0,
-    totalParticipants: 0,
-    hoursManaged: 0,
-    activeEvents: 0
-  })
-  const [myEvents, setMyEvents] = useState([])
-  const [volunteerHours, setVolunteerHours] = useState<VolunteerHours[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadHeadsDashboardData()
-  }, [currentUser])
-
-  const loadHeadsDashboardData = async () => {
-    if (!currentUser?.volunteer_id) return
-
-    try {
-      // Load events created by this head
-      const { data: myEventsData } = await supabase
-        .from('events')
-        .select(`
-          *,
-          event_categories (category_name),
-          event_participation (
-            volunteer_id,
-            declared_hours,
-            volunteers (first_name, last_name)
-          )
-        `)
-        .eq('created_by_volunteer_id', currentUser.volunteer_id)
-        .order('created_at', { ascending: false })
-
-      setMyEvents(myEventsData || [])
-
-      // Calculate statistics
-      const totalParticipants = myEventsData?.reduce(
-        (sum, event) => sum + (event.event_participation?.length || 0), 0
-      ) || 0
-
-      const hoursManaged = myEventsData?.reduce((sum, event) =>
-        sum + (event.event_participation?.reduce((hourSum: number, p: any) =>
-          hourSum + (p.declared_hours || 0), 0
-        ) || 0), 0
-      ) || 0
-
-      const activeEvents = myEventsData?.filter(event =>
-        event.is_active && new Date(event.event_date) >= new Date()
-      ).length || 0
-
-      setStats({
-        myEvents: myEventsData?.length || 0,
-        totalParticipants,
-        hoursManaged,
-        activeEvents
-      })
-
-      // Load volunteer hours summary (limited view for heads)
-      const { data: hoursData } = await supabase.rpc('get_volunteer_hours_summary')
-
-      if (hoursData) {
-        setVolunteerHours(hoursData.slice(0, 10)) // Show top 10
-      }
-
-    } catch (error) {
-      console.error('Error loading heads dashboard data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { stats, myEvents, volunteerHours, loading } = useHeadsDashboard()
 
   const getRoleDisplayName = (roles: string[]) => {
     if (roles.includes('program_officer')) return 'Program Officer'
@@ -131,27 +51,27 @@ export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           title="My Events"
-          value={stats.myEvents}
+          value={stats?.myEvents ?? 0}
           icon="fas fa-calendar-check"
-          color="blue"
+          variant="primary"
         />
         <StatsCard
           title="Total Participants"
-          value={stats.totalParticipants}
+          value={stats?.totalParticipants ?? 0}
           icon="fas fa-users"
-          color="green"
+          variant="success"
         />
         <StatsCard
           title="Hours Managed"
-          value={stats.hoursManaged}
+          value={stats?.hoursManaged ?? 0}
           icon="fas fa-clock"
-          color="purple"
+          variant="purple"
         />
         <StatsCard
           title="Active Events"
-          value={stats.activeEvents}
+          value={stats?.activeEvents ?? 0}
           icon="fas fa-calendar-day"
-          color="yellow"
+          variant="warning"
         />
       </div>
 
@@ -182,13 +102,13 @@ export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
                     {event.event_name}
                   </h4>
                   <span className="text-xs text-gray-400 whitespace-nowrap">
-                    {new Date(event.event_date).toLocaleDateString()}
+                    {new Date(event.event_date || event.start_date).toLocaleDateString()}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">
-                    {event.event_participation?.length || 0} participants
+                    {event.participant_count || 0} participants
                   </span>
                   <span className="text-indigo-400">
                     {event.declared_hours} hours
@@ -241,9 +161,11 @@ export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-gray-100">{volunteer.total_hours}h</p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(volunteer.last_activity).toLocaleDateString()}
-                  </p>
+                  {volunteer.last_activity && (
+                    <p className="text-xs text-gray-400">
+                      {new Date(volunteer.last_activity).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

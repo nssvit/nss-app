@@ -1,6 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { Database } from '@/types/database.types'
 
 /**
  * Server Component Supabase Client
@@ -13,12 +12,15 @@ import { Database } from '@/types/database.types'
  * IMPORTANT: This creates a new client for each request.
  * The cookies handling allows the server to read/write the user session.
  *
+ * Note: We use Drizzle ORM for database queries, so Supabase client
+ * is primarily used for authentication.
+ *
  * @see https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs
  */
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

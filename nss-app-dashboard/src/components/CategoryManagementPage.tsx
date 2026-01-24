@@ -150,7 +150,7 @@ function CategoryModal({ isOpen, onClose, onSubmit, initialData, mode }: Categor
 
 export function CategoryManagementPage() {
   const layout = useResponsiveLayout();
-  const { showToast } = useToast();
+  const { success: showSuccess, error: showError } = useToast();
   const {
     categories,
     loading,
@@ -193,9 +193,9 @@ export function CategoryManagementPage() {
   const handleCreateCategory = async (data: Partial<Category>) => {
     const result = await createCategory(data as Omit<Category, 'id' | 'created_at' | 'updated_at'>);
     if (result.error) {
-      showToast(result.error, "error");
+      showError(result.error);
     } else {
-      showToast("Category created successfully", "success");
+      showSuccess("Category created successfully");
     }
   };
 
@@ -203,9 +203,9 @@ export function CategoryManagementPage() {
     if (!editingCategory) return;
     const result = await updateCategory(editingCategory.id, data);
     if (result.error) {
-      showToast(result.error, "error");
+      showError(result.error);
     } else {
-      showToast("Category updated successfully", "success");
+      showSuccess("Category updated successfully");
     }
   };
 
@@ -213,23 +213,23 @@ export function CategoryManagementPage() {
     if (category.is_active) {
       const result = await deactivateCategory(category.id);
       if (result.error) {
-        showToast(result.error, "error");
+        showError(result.error);
       } else {
-        showToast("Category deactivated", "success");
+        showSuccess("Category deactivated");
       }
     } else {
       const result = await reactivateCategory(category.id);
       if (result.error) {
-        showToast(result.error, "error");
+        showError(result.error);
       } else {
-        showToast("Category reactivated", "success");
+        showSuccess("Category reactivated");
       }
     }
   };
 
   const handleDeleteCategory = async (category: CategoryWithStats) => {
     if ((category.event_count || 0) > 0) {
-      showToast("Cannot delete category with associated events. Deactivate it instead.", "error");
+      showError("Cannot delete category with associated events. Deactivate it instead.");
       return;
     }
 
@@ -239,9 +239,9 @@ export function CategoryManagementPage() {
 
     const result = await deleteCategory(category.id);
     if (result.error) {
-      showToast(result.error, "error");
+      showError(result.error);
     } else {
-      showToast("Category deleted", "success");
+      showSuccess("Category deleted");
     }
   };
 

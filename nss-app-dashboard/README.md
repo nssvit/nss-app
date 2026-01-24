@@ -234,6 +234,117 @@ For production push notifications, you'll need:
 - `npm run lint` - Run ESLint
 - `npm run build:analyze` - Analyze bundle size
 
+### Database Scripts
+
+- `npm run db:push` - Push schema changes to database
+- `npm run db:setup` - Full database setup (schema + RLS + seed data)
+- `npm run db:studio` - Open Drizzle Studio (visual database browser)
+- `npm run db:lint` - Lint SQL files with Squawk
+- `npm run db:diagnose` - Run database diagnostics
+
+---
+
+## 🗄️ Database Setup
+
+This project uses **Drizzle ORM** with **Supabase PostgreSQL**. For full documentation, see [DATABASE_GUIDE.md](./DATABASE_GUIDE.md).
+
+### Prerequisites
+
+1. **Supabase Project** - Create at [supabase.com](https://supabase.com)
+2. **Database URL** - Get from Supabase Dashboard → Settings → Database
+
+### Quick Setup
+
+```bash
+# 1. Create .env.local with your database URL
+echo 'DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres"' > .env.local
+
+# 2. Run full database setup
+npm run db:setup
+```
+
+This creates:
+- ✅ All tables with indexes and constraints
+- ✅ Auth triggers (auto-create volunteer on signup)
+- ✅ RLS policies (row-level security)
+- ✅ Admin functions
+- ✅ Seed data (roles + categories)
+
+### Setting Up Pre-commit Hook (SQL Linting)
+
+Squawk automatically lints SQL files before commits. Set up the hook:
+
+```bash
+# Create pre-commit hook in parent repo
+cat > ../.git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+
+# Pre-commit hook for NSS App - Runs Squawk SQL linter
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+DASHBOARD_DIR="$REPO_ROOT/nss-app-dashboard"
+
+STAGED_SQL=$(git diff --cached --name-only --diff-filter=ACM | grep 'nss-app-dashboard/src/db/migrations/.*\.sql$' || true)
+
+if [ -z "$STAGED_SQL" ]; then
+    exit 0
+fi
+
+echo "🐘 Running Squawk SQL linter..."
+
+cd "$DASHBOARD_DIR" || exit 1
+
+LINT_FAILED=0
+for file in $STAGED_SQL; do
+    RELATIVE_FILE="${file#nss-app-dashboard/}"
+    if [ -f "$RELATIVE_FILE" ]; then
+        echo "Linting: $RELATIVE_FILE"
+        npx squawk --exclude=prefer-identity,prefer-bigint-over-int,require-concurrent-index-creation,require-timeout-settings,prefer-robust-stmts,adding-foreign-key-constraint,constraint-missing-not-valid "$RELATIVE_FILE"
+        if [ $? -ne 0 ]; then
+            LINT_FAILED=1
+        fi
+    fi
+done
+
+if [ $LINT_FAILED -ne 0 ]; then
+    echo "❌ SQL lint failed!"
+    exit 1
+fi
+
+echo "✅ SQL lint passed!"
+exit 0
+EOF
+
+chmod +x ../.git/hooks/pre-commit
+```
+
+### Common Database Tasks
+
+| Task | Command |
+|------|---------|
+| Add a column | Edit `src/db/schema/*.ts` → `npm run db:push` |
+| Add RLS policy | Edit `src/db/migrations/0001_setup.sql` → `npm run db:setup` |
+| View database | `npm run db:studio` |
+| Check setup | `npm run db:diagnose` |
+| Lint SQL | `npm run db:lint` |
+
+### File Structure
+
+```
+src/db/
+├── schema/                  # TypeScript table definitions
+│   ├── volunteers.ts
+│   ├── events.ts
+│   └── ...
+├── migrations/
+│   └── 0001_setup.sql       # Auth triggers, RLS, seed data
+├── queries.ts               # Database queries
+├── validations.ts           # Zod schemas
+└── setup.ts                 # Setup script
+```
+
+📖 **Full documentation**: [DATABASE_GUIDE.md](./DATABASE_GUIDE.md)
+
 ## 🔍 Browser Support
 
 This PWA template supports:

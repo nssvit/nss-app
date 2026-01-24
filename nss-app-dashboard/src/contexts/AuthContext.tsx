@@ -26,19 +26,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        getCurrentUserData()
-      }
-      setLoading(false)
-    })
+    // Get initial session with error handling for stale tokens
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          console.warn('[Auth] Session error, clearing stale session:', error.message)
+          // Clear any stale session data
+          setSession(null)
+          setUser(null)
+          setCurrentUser(null)
+          setLoading(false)
+          return
+        }
+        setSession(session)
+        setUser(session?.user ?? null)
+        if (session?.user) {
+          getCurrentUserData()
+        }
+        setLoading(false)
+      })
+      .catch((error) => {
+        // Handle network errors (Failed to fetch) gracefully
+        console.warn('[Auth] Network error during session check:', error.message)
+        setSession(null)
+        setUser(null)
+        setCurrentUser(null)
+        setLoading(false)
+      })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        // Handle token refresh failures
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          console.warn('[Auth] Token refresh failed, clearing session')
+          setSession(null)
+          setUser(null)
+          setCurrentUser(null)
+          setLoading(false)
+          return
+        }
+
         setSession(session)
         setUser(session?.user ?? null)
 
@@ -59,38 +87,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getCurrentUserData = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_current_volunteer') as { data: CurrentUser[] | null; error: any }
-
-      if (error) {
-        console.error('RPC Error:', error)
-
-        // If function doesn't exist, try direct query as fallback
-        if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
-          await getCurrentUserDataFallback()
-        }
-        return
-      }
-
-      if (Array.isArray(data) && data.length > 0) {
-        setCurrentUser(data[0])
-      }
-    } catch (error) {
-      console.error('Unexpected error fetching current user:', error)
-      await getCurrentUserDataFallback()
-    }
-  }
-
-  const getCurrentUserDataFallback = async () => {
-    try {
-      console.log('Using fallback method to get current user...')
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
-        console.log('No authenticated user found')
+        console.log('[Auth] No authenticated user found')
         return
       }
 
-      // Get volunteer data directly with simplified query
+      // Get volunteer data directly from Supabase
       const { data: volunteerData, error: volunteerError } = await supabase
         .from('volunteers')
         .select('*')
@@ -99,7 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (volunteerError) {
-        console.error('Fallback volunteer query error:', volunteerError)
+        console.error('[Auth] Volunteer query error:', volunteerError)
+        return
+      }
+
+      if (!volunteerData) {
+        console.log('[Auth] No volunteer record found for user')
         return
       }
 
@@ -112,30 +121,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const roles = rolesData?.map((ur: any) => ur.role_definitions?.role_name).filter(Boolean) || ['volunteer']
 
-      if (volunteerData) {
-        const vol = volunteerData as any
-        const currentUserData: CurrentUser = {
-          volunteer_id: vol.id,
-          first_name: vol.first_name,
-          last_name: vol.last_name,
-          roll_number: vol.roll_number,
-          email: vol.email,
-          branch: vol.branch,
-          year: vol.year,
-          phone_no: vol.phone_no,
-          birth_date: vol.birth_date,
-          gender: vol.gender,
-          nss_join_year: vol.nss_join_year,
-          address: vol.address,
-          profile_pic: vol.profile_pic,
-          is_active: vol.is_active,
-          roles: roles
-        }
-
-        setCurrentUser(currentUserData)
+      const vol = volunteerData as any
+      const currentUserData: CurrentUser = {
+        volunteer_id: vol.id,
+        first_name: vol.first_name,
+        last_name: vol.last_name,
+        roll_number: vol.roll_number,
+        email: vol.email,
+        branch: vol.branch,
+        year: vol.year,
+        phone_no: vol.phone_no,
+        birth_date: vol.birth_date,
+        gender: vol.gender,
+        nss_join_year: vol.nss_join_year,
+        address: vol.address,
+        profile_pic: vol.profile_pic,
+        is_active: vol.is_active,
+        roles: roles
       }
-    } catch (fallbackError) {
-      console.error('Fallback method also failed:', fallbackError)
+
+      setCurrentUser(currentUserData)
+    } catch (error) {
+      console.error('[Auth] Error fetching current user:', error)
     }
   }
 

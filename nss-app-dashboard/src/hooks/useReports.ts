@@ -1,29 +1,36 @@
+'use client'
+
 /**
  * Reports Hook
- * Fetches and manages report data with parallel fetching
+ *
+ * Fetches report data using Server Actions (Drizzle ORM)
+ * Simplified from 102 LOC to ~70 LOC
  */
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  getCategoryDistribution,
+  getTopEventsByImpact,
+} from '@/app/actions/reports'
 
 export interface CategoryDistribution {
-  category_id: number
-  category_name: string
-  event_count: number
-  color_hex: string
-  participant_count: number
-  total_hours: number
+  categoryId: number
+  categoryName: string
+  eventCount: number
+  colorHex: string | null
+  participantCount: number
+  totalHours: number
 }
 
 export interface TopEvent {
-  event_id: string
-  event_name: string
-  event_date: string | null
-  category_name: string
-  participant_count: number
-  total_hours: number
-  impact_score: string
-  event_status: string
+  eventId: string
+  eventName: string
+  eventDate: Date | null
+  categoryName: string
+  participantCount: number
+  totalHours: number
+  impactScore: number
+  eventStatus: string
 }
 
 export interface UseReportsReturn {
@@ -35,62 +42,38 @@ export interface UseReportsReturn {
 }
 
 export function useReports(): UseReportsReturn {
-  const [categoryDistribution, setCategoryDistribution] = useState<
-    CategoryDistribution[]
-  >([])
+  const [categoryDistribution, setCategoryDistribution] = useState<CategoryDistribution[]>([])
   const [topEvents, setTopEvents] = useState<TopEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchReportsData = async () => {
+  const fetchReportsData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Fetch both reports data in parallel for better performance
-      const [categoryResult, topEventsResult] = await Promise.all([
-        supabase.rpc('get_category_distribution'),
-        supabase.rpc('get_top_events_by_impact', { limit_count: 10 })
+      // Fetch both reports in parallel
+      const [categoryData, eventsData] = await Promise.all([
+        getCategoryDistribution(),
+        getTopEventsByImpact(10),
       ])
 
-      // Handle category distribution result
-      if (categoryResult.error) {
-        if (categoryResult.error.message?.includes('does not exist') || categoryResult.error.code === '42883') {
-          throw new Error(
-            'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
-          )
-        }
-        throw new Error(categoryResult.error.message || 'Failed to fetch category distribution')
-      }
-
-      // Handle top events result
-      if (topEventsResult.error) {
-        if (topEventsResult.error.message?.includes('does not exist') || topEventsResult.error.code === '42883') {
-          throw new Error(
-            'Database functions not found. Please run db/supabase_functions.sql in your Supabase SQL Editor.'
-          )
-        }
-        throw new Error(topEventsResult.error.message || 'Failed to fetch top events')
-      }
-
-      setCategoryDistribution((categoryResult.data || []) as CategoryDistribution[])
-      setTopEvents((topEventsResult.data || []) as TopEvent[])
-    } catch (err: any) {
-      const errorMessage = err?.message || 'Failed to fetch reports data'
-      console.error('Error fetching reports data:', errorMessage)
-      setError(errorMessage)
-
-      // Set empty data on error
+      setCategoryDistribution(categoryData as CategoryDistribution[])
+      setTopEvents(eventsData as TopEvent[])
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch reports data'
+      console.error('[useReports] Error:', message)
+      setError(message)
       setCategoryDistribution([])
       setTopEvents([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchReportsData()
-  }, [])
+  }, [fetchReportsData])
 
   return {
     categoryDistribution,

@@ -7,7 +7,7 @@ interface StatsCardProps {
   variant?: 'primary' | 'success' | 'warning' | 'info' | 'error' | 'purple' | 'orange'
   change?: {
     value: number
-    type: 'increase' | 'decrease'
+    type: 'increase' | 'decrease' | 'neutral'
   }
 }
 
@@ -32,13 +32,17 @@ export function StatsCard({
             <div className={`flex items-center mt-2 text-sm ${
               change.type === 'increase'
                 ? 'text-green-400'
-                : 'text-red-400'
+                : change.type === 'decrease'
+                ? 'text-red-400'
+                : 'text-gray-400'
             }`}>
-              <i className={`fas ${
-                change.type === 'increase'
-                  ? 'fa-arrow-up'
-                  : 'fa-arrow-down'
-              } mr-1 text-xs`}></i>
+              {change.type !== 'neutral' && (
+                <i className={`fas ${
+                  change.type === 'increase'
+                    ? 'fa-arrow-up'
+                    : 'fa-arrow-down'
+                } mr-1 text-xs`}></i>
+              )}
               <span>{Math.abs(change.value)}% from last month</span>
             </div>
           )}
