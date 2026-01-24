@@ -44,21 +44,36 @@ The NSS Dashboard is a full-stack Progressive Web Application (PWA) that provide
 
 ## 🏗️ Architecture
 
-### Database Layer (`/db`)
+### Database Layer (`/nss-app-dashboard/src/db`)
+
+**New Architecture (2025+)**: We use **Drizzle ORM** as the single source of truth for database schema.
+
 ```
-📁 db/
-├── 📄 psql_schema_v1.sql    # Initial functional schema
-├── 📄 psql_schema_v2.sql    # Refined with lookup tables
-├── 📄 psql_schema_v3.sql    # Production-ready with advanced features
-├── 📄 schema.md             # Comprehensive documentation
-└── 📄 CHANGELOG.md          # Database evolution history
+📁 nss-app-dashboard/src/db/
+├── 📁 schema/               # TypeScript table definitions (SOURCE OF TRUTH)
+│   ├── volunteers.ts        # Volunteer table
+│   ├── events.ts            # Events table
+│   ├── eventParticipation.ts
+│   ├── eventCategories.ts
+│   ├── roleDefinitions.ts
+│   ├── userRoles.ts
+│   └── index.ts             # Exports all schemas
+├── 📁 migrations/
+│   └── 0001_setup.sql       # Auth triggers, RLS, functions, seed data
+├── queries.ts               # Type-safe database queries
+├── validations.ts           # Zod validation schemas
+├── index.ts                 # Database connection
+└── setup.ts                 # Database setup script
 ```
 
 **Technology Stack:**
-- PostgreSQL 15+ with Supabase integration
-- Advanced indexing with GIN and pg_trgm for full-text search
-- JSONB for flexible permissions and audit data
-- Row Level Security (RLS) for data protection
+- **Drizzle ORM** - TypeScript-first ORM with type-safe queries
+- **PostgreSQL 15+** with Supabase integration
+- **Squawk** - SQL linter for safe migrations
+- **Row Level Security (RLS)** for data protection
+- **Zod** - Runtime validation schemas
+
+> 📖 **Full Database Documentation**: [DATABASE_GUIDE.md](nss-app-dashboard/DATABASE_GUIDE.md)
 
 ### Application Layer (`/nss-app-dashboard`)
 ```
@@ -89,74 +104,94 @@ The NSS Dashboard is a full-stack Progressive Web Application (PWA) that provide
 
 ### Prerequisites
 - Node.js 18+ and npm/yarn
-- PostgreSQL 15+ database
-- Supabase account (optional but recommended)
+- Supabase account (free tier works)
 
-### Database Setup
+### Quick Setup (3 Steps)
 
-1. **Choose your schema version:**
-   ```sql
-   -- For production deployment
-   \i db/psql_schema_v3.sql
-   ```
+```bash
+# 1. Clone and install
+git clone https://github.com/your-org/nss-app.git
+cd nss-app/nss-app-dashboard
+npm install
 
-2. **Verify installation:**
-   ```sql
-   -- Check tables
-   SELECT table_name FROM information_schema.tables 
-   WHERE table_schema = 'public';
-   
-   -- Check functions
-   SELECT routine_name FROM information_schema.routines 
-   WHERE routine_schema = 'public';
-   ```
+# 2. Configure database (get URL from Supabase Dashboard → Settings → Database)
+echo 'DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@db.YOUR_PROJECT.supabase.co:5432/postgres"' > .env.local
 
-### Application Setup
+# 3. Setup database (creates tables, triggers, RLS, seed data)
+npm run db:setup
+```
 
-1. **Install dependencies:**
-   ```bash
-   cd nss-app-dashboard
-   npm install
-   ```
+### Setup Pre-commit Hook (SQL Linting)
 
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your database credentials
-   ```
+```bash
+# From nss-app-dashboard directory:
+cat > ../.git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+DASHBOARD_DIR="$REPO_ROOT/nss-app-dashboard"
+STAGED_SQL=$(git diff --cached --name-only --diff-filter=ACM | grep 'nss-app-dashboard/src/db/migrations/.*\.sql$' || true)
+if [ -z "$STAGED_SQL" ]; then exit 0; fi
+echo "🐘 Running Squawk SQL linter..."
+cd "$DASHBOARD_DIR" || exit 1
+for file in $STAGED_SQL; do
+    RELATIVE_FILE="${file#nss-app-dashboard/}"
+    [ -f "$RELATIVE_FILE" ] && npx squawk --exclude=prefer-identity,prefer-bigint-over-int,require-concurrent-index-creation,require-timeout-settings,prefer-robust-stmts,adding-foreign-key-constraint,constraint-missing-not-valid "$RELATIVE_FILE" || exit 1
+done
+echo "✅ SQL lint passed!"
+EOF
+chmod +x ../.git/hooks/pre-commit
+```
 
-3. **Run development server:**
-   ```bash
-   npm run dev
-   ```
+### Run Development Server
 
-4. **Build for production:**
-   ```bash
-   npm run build
-   npm start
-   ```
+```bash
+npm run dev
+# Open http://localhost:3000
+```
+
+### Database Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run db:setup` | Full setup (schema + RLS + seed data) |
+| `npm run db:push` | Push schema changes to database |
+| `npm run db:studio` | Open visual database browser |
+| `npm run db:lint` | Lint SQL files with Squawk |
+| `npm run db:diagnose` | Run database diagnostics |
+
+> 📖 **Full Database Guide**: [DATABASE_GUIDE.md](nss-app-dashboard/DATABASE_GUIDE.md)
 
 ## 📊 Database Schema Details
 
-### Core Tables
-- **`leads`**: Dashboard administrators and coordinators
-- **`volunteers`**: NSS student participants
-- **`events`**: NSS activities and programs
-- **`event_participation`**: Attendance and participation records
-- **`roles`** & **`user_roles`**: Access control system
+### Core Tables (Drizzle ORM)
+| Table | Description |
+|-------|-------------|
+| `volunteers` | NSS student participants with auth linkage |
+| `events` | NSS activities and programs |
+| `event_participation` | Attendance and participation records |
+| `event_categories` | Event type categories |
+| `role_definitions` | Role definitions (admin, head, volunteer) |
+| `user_roles` | User-role assignments |
 
-### Advanced Features
-- **Full-text search** across volunteers and events
-- **Audit logging** with field-level change tracking
-- **Certificate management** with URL storage
-- **Analytics views** for comprehensive reporting
-- **Lookup tables** for normalized categorical data
+### Key Features
+- **Type-safe queries** with Drizzle ORM
+- **Auto-generated types** from TypeScript schema
+- **Auth triggers** - auto-create volunteer on Supabase signup
+- **Soft-delete** - preserves data when users are removed
+- **RLS policies** - row-level security on all tables
+- **Check constraints** - validates branch, year, status values
+- **Indexes** - optimized for common query patterns
 
-### Performance Optimizations
-- **GIN indexes** for full-text search (~50ms for 10k+ records)
-- **Partial indexes** for active records only
-- **Materialized views** for complex analytics
-- **Connection pooling** ready for high concurrency
+### Database Commands
+```bash
+npm run db:push      # Push schema changes
+npm run db:setup     # Full setup (schema + RLS + seed)
+npm run db:studio    # Visual database browser
+npm run db:lint      # Lint SQL with Squawk
+npm run db:diagnose  # Health check
+```
+
+> 📖 **Complete documentation**: [DATABASE_GUIDE.md](nss-app-dashboard/DATABASE_GUIDE.md)
 
 ## 🎨 User Interface
 
@@ -265,12 +300,20 @@ The NSS Dashboard is a full-stack Progressive Web Application (PWA) that provide
 ### Project Structure
 ```
 nss-app/
-├── 📁 db/                  # Database schemas and documentation
-├── 📁 nss-app-dashboard/   # Main application
-├── 📁 ui/                  # UI prototypes and mockups
-├── 📄 README.md            # This file
-├── 📄 CHANGELOG.md         # Project changelog
-└── 📄 TODO                 # Future enhancements
+├── 📁 nss-app-dashboard/       # Main application
+│   ├── 📁 src/
+│   │   ├── 📁 app/             # Next.js pages
+│   │   ├── 📁 components/      # React components
+│   │   └── 📁 db/              # Database (Drizzle ORM)
+│   │       ├── 📁 schema/      # TypeScript table definitions
+│   │       ├── 📁 migrations/  # SQL for triggers, RLS, seed
+│   │       ├── queries.ts      # Database queries
+│   │       └── setup.ts        # Setup script
+│   ├── DATABASE_GUIDE.md       # Complete DB documentation
+│   └── README.md               # App-specific readme
+├── 📁 db/                      # (Legacy) Old schema files
+├── 📁 ui/                      # UI prototypes and mockups
+└── 📄 README.md                # This file
 ```
 
 ### Development Workflow
@@ -289,24 +332,30 @@ nss-app/
 ## 🚀 Deployment
 
 ### Database Deployment
-```bash
-# Deploy to Supabase
-supabase db reset
-supabase db push
 
-# Deploy to self-hosted PostgreSQL
-psql -d your_database -f db/psql_schema_v3.sql
+```bash
+cd nss-app-dashboard
+
+# For any PostgreSQL provider (Supabase, Neon, Railway, AWS RDS):
+# 1. Set DATABASE_URL in .env.local
+# 2. Run setup
+npm run db:setup
 ```
 
+The setup is **portable** - works with any PostgreSQL provider. Just change the `DATABASE_URL`.
+
 ### Application Deployment
+
 ```bash
+cd nss-app-dashboard
+
 # Build for production
 npm run build
 
-# Deploy to Vercel
+# Deploy to Vercel (recommended)
 vercel --prod
 
-# Deploy to other platforms
+# Or run locally
 npm run start
 ```
 

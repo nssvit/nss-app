@@ -1,6 +1,20 @@
 "use client";
 
+/**
+ * EventModal Component
+ * Uses Server Actions via useVolunteers hook (full Drizzle consistency)
+ */
+
 import { useState, useEffect } from "react";
+import { useVolunteers } from "@/hooks/useVolunteers";
+
+interface Volunteer {
+  id: string;
+  first_name: string;
+  last_name: string;
+  roll_number: string;
+  email: string;
+}
 
 interface EventFormData {
   eventName: string;
@@ -10,6 +24,10 @@ interface EventFormData {
   academicSession: string;
   eventLocation: string;
   eventDescription: string;
+  minParticipants?: string;
+  maxParticipants?: string;
+  registrationDeadline?: string;
+  selectedVolunteers?: string[];
 }
 
 interface EventModalProps {
@@ -18,6 +36,7 @@ interface EventModalProps {
   onSubmit: (eventData: EventFormData) => void;
   title?: string;
   initialData?: EventFormData;
+  categories?: string[];
 }
 
 export function EventModal({
@@ -26,6 +45,7 @@ export function EventModal({
   onSubmit,
   title = "Create New Event",
   initialData,
+  categories = [],
 }: EventModalProps) {
   const [formData, setFormData] = useState({
     eventName: "",
@@ -35,7 +55,25 @@ export function EventModal({
     academicSession: "",
     eventLocation: "",
     eventDescription: "",
+    minParticipants: "",
+    maxParticipants: "",
+    registrationDeadline: "",
+    selectedVolunteers: [] as string[],
   });
+
+  // Use hook for volunteers data (Server Actions -> Drizzle)
+  const { volunteers: rawVolunteers, loading: loadingVolunteers } = useVolunteers();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showVolunteerSection, setShowVolunteerSection] = useState(false);
+
+  // Transform volunteers to expected format
+  const volunteers: Volunteer[] = (rawVolunteers || []).map((v: any) => ({
+    id: v.id || v.volunteer_id,
+    first_name: v.first_name || v.firstName || '',
+    last_name: v.last_name || v.lastName || '',
+    roll_number: v.roll_number || v.rollNumber || '',
+    email: v.email || '',
+  }));
 
   useEffect(() => {
     if (initialData) {
@@ -55,8 +93,8 @@ export function EventModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('EventModal: Form submitted with data:', formData);
     onSubmit(formData);
-    onClose();
   };
 
   const handleInputChange = (
@@ -76,6 +114,36 @@ export function EventModal({
       onClose();
     }
   };
+
+  const toggleVolunteerSelection = (volunteerId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedVolunteers: prev.selectedVolunteers?.includes(volunteerId)
+        ? prev.selectedVolunteers.filter(id => id !== volunteerId)
+        : [...(prev.selectedVolunteers || []), volunteerId]
+    }));
+  };
+
+  const selectAllVolunteers = () => {
+    const filtered = filteredVolunteers.map(v => v.id);
+    setFormData(prev => ({
+      ...prev,
+      selectedVolunteers: filtered
+    }));
+  };
+
+  const deselectAllVolunteers = () => {
+    setFormData(prev => ({
+      ...prev,
+      selectedVolunteers: []
+    }));
+  };
+
+  const filteredVolunteers = volunteers.filter(v =>
+    `${v.first_name} ${v.last_name} ${v.roll_number} ${v.email}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -104,10 +172,10 @@ export function EventModal({
 
   return (
     <div
-      className="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="card-glass p-6 md:p-5 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto modal-content">
+      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 p-6 md:p-5 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6 md:mb-4">
           <h2 className="text-xl md:text-lg font-semibold text-gray-100">
             {title}
@@ -193,14 +261,20 @@ export function EventModal({
                 onChange={handleInputChange}
               >
                 <option value="">Select Category...</option>
-                <option value="Area Based - 1">Area Based - 1</option>
-                <option value="Area Based - 2">Area Based - 2</option>
-                <option value="University Event">University Event</option>
-                <option value="College Event">College Event</option>
-                <option value="Camp">Camp</option>
-                <option value="Competition">Competition</option>
-                <option value="Workshop">Workshop</option>
-                <option value="Other">Other</option>
+                {categories.length > 0 ? (
+                  categories.map((category, index) => (
+                    <option key={`modal-cat-${index}`} value={category}>
+                      {category}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Area Based - 1">Area Based - 1</option>
+                    <option value="College Event">College Event</option>
+                    <option value="Camp">Camp</option>
+                    <option value="Workshop">Workshop</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
@@ -256,6 +330,85 @@ export function EventModal({
               onChange={handleInputChange}
             ></textarea>
           </div>
+
+          {/* Volunteer Selection Section */}
+          <div className="border-t border-gray-700/30 pt-6 md:pt-4">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-base md:text-sm font-medium text-gray-300">
+                Mark Attendance ({formData.selectedVolunteers?.length || 0} selected)
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowVolunteerSection(!showVolunteerSection)}
+                className="text-sm text-blue-400 hover:text-blue-300"
+              >
+                {showVolunteerSection ? 'Hide' : 'Show'} Volunteers
+              </button>
+            </div>
+
+            {showVolunteerSection && (
+              <div className="space-y-3">
+                {/* Search and Actions */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    placeholder="Search volunteers..."
+                    className="input-dark flex-1 text-sm rounded-lg px-3 py-2"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={selectAllVolunteers}
+                      className="btn btn-sm btn-secondary whitespace-nowrap"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={deselectAllVolunteers}
+                      className="btn btn-sm btn-secondary whitespace-nowrap"
+                    >
+                      Deselect All
+                    </button>
+                  </div>
+                </div>
+
+                {/* Volunteers List */}
+                <div className="max-h-64 overflow-y-auto border border-gray-700/30 rounded-lg p-3 space-y-2">
+                  {loadingVolunteers ? (
+                    <p className="text-sm text-gray-400 text-center py-4">Loading volunteers...</p>
+                  ) : filteredVolunteers.length === 0 ? (
+                    <p className="text-sm text-gray-400 text-center py-4">No volunteers found</p>
+                  ) : (
+                    filteredVolunteers.map((volunteer, index) => (
+                      <label
+                        key={`vol-${volunteer.id || index}`}
+                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800/30 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.selectedVolunteers?.includes(volunteer.id) || false}
+                          onChange={() => toggleVolunteerSelection(volunteer.id)}
+                          className="w-4 h-4 rounded border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-200 truncate">
+                            {volunteer.first_name} {volunteer.last_name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {volunteer.roll_number} • {volunteer.email}
+                          </p>
+                        </div>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 md:pt-4 safe-area-bottom">
             <button
               type="button"

@@ -1,7 +1,15 @@
 .sidebar-bg {
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(
+    135deg,
+    rgba(15, 16, 28, 0.98) 0%,
+    rgba(11, 12, 21, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(80px) saturate(180%) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(80px) saturate(180%) brightness(1.1) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    4px 0 48px rgba(0, 0, 0, 0.7),
+    inset -1px 0 0 rgba(255, 255, 255, 0.05) !important;
   transition: all 0.3s ease;
 }
 
@@ -10,29 +18,48 @@
 }
 
 .sidebar.collapsed {
-  width: 70px;
+  width: 80px;
 }
 
 .sidebar.collapsed .sidebar-text {
+  display: none;
   opacity: 0;
-  transform: translateX(-10px);
-  transition: all 0.2s ease-out;
   pointer-events: none;
 }
 
-.sidebar-text {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+.sidebar.collapsed .sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  margin: 4px auto;
+  border-radius: 12px;
 }
 
-.sidebar.collapsed .sidebar-link {
-  justify-content: center;
-  padding: 12px;
+.sidebar.collapsed .sidebar-link i {
+  width: auto;
+  margin: 0;
+}
+
+.sidebar.collapsed .active-sidebar-link {
+  border: 2px solid rgba(99, 102, 241, 0.3);
 }
 
 .sidebar.collapsed .sidebar-header-box {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  margin-left: 1rem;
-  margin-right: 1rem;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  margin: 0.75rem auto;
+}
+
+.sidebar.collapsed .sidebar-toggle {
+  width: 100%;
+  height: 100%;
 }
 
 .sidebar.collapsed .branding-section {
@@ -59,11 +86,9 @@
 }
 
 .active-sidebar-link {
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.15) 0%,
-    rgba(139, 92, 246, 0.1) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.15) 0%,
+      rgba(139, 92, 246, 0.1) 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(99, 102, 241, 0.2);
@@ -81,6 +106,10 @@
   height: 20px;
   background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
   border-radius: 0 2px 2px 0;
+}
+
+.sidebar.collapsed .active-sidebar-link::before {
+  display: none;
 }
 
 .active-sidebar-link i {
@@ -139,9 +168,17 @@
 }
 
 .light .sidebar-bg {
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 250, 252, 0.95) 100%
+  ) !important;
+  backdrop-filter: blur(80px) saturate(180%) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(80px) saturate(180%) brightness(1.05) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow:
+    4px 0 48px rgba(0, 0, 0, 0.1),
+    inset -1px 0 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .light .sidebar-link {
@@ -149,23 +186,29 @@
 }
 
 .light .sidebar-link:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text-secondary);
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--brand-primary);
 }
 
 .light .active-sidebar-link {
   background: linear-gradient(
     135deg,
     rgba(99, 102, 241, 0.12) 0%,
-    rgba(139, 92, 246, 0.15) 100%
+    rgba(139, 92, 246, 0.10) 100%
   );
-  color: var(--brand-primary-light);
+  color: var(--brand-primary);
   border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.12);
 }
 
 .light .sidebar-header-box {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 @media (max-width: 768px) {
@@ -211,11 +254,9 @@
   }
 
   .light .active-sidebar-link {
-    background: linear-gradient(
-      135deg,
-      rgba(99, 102, 241, 0.15) 0%,
-      rgba(139, 92, 246, 0.18) 100%
-    );
+    background: linear-gradient(135deg,
+        rgba(99, 102, 241, 0.15) 0%,
+        rgba(139, 92, 246, 0.18) 100%);
     color: var(--brand-primary-light);
   }
 }

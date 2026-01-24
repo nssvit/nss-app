@@ -8,13 +8,33 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:analyze": "ANALYZE=true npm run build"
+    "lint:sql": "squawk --exclude=prefer-identity,prefer-bigint-over-int,require-concurrent-index-creation,require-timeout-settings,prefer-robust-stmts,adding-foreign-key-constraint,constraint-missing-not-valid src/db/migrations/*.sql",
+    "build:analyze": "ANALYZE=true npm run build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "predb:push": "npm run db:lint",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:pull": "drizzle-kit introspect",
+    "db:check": "drizzle-kit check",
+    "db:lint": "npm run lint:sql",
+    "predb:setup": "npm run db:lint",
+    "db:setup": "npx tsx src/db/setup.ts",
+    "db:diagnose": "npx tsx src/db/diagnose.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.4",
+    "cmdk": "^1.1.1",
+    "drizzle-orm": "^0.45.1",
+    "drizzle-zod": "^0.8.3",
+    "framer-motion": "^12.23.24",
     "next": "15.3.8",
+    "postgres": "^3.4.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^3.4.1"
+    "recharts": "^3.4.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -22,8 +42,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.3",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "squawk-cli": "^2.37.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

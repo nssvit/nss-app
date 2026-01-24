@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useToast } from "@/hooks/useToast";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useReports } from "@/hooks/useReports";
 import { ToastContainer } from "@/components/Toast";
+import { Skeleton } from "./Skeleton";
 import {
   LineChart,
   Line,
@@ -23,6 +26,10 @@ export function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [selectedReport, setSelectedReport] = useState("overview");
   const { toasts, removeToast, success, info } = useToast();
+  const { stats, activityData, loading: statsLoading } = useDashboardStats();
+  const { categoryDistribution, topEvents, loading: reportsLoading } = useReports();
+
+  const loading = statsLoading || reportsLoading;
 
   // Export functions
   const handleExport = (format: string) => {
@@ -46,29 +53,20 @@ export function ReportsPage() {
     }, 1500);
   };
 
-  // Chart data for Monthly Trends
-  const chartData = [
-    { month: "Jan", events: 18, volunteers: 145, hours: 720 },
-    { month: "Feb", events: 22, volunteers: 167, hours: 890 },
-    { month: "Mar", events: 25, volunteers: 189, hours: 1050 },
-    { month: "Apr", events: 28, volunteers: 203, hours: 1200 },
-    { month: "May", events: 24, volunteers: 198, hours: 1100 },
-    { month: "Jun", events: 31, volunteers: 234, hours: 1350 },
-    { month: "Jul", events: 29, volunteers: 221, hours: 1280 },
-    { month: "Aug", events: 26, volunteers: 208, hours: 1180 },
-    { month: "Sep", events: 33, volunteers: 245, hours: 1420 },
-    { month: "Oct", events: 35, volunteers: 267, hours: 1580 },
-    { month: "Nov", events: 32, volunteers: 251, hours: 1450 },
-    { month: "Dec", events: 27, volunteers: 223, hours: 1320 },
-  ];
+  // Transform activity data for chart
+  const chartData = activityData.map(item => ({
+    month: item.month,
+    events: Number(item.events_count),
+    volunteers: Number(item.volunteers_count),
+    hours: Number(item.hours_sum)
+  }));
 
-  // Pie chart data for Event Categories
-  const categoryData = [
-    { name: "Area Based", value: 45, color: "#6366f1" },
-    { name: "College Events", value: 30, color: "#10b981" },
-    { name: "Camps", value: 15, color: "#f59e0b" },
-    { name: "Workshops", value: 10, color: "#8b5cf6" },
-  ];
+  // Transform category distribution for pie chart
+  const categoryData = categoryDistribution.map((cat) => ({
+    name: cat.category_name,
+    value: Number(cat.event_count),
+    color: cat.color_hex || "#6366f1",
+  }));
 
   const reportTypes = [
     { id: "overview", name: "Overview Report", icon: "fas fa-chart-pie" },
@@ -86,10 +84,10 @@ export function ReportsPage() {
     { id: "yearly", name: "Yearly" },
   ];
 
-  const metrics = [
+  const metrics = stats ? [
     {
       title: "Total Events",
-      value: "248",
+      value: stats.total_events.toLocaleString(),
       change: "+12%",
       changeType: "increase" as const,
       icon: "fas fa-calendar-check",
@@ -97,7 +95,7 @@ export function ReportsPage() {
     },
     {
       title: "Active Volunteers",
-      value: "1,847",
+      value: stats.active_volunteers.toLocaleString(),
       change: "+5%",
       changeType: "increase" as const,
       icon: "fas fa-users",
@@ -105,7 +103,7 @@ export function ReportsPage() {
     },
     {
       title: "Community Hours",
-      value: "12,486",
+      value: stats.total_hours.toLocaleString(),
       change: "+18%",
       changeType: "increase" as const,
       icon: "fas fa-clock",
@@ -119,7 +117,7 @@ export function ReportsPage() {
       icon: "fas fa-user-check",
       color: "text-orange-400",
     },
-  ];
+  ] : [];
 
   const recentReports = [
     {
@@ -161,28 +159,13 @@ export function ReportsPage() {
   //   { month: 'Dec', events: 27, volunteers: 223, hours: 1320 }
   // ]
 
-  const topEvents = [
-    {
-      name: "Blood Donation Drive",
-      participants: 118,
-      hours: 354,
-      impact: "High",
-    },
-    {
-      name: "NSS Camp - Kuderan",
-      participants: 48,
-      hours: 2400,
-      impact: "Very High",
-    },
-    { name: "Beach Clean-Up", participants: 73, hours: 292, impact: "High" },
-    {
-      name: "Digital Literacy Workshop",
-      participants: 32,
-      hours: 192,
-      impact: "Medium",
-    },
-    { name: "Tree Plantation", participants: 67, hours: 201, impact: "High" },
-  ];
+  // Transform top events from database
+  const formattedTopEvents = topEvents.map(event => ({
+    name: event.event_name,
+    participants: Number(event.participant_count),
+    hours: Number(event.total_hours),
+    impact: event.impact_score
+  }));
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
@@ -210,11 +193,10 @@ export function ReportsPage() {
             <button
               key={type.id}
               onClick={() => setSelectedReport(type.id)}
-              className={`pwa-button flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible ${
-                selectedReport === type.id
+              className={`pwa-button flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible ${selectedReport === type.id
                   ? "button-glass-primary"
                   : "button-glass-secondary"
-              }`}
+                }`}
             >
               <i className={`${type.icon} fa-sm`}></i>
               <span>{type.name}</span>
@@ -257,11 +239,10 @@ export function ReportsPage() {
                 <i className={`${metric.icon} text-lg`}></i>
               </div>
               <div
-                className={`flex items-center space-x-1 text-sm ${
-                  metric.changeType === "increase"
+                className={`flex items-center space-x-1 text-sm ${metric.changeType === "increase"
                     ? "text-green-400"
                     : "text-red-400"
-                }`}
+                  }`}
               >
                 <i
                   className={`fas fa-arrow-${metric.changeType === "increase" ? "up" : "down"} text-xs`}
@@ -292,31 +273,62 @@ export function ReportsPage() {
                 data={chartData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="month" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  stroke="var(--chart-text)"
+                  tick={{ fill: 'var(--chart-text)' }}
+                  axisLine={{ stroke: 'var(--chart-grid)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="var(--chart-text)"
+                  tick={{ fill: 'var(--chart-text)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(75, 85, 99, 0.5)",
-                    borderRadius: "8px",
-                    color: "#f3f4f6",
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
+                          <p className="text-[var(--text-primary)] font-medium mb-2">{label}</p>
+                          {payload.map((entry: any, index: number) => (
+                            <div key={index} className="flex items-center gap-2 text-sm">
+                              <div
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: entry.color }}
+                              />
+                              <span className="text-[var(--text-secondary)] capitalize">
+                                {entry.name}:
+                              </span>
+                              <span className="text-[var(--text-primary)] font-semibold">
+                                {entry.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
                 />
-                <Legend />
+                <Legend wrapperStyle={{ color: 'var(--chart-text)' }} />
                 <Line
                   type="monotone"
                   dataKey="events"
-                  stroke="#6366f1"
+                  stroke="var(--chart-1)"
                   strokeWidth={2}
-                  dot={{ fill: "#6366f1" }}
+                  dot={{ fill: "var(--chart-1)", strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="volunteers"
-                  stroke="#10b981"
+                  stroke="var(--chart-2)"
                   strokeWidth={2}
-                  dot={{ fill: "#10b981" }}
+                  dot={{ fill: "var(--chart-2)", strokeWidth: 0, r: 4 }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -344,15 +356,31 @@ export function ReportsPage() {
                   dataKey="value"
                 >
                   {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={`var(--chart-${index + 1})`} />
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(17, 24, 39, 0.95)",
-                    border: "1px solid rgba(75, 85, 99, 0.5)",
-                    borderRadius: "8px",
-                    color: "#f3f4f6",
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
+                          <div className="flex items-center gap-2 text-sm">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: data.fill || data.color }}
+                            />
+                            <span className="text-[var(--text-secondary)]">
+                              {data.name}:
+                            </span>
+                            <span className="text-[var(--text-primary)] font-semibold">
+                              {data.value}%
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
                 />
               </PieChart>
@@ -373,27 +401,37 @@ export function ReportsPage() {
             </h3>
           </div>
           <div className="divide-y divide-gray-700/30">
-            {topEvents.map((event, index) => (
-              <div
-                key={index}
-                className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-200 text-sm">
-                    {event.name}
-                  </h4>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${getImpactColor(event.impact)}`}
-                  >
-                    {event.impact}
-                  </span>
+            {loading ? (
+              <>
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </>
+            ) : formattedTopEvents.length > 0 ? (
+              formattedTopEvents.map((event, index) => (
+                <div
+                  key={index}
+                  className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-200 text-sm">
+                      {event.name}
+                    </h4>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getImpactColor(event.impact)}`}
+                    >
+                      {event.impact}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-xs text-gray-500">
+                    <span>{event.participants} participants</span>
+                    <span>{event.hours} hours</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                  <span>{event.participants} participants</span>
-                  <span>{event.hours} hours</span>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-caption text-center py-4">No events data</p>
+            )}
           </div>
         </div>
 

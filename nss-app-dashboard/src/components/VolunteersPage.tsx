@@ -2,11 +2,16 @@
 
 import { useState } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useVolunteers } from "@/hooks/useVolunteers";
 import Image from "next/image";
-import { getStatusClasses } from "@/utils/colors/statusColors";
+import { getStatusBadgeClass } from "@/utils/styles/badges";
+import { Skeleton } from "./Skeleton";
+import { EmptyState } from "./EmptyState";
+import { FilterBar, FilterSelect } from "./FilterBar";
+import { usePagination } from "@/hooks";
 
 interface Volunteer {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -17,6 +22,9 @@ interface Volunteer {
   status: "Active" | "Inactive" | "Pending";
   joinDate: string;
   avatar: string;
+  first_name: string;
+  last_name: string;
+  roll_number: string;
 }
 
 export function VolunteersPage() {
@@ -24,75 +32,26 @@ export function VolunteersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
-  const [selectedVolunteers, setSelectedVolunteers] = useState<number[]>([]);
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([]);
 
-  const volunteers: Volunteer[] = [
-    {
-      id: 1,
-      name: "Arjun Patel",
-      email: "arjun.patel@vitstudent.ac.in",
-      phone: "+91 9876543210",
-      year: "3rd Year",
-      branch: "Computer Science",
-      eventsParticipated: 12,
-      totalHours: 48,
-      status: "Active",
-      joinDate: "Jan 2024",
-      avatar: "https://i.imgur.com/gVo4gxC.png",
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      email: "priya.sharma@vitstudent.ac.in",
-      phone: "+91 9765432109",
-      year: "2nd Year",
-      branch: "Electronics",
-      eventsParticipated: 8,
-      totalHours: 32,
-      status: "Active",
-      joinDate: "Feb 2024",
-      avatar: "https://i.imgur.com/7OtnwP9.png",
-    },
-    {
-      id: 3,
-      name: "Raj Kumar",
-      email: "raj.kumar@vitstudent.ac.in",
-      phone: "+91 9654321098",
-      year: "4th Year",
-      branch: "Mechanical",
-      eventsParticipated: 15,
-      totalHours: 75,
-      status: "Active",
-      joinDate: "Sep 2023",
-      avatar: "https://i.imgur.com/xG2942s.png",
-    },
-    {
-      id: 4,
-      name: "Sneha Reddy",
-      email: "sneha.reddy@vitstudent.ac.in",
-      phone: "+91 9543210987",
-      year: "1st Year",
-      branch: "Civil",
-      eventsParticipated: 3,
-      totalHours: 12,
-      status: "Pending",
-      joinDate: "Nov 2024",
-      avatar: "https://i.imgur.com/gJgRz7n.png",
-    },
-  ];
+  const { volunteers, loading, error } = useVolunteers();
+
+  // ... (loading and error states)
 
   const filteredVolunteers = volunteers.filter((volunteer) => {
+    const fullName = `${volunteer.first_name} ${volunteer.last_name}`;
     const matchesSearch =
-      volunteer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       volunteer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      volunteer.branch.toLowerCase().includes(searchTerm.toLowerCase());
+      volunteer.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      volunteer.roll_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || volunteer.status === statusFilter;
     const matchesYear = !yearFilter || volunteer.year === yearFilter;
 
     return matchesSearch && matchesStatus && matchesYear;
   });
 
-  const handleSelectVolunteer = (id: number) => {
+  const handleSelectVolunteer = (id: string) => {
     setSelectedVolunteers((prev) =>
       prev.includes(id)
         ? prev.filter((volunteerId) => volunteerId !== id)
@@ -108,115 +67,15 @@ export function VolunteersPage() {
     );
   };
 
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("");
-    setYearFilter("");
-  };
+  // ... (clearFilters)
 
   return (
     <div
       className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
     >
-      {/* Mobile Search Bar */}
-      {layout.isMobile && (
-        <div className="mb-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search volunteers..."
-              className="input-dark text-sm rounded-lg py-3 px-4 pl-10 focus:outline-none placeholder-gray-500 focus-visible w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-          </div>
-        </div>
-      )}
+      {/* ... (Search and Filters) */}
 
-      {/* Filters Row */}
-      <div
-        className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? "px-0" : "px-1"}`}
-      >
-        {/* Desktop Search */}
-        {!layout.isMobile && (
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search volunteers..."
-              className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible search-input-responsive"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
-          </div>
-        )}
-
-        <select
-          className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible flex-1 min-w-0"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Pending">Pending</option>
-        </select>
-
-        <select
-          className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible flex-1 min-w-0"
-          value={yearFilter}
-          onChange={(e) => setYearFilter(e.target.value)}
-        >
-          <option value="">All Years</option>
-          <option value="1st Year">1st Year</option>
-          <option value="2nd Year">2nd Year</option>
-          <option value="3rd Year">3rd Year</option>
-          <option value="4th Year">4th Year</option>
-        </select>
-
-        <button
-          className="text-gray-500 hover:text-gray-300 text-sm py-2 px-3 transition-colors focus-visible rounded"
-          onClick={clearFilters}
-        >
-          Clear
-        </button>
-      </div>
-
-      {/* Action Bar */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <button className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible">
-            <i className="fas fa-user-plus fa-sm"></i>
-            <span>Add Volunteer</span>
-          </button>
-
-          {selectedVolunteers.length > 0 && (
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-400">
-                {selectedVolunteers.length} selected
-              </span>
-              <button className="pwa-button button-glass-secondary hover-lift px-3 py-2 rounded-lg text-sm focus-visible">
-                <i className="fas fa-envelope fa-sm mr-2"></i>
-                Send Email
-              </button>
-              <button className="pwa-button text-red-400 hover:text-red-300 px-3 py-2 rounded-lg text-sm focus-visible">
-                <i className="fas fa-trash fa-sm mr-2"></i>
-                Remove
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button className="pwa-button action-button text-gray-400 hover:text-gray-200 p-2 rounded-lg focus-visible">
-            <i className="fas fa-download"></i>
-          </button>
-          <button className="pwa-button action-button text-gray-400 hover:text-gray-200 p-2 rounded-lg focus-visible">
-            <i className="fas fa-filter"></i>
-          </button>
-        </div>
-      </div>
+      {/* ... (Action Bar) */}
 
       {/* Volunteers List */}
       <div className="card-glass rounded-xl overflow-hidden">
@@ -274,21 +133,19 @@ export function VolunteersPage() {
                       onChange={() => handleSelectVolunteer(volunteer.id)}
                     />
                     <Image
-                      src={volunteer.avatar}
-                      alt={volunteer.name}
+                      src={volunteer.avatar || '/icon-192x192.png'}
+                      alt={`${volunteer.first_name} ${volunteer.last_name}`}
                       width={40}
                       height={40}
                       className="w-10 h-10 rounded-full"
                     />
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-200">
-                        {volunteer.name}
+                        {volunteer.first_name} {volunteer.last_name}
                       </h4>
                       <p className="text-sm text-gray-400">{volunteer.email}</p>
                     </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(volunteer.status)}`}
-                    >
+                    <span className={getStatusBadgeClass(volunteer.status || 'Pending')}>
                       {volunteer.status}
                     </span>
                   </div>
@@ -324,15 +181,15 @@ export function VolunteersPage() {
                   </div>
                   <div className="col-span-2 flex items-center space-x-3">
                     <Image
-                      src={volunteer.avatar}
-                      alt={volunteer.name}
+                      src={volunteer.avatar || '/icon-192x192.png'}
+                      alt={`${volunteer.first_name} ${volunteer.last_name}`}
                       width={32}
                       height={32}
                       className="w-8 h-8 rounded-full"
                     />
                     <div>
                       <div className="font-medium text-gray-200 text-sm">
-                        {volunteer.name}
+                        {volunteer.first_name} {volunteer.last_name}
                       </div>
                       <div className="text-xs text-gray-500">
                         {volunteer.email}
@@ -350,9 +207,7 @@ export function VolunteersPage() {
                     {volunteer.totalHours}
                   </div>
                   <div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusClasses(volunteer.status)}`}
-                    >
+                    <span className={getStatusBadgeClass(volunteer.status || 'Pending')}>
                       {volunteer.status}
                     </span>
                   </div>

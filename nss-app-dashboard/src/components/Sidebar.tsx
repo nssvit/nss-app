@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 
+
 interface SidebarProps {
   activeLink: string;
   onLinkClick: (link: string) => void;
@@ -37,6 +38,12 @@ export function Sidebar({
       title: "Events",
     },
     {
+      href: "event-registration",
+      icon: "fas fa-clipboard-list",
+      text: "Event Registration",
+      title: "Register for Events",
+    },
+    {
       href: "volunteers",
       icon: "fas fa-users",
       text: "Volunteers",
@@ -57,6 +64,30 @@ export function Sidebar({
   ];
 
   const adminLinks = [
+    {
+      href: "attendance-manager",
+      icon: "fas fa-user-check",
+      text: "Mark Attendance",
+      title: "Mark Event Attendance",
+    },
+    {
+      href: "hours-approval",
+      icon: "fas fa-clock",
+      text: "Hours Approval",
+      title: "Approve Volunteer Hours",
+    },
+    {
+      href: "role-management",
+      icon: "fas fa-user-tag",
+      text: "Role Management",
+      title: "Manage User Roles",
+    },
+    {
+      href: "categories",
+      icon: "fas fa-folder-open",
+      text: "Categories",
+      title: "Event Categories",
+    },
     {
       href: "user-management",
       icon: "fas fa-user-shield",
@@ -103,12 +134,14 @@ export function Sidebar({
                   className="h-4 opacity-85"
                 />
               </div>
-              <button
-                className="pwa-button sidebar-toggle text-gray-400 hover:text-gray-200 p-2"
-                onClick={onToggleMobileMenu}
-              >
-                <i className="fas fa-times text-lg"></i>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  className="pwa-button sidebar-toggle text-gray-400 hover:text-gray-200 p-2"
+                  onClick={onToggleMobileMenu}
+                >
+                  <i className="fas fa-times text-lg"></i>
+                </button>
+              </div>
             </div>
 
             {/* Mobile Navigation */}
@@ -118,11 +151,10 @@ export function Sidebar({
                   <a
                     key={link.href}
                     href={`#${link.href}`}
-                    className={`flex items-center space-x-4 px-4 py-3 rounded-lg ${
-                      activeLink === link.href
-                        ? "active-sidebar-link font-medium"
-                        : "sidebar-link text-gray-400"
-                    }`}
+                    className={`flex items-center space-x-4 px-4 py-3 rounded-lg ${activeLink === link.href
+                      ? "active-sidebar-link font-medium"
+                      : "sidebar-link text-gray-400"
+                      }`}
                     title={link.title}
                     onClick={(e) => {
                       e.preventDefault();
@@ -143,11 +175,10 @@ export function Sidebar({
                   <a
                     key={link.href}
                     href={`#${link.href}`}
-                    className={`flex items-center space-x-4 px-4 py-3 rounded-lg ${
-                      activeLink === link.href
-                        ? "active-sidebar-link font-medium"
-                        : "sidebar-link text-gray-400"
-                    }`}
+                    className={`flex items-center space-x-4 px-4 py-3 rounded-lg ${activeLink === link.href
+                      ? "active-sidebar-link font-medium"
+                      : "sidebar-link text-gray-400"
+                      }`}
                     title={link.title}
                     onClick={(e) => {
                       e.preventDefault();
@@ -230,16 +261,25 @@ export function Sidebar({
             className="h-3.5 opacity-85 logo-vit"
           />
         </div>
-        <button
-          className="sidebar-toggle text-gray-400 hover:text-gray-200 h-7 w-7 focus-visible"
-          onClick={onToggle}
-        >
-          <i className="fas fa-bars text-sm"></i>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="sidebar-toggle text-gray-400 hover:text-gray-200 h-7 w-7 focus-visible"
+            onClick={onToggle}
+          >
+            <i className="fas fa-bars text-sm"></i>
+          </button>
+        </div>
       </div>
 
       {/* Desktop Navigation Section */}
       <div className="flex-grow flex flex-col px-3 space-y-1">
+        <button
+          onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+          className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-colors w-full text-left mb-2 group"
+        >
+          <i className="fas fa-search w-4 text-center group-hover:text-white transition-colors"></i>
+          <span className="sidebar-text text-sm">Search... <span className="text-xs text-gray-600 ml-2 border border-gray-700 rounded px-1">⌘K</span></span>
+        </button>
         <nav
           className="flex-grow overflow-y-auto pr-1 space-y-1 sidebar-nav-text"
         >
@@ -247,11 +287,10 @@ export function Sidebar({
             <a
               key={link.href}
               href={`#${link.href}`}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg focus-visible ${
-                activeLink === link.href
-                  ? "active-sidebar-link font-medium"
-                  : "sidebar-link text-gray-400"
-              }`}
+              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg focus-visible ${activeLink === link.href
+                ? "active-sidebar-link font-medium"
+                : "sidebar-link text-gray-400"
+                }`}
               title={link.title}
               onClick={(e) => {
                 e.preventDefault();
@@ -271,11 +310,10 @@ export function Sidebar({
             <a
               key={link.href}
               href={`#${link.href}`}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg focus-visible ${
-                activeLink === link.href
-                  ? "active-sidebar-link font-medium"
-                  : "sidebar-link text-gray-400"
-              }`}
+              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg focus-visible ${activeLink === link.href
+                ? "active-sidebar-link font-medium"
+                : "sidebar-link text-gray-400"
+                }`}
               title={link.title}
               onClick={(e) => {
                 e.preventDefault();

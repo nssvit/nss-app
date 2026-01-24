@@ -1,40 +1,147 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
 import { useToast } from "@/hooks/useToast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ToastContainer } from "@/components/Toast";
 import { validateEmail, validateRequired } from "@/utils/validation";
 
+const SETTINGS_KEY = "nss_app_settings";
+
+interface AppSettings {
+  general: {
+    organizationName: string;
+    email: string;
+    timezone: string;
+    language: string;
+  };
+  notifications: {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    smsNotifications: boolean;
+    eventReminders: boolean;
+    reportAlerts: boolean;
+  };
+  security: {
+    twoFactorAuth: boolean;
+    passwordExpiry: string;
+    sessionTimeout: string;
+    loginAttempts: string;
+  };
+  privacy: {
+    dataRetention: string;
+    analyticsEnabled: boolean;
+    dataBackup: boolean;
+  };
+}
+
+const defaultSettings: AppSettings = {
+  general: {
+    organizationName: "NSS VIT",
+    email: "nss@vit.ac.in",
+    timezone: "Asia/Kolkata",
+    language: "en",
+  },
+  notifications: {
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: false,
+    eventReminders: true,
+    reportAlerts: true,
+  },
+  security: {
+    twoFactorAuth: false,
+    passwordExpiry: "90",
+    sessionTimeout: "60",
+    loginAttempts: "5",
+  },
+  privacy: {
+    dataRetention: "365",
+    analyticsEnabled: true,
+    dataBackup: true,
+  },
+};
+
 export function SettingsPage() {
   const layout = useResponsiveLayout();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState("general");
   const { toasts, removeToast, success, error } = useToast();
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+  const [loading, setLoading] = useState(true);
 
-  // General Settings
-  const [organizationName, setOrganizationName] = useState("NSS VIT");
-  const [email, setEmail] = useState("nss@vit.ac.in");
-  const [timezone, setTimezone] = useState("Asia/Kolkata");
-  const [language, setLanguage] = useState("en");
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    loadSettings();
+  }, [currentUser]);
 
-  // Notification Settings
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
-  const [eventReminders, setEventReminders] = useState(true);
-  const [reportAlerts, setReportAlerts] = useState(true);
+  const loadSettings = () => {
+    try {
+      const userId = currentUser?.volunteer_id || "default";
+      const storageKey = `${SETTINGS_KEY}_${userId}`;
+      const savedSettings = localStorage.getItem(storageKey);
 
-  // Security Settings
-  const [twoFactorAuth, setTwoFactorAuth] = useState(false);
-  const [passwordExpiry, setPasswordExpiry] = useState("90");
-  const [sessionTimeout, setSessionTimeout] = useState("60");
-  const [loginAttempts, setLoginAttempts] = useState("5");
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        // Merge with defaults to handle any new settings
+        setSettings({
+          general: { ...defaultSettings.general, ...parsed.general },
+          notifications: { ...defaultSettings.notifications, ...parsed.notifications },
+          security: { ...defaultSettings.security, ...parsed.security },
+          privacy: { ...defaultSettings.privacy, ...parsed.privacy },
+        });
+      }
+    } catch (err) {
+      console.error("Error loading settings:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Data & Privacy
-  const [dataRetention, setDataRetention] = useState("365");
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
-  const [dataBckup, setDataBackup] = useState(true);
+  const saveSettings = () => {
+    try {
+      const userId = currentUser?.volunteer_id || "default";
+      const storageKey = `${SETTINGS_KEY}_${userId}`;
+      localStorage.setItem(storageKey, JSON.stringify(settings));
+      return true;
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      return false;
+    }
+  };
+
+  const updateGeneralSetting = (key: keyof AppSettings["general"], value: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      general: { ...prev.general, [key]: value },
+    }));
+    if (errors[key]) {
+      setErrors({ ...errors, [key]: "" });
+    }
+  };
+
+  const updateNotificationSetting = (key: keyof AppSettings["notifications"], value: boolean) => {
+    setSettings((prev) => ({
+      ...prev,
+      notifications: { ...prev.notifications, [key]: value },
+    }));
+  };
+
+  const updateSecuritySetting = (key: keyof AppSettings["security"], value: string | boolean) => {
+    setSettings((prev) => ({
+      ...prev,
+      security: { ...prev.security, [key]: value },
+    }));
+  };
+
+  const updatePrivacySetting = (key: keyof AppSettings["privacy"], value: string | boolean) => {
+    setSettings((prev) => ({
+      ...prev,
+      privacy: { ...prev.privacy, [key]: value },
+    }));
+  };
 
   const tabs = [
     { id: "general", name: "General", icon: "fas fa-cog" },
@@ -48,11 +155,11 @@ export function SettingsPage() {
   const validateSettings = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!validateRequired(organizationName)) {
+    if (!validateRequired(settings.general.organizationName)) {
       newErrors.organizationName = "Organization name is required";
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(settings.general.email)) {
       newErrors.email = "Please enter a valid email address";
     }
 
@@ -65,9 +172,27 @@ export function SettingsPage() {
       error("Please fix the errors before saving");
       return;
     }
-    success("Settings saved successfully!");
-    setErrors({});
+
+    if (saveSettings()) {
+      success("Settings saved successfully!");
+      setErrors({});
+    } else {
+      error("Failed to save settings");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg ${layout.getContentPadding()}`}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading settings...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -117,13 +242,8 @@ export function SettingsPage() {
                       </label>
                       <input
                         type="text"
-                        value={organizationName}
-                        onChange={(e) => {
-                          setOrganizationName(e.target.value);
-                          if (errors.organizationName) {
-                            setErrors({ ...errors, organizationName: "" });
-                          }
-                        }}
+                        value={settings.general.organizationName}
+                        onChange={(e) => updateGeneralSetting("organizationName", e.target.value)}
                         className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.organizationName ? "border-2 border-red-500" : ""}`}
                       />
                       {errors.organizationName && (
@@ -138,13 +258,8 @@ export function SettingsPage() {
                       </label>
                       <input
                         type="email"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (errors.email) {
-                            setErrors({ ...errors, email: "" });
-                          }
-                        }}
+                        value={settings.general.email}
+                        onChange={(e) => updateGeneralSetting("email", e.target.value)}
                         className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.email ? "border-2 border-red-500" : ""}`}
                       />
                       {errors.email && (
@@ -156,8 +271,8 @@ export function SettingsPage() {
                         Timezone
                       </label>
                       <select
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
+                        value={settings.general.timezone}
+                        onChange={(e) => updateGeneralSetting("timezone", e.target.value)}
                         className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
                       >
                         <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
@@ -175,8 +290,8 @@ export function SettingsPage() {
                         Language
                       </label>
                       <select
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
+                        value={settings.general.language}
+                        onChange={(e) => updateGeneralSetting("language", e.target.value)}
                         className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
                       >
                         <option value="en">English</option>
@@ -208,10 +323,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() =>
-                          setEmailNotifications(!emailNotifications)
-                        }
-                        className={`toggle-switch ${emailNotifications ? "active" : ""}`}
+                        onClick={() => updateNotificationSetting("emailNotifications", !settings.notifications.emailNotifications)}
+                        className={`toggle-switch ${settings.notifications.emailNotifications ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -226,8 +339,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setPushNotifications(!pushNotifications)}
-                        className={`toggle-switch ${pushNotifications ? "active" : ""}`}
+                        onClick={() => updateNotificationSetting("pushNotifications", !settings.notifications.pushNotifications)}
+                        className={`toggle-switch ${settings.notifications.pushNotifications ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -242,8 +355,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setSmsNotifications(!smsNotifications)}
-                        className={`toggle-switch ${smsNotifications ? "active" : ""}`}
+                        onClick={() => updateNotificationSetting("smsNotifications", !settings.notifications.smsNotifications)}
+                        className={`toggle-switch ${settings.notifications.smsNotifications ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -258,8 +371,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setEventReminders(!eventReminders)}
-                        className={`toggle-switch ${eventReminders ? "active" : ""}`}
+                        onClick={() => updateNotificationSetting("eventReminders", !settings.notifications.eventReminders)}
+                        className={`toggle-switch ${settings.notifications.eventReminders ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -274,8 +387,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setReportAlerts(!reportAlerts)}
-                        className={`toggle-switch ${reportAlerts ? "active" : ""}`}
+                        onClick={() => updateNotificationSetting("reportAlerts", !settings.notifications.reportAlerts)}
+                        className={`toggle-switch ${settings.notifications.reportAlerts ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -303,8 +416,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setTwoFactorAuth(!twoFactorAuth)}
-                        className={`toggle-switch ${twoFactorAuth ? "active" : ""}`}
+                        onClick={() => updateSecuritySetting("twoFactorAuth", !settings.security.twoFactorAuth)}
+                        className={`toggle-switch ${settings.security.twoFactorAuth ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -316,8 +429,8 @@ export function SettingsPage() {
                         </label>
                         <input
                           type="number"
-                          value={passwordExpiry}
-                          onChange={(e) => setPasswordExpiry(e.target.value)}
+                          value={settings.security.passwordExpiry}
+                          onChange={(e) => updateSecuritySetting("passwordExpiry", e.target.value)}
                           className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
                         />
                       </div>
@@ -327,8 +440,8 @@ export function SettingsPage() {
                         </label>
                         <input
                           type="number"
-                          value={sessionTimeout}
-                          onChange={(e) => setSessionTimeout(e.target.value)}
+                          value={settings.security.sessionTimeout}
+                          onChange={(e) => updateSecuritySetting("sessionTimeout", e.target.value)}
                           className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
                         />
                       </div>
@@ -338,8 +451,8 @@ export function SettingsPage() {
                         </label>
                         <input
                           type="number"
-                          value={loginAttempts}
-                          onChange={(e) => setLoginAttempts(e.target.value)}
+                          value={settings.security.loginAttempts}
+                          onChange={(e) => updateSecuritySetting("loginAttempts", e.target.value)}
                           className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
                         />
                       </div>
@@ -363,8 +476,8 @@ export function SettingsPage() {
                       </label>
                       <input
                         type="number"
-                        value={dataRetention}
-                        onChange={(e) => setDataRetention(e.target.value)}
+                        value={settings.privacy.dataRetention}
+                        onChange={(e) => updatePrivacySetting("dataRetention", e.target.value)}
                         className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
                       />
                     </div>
@@ -378,8 +491,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setAnalyticsEnabled(!analyticsEnabled)}
-                        className={`toggle-switch ${analyticsEnabled ? "active" : ""}`}
+                        onClick={() => updatePrivacySetting("analyticsEnabled", !settings.privacy.analyticsEnabled)}
+                        className={`toggle-switch ${settings.privacy.analyticsEnabled ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -394,8 +507,8 @@ export function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => setDataBackup(!dataBckup)}
-                        className={`toggle-switch ${dataBckup ? "active" : ""}`}
+                        onClick={() => updatePrivacySetting("dataBackup", !settings.privacy.dataBackup)}
+                        className={`toggle-switch ${settings.privacy.dataBackup ? "active" : ""}`}
                       >
                         <span className="toggle-slider"></span>
                       </button>
@@ -474,7 +587,7 @@ export function SettingsPage() {
                         Database Backup
                       </h4>
                       <p className="text-sm text-gray-400 mb-3">
-                        Last backup: December 15, 2024 at 2:30 AM
+                        Last backup: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
                       </p>
                       <div className="flex space-x-2">
                         <button className="pwa-button button-glass-primary px-4 py-2 text-sm rounded focus-visible">
