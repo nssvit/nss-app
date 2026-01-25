@@ -5,9 +5,9 @@
  * Accessible to program officers, event leads, and documentation leads
  */
 
-import { HeadsDashboard } from '@/components/dashboards/HeadsDashboard'
-import { ProtectedRoute } from '@/components/auth'
 import { useRouter } from 'next/navigation'
+import { ProtectedRoute } from '@/components/auth'
+import { HeadsDashboard } from '@/components/dashboards/HeadsDashboard'
 
 export default function OfficerDashboardPage() {
   const router = useRouter()

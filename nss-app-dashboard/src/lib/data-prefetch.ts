@@ -8,8 +8,8 @@
  */
 
 import { getFullAdminDashboard, getHeadsDashboardStats } from '@/app/actions/dashboard'
-import { getVolunteerDashboardData } from '@/app/actions/volunteers'
 import { getEvents } from '@/app/actions/events'
+import { getVolunteerDashboardData } from '@/app/actions/volunteers'
 
 // Global prefetch cache
 interface PrefetchCache {

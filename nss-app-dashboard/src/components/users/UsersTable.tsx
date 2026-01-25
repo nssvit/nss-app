@@ -70,7 +70,7 @@ export function UsersTable({
   if (users.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-gray-400">
-        <i className="fas fa-users text-4xl mb-3"></i>
+        <i className="fas fa-users mb-3 text-4xl"></i>
         <p>No users found</p>
       </div>
     )
@@ -84,7 +84,7 @@ export function UsersTable({
         const primaryRole = getPrimaryRole(volunteer.id)
 
         return (
-          <div key={volunteer.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
+          <div key={volunteer.id} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
             {isMobile ? (
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
@@ -99,18 +99,18 @@ export function UsersTable({
                     alt={displayName}
                     width={40}
                     height={40}
-                    className="w-10 h-10 rounded-full"
+                    className="h-10 w-10 rounded-full"
                   />
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-200">{displayName}</h4>
                     <p className="text-sm text-gray-400">{volunteer.email}</p>
                   </div>
                   <div className="flex flex-col space-y-1">
-                    <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(primaryRole)}`}>
+                    <span className={`rounded-full px-2 py-1 text-xs ${getRoleColor(primaryRole)}`}>
                       {primaryRole}
                     </span>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(volunteer.is_active)}`}
+                      className={`rounded-full px-2 py-1 text-xs ${getStatusColor(volunteer.is_active)}`}
                     >
                       {volunteer.is_active ? 'Active' : 'Inactive'}
                     </span>
@@ -121,19 +121,19 @@ export function UsersTable({
                   <div className="flex space-x-2">
                     <button
                       onClick={() => onEdit(volunteer)}
-                      className="text-gray-400 hover:text-blue-400 p-1"
+                      className="p-1 text-gray-400 hover:text-blue-400"
                     >
                       <i className="fas fa-edit text-sm"></i>
                     </button>
                     <button
                       onClick={() => onView(volunteer)}
-                      className="text-gray-400 hover:text-green-400 p-1"
+                      className="p-1 text-gray-400 hover:text-green-400"
                     >
                       <i className="fas fa-eye text-sm"></i>
                     </button>
                     <button
                       onClick={() => onToggleActive(volunteer)}
-                      className="text-gray-400 hover:text-yellow-400 p-1"
+                      className="p-1 text-gray-400 hover:text-yellow-400"
                     >
                       <i
                         className={`fas fa-${volunteer.is_active ? 'ban' : 'check-circle'} text-sm`}
@@ -142,7 +142,7 @@ export function UsersTable({
                     {isAdmin && (
                       <button
                         onClick={() => onDelete(volunteer)}
-                        className="text-gray-400 hover:text-red-600 p-1"
+                        className="p-1 text-gray-400 hover:text-red-600"
                       >
                         <i className="fas fa-trash text-sm"></i>
                       </button>
@@ -151,7 +151,7 @@ export function UsersTable({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-7 gap-4 items-center">
+              <div className="grid grid-cols-7 items-center gap-4">
                 <div>
                   <input
                     type="checkbox"
@@ -166,21 +166,21 @@ export function UsersTable({
                     alt={displayName}
                     width={32}
                     height={32}
-                    className="w-8 h-8 rounded-full"
+                    className="h-8 w-8 rounded-full"
                   />
                   <div>
-                    <div className="font-medium text-gray-200 text-sm">{displayName}</div>
+                    <div className="text-sm font-medium text-gray-200">{displayName}</div>
                     <div className="text-xs text-gray-500">{volunteer.email}</div>
                   </div>
                 </div>
                 <div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${getRoleColor(primaryRole)}`}>
+                  <span className={`rounded-full px-2 py-1 text-xs ${getRoleColor(primaryRole)}`}>
                     {primaryRole}
                   </span>
                 </div>
                 <div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${getStatusColor(volunteer.is_active)}`}
+                    className={`rounded-full px-2 py-1 text-xs ${getStatusColor(volunteer.is_active)}`}
                   >
                     {volunteer.is_active ? 'Active' : 'Inactive'}
                   </span>
@@ -189,21 +189,21 @@ export function UsersTable({
                 <div className="flex space-x-2">
                   <button
                     onClick={() => onEdit(volunteer)}
-                    className="text-gray-400 hover:text-blue-400 p-1 rounded"
+                    className="rounded p-1 text-gray-400 hover:text-blue-400"
                     title="Edit"
                   >
                     <i className="fas fa-edit text-sm"></i>
                   </button>
                   <button
                     onClick={() => onView(volunteer)}
-                    className="text-gray-400 hover:text-green-400 p-1 rounded"
+                    className="rounded p-1 text-gray-400 hover:text-green-400"
                     title="View"
                   >
                     <i className="fas fa-eye text-sm"></i>
                   </button>
                   <button
                     onClick={() => onToggleActive(volunteer)}
-                    className="text-gray-400 hover:text-yellow-400 p-1 rounded"
+                    className="rounded p-1 text-gray-400 hover:text-yellow-400"
                     title={volunteer.is_active ? 'Deactivate' : 'Reactivate'}
                   >
                     <i
@@ -213,7 +213,7 @@ export function UsersTable({
                   {isAdmin && (
                     <button
                       onClick={() => onDelete(volunteer)}
-                      className="text-gray-400 hover:text-red-600 p-1 rounded"
+                      className="rounded p-1 text-gray-400 hover:text-red-600"
                       title="Delete"
                     >
                       <i className="fas fa-trash text-sm"></i>

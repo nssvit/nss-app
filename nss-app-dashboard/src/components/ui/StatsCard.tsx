@@ -13,10 +13,10 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon, variant = 'primary', change }: StatsCardProps) {
   return (
-    <div className={`card-glass rounded-xl p-6 h-full stats-card-${variant}`}>
+    <div className={`card-glass h-full rounded-xl p-6 stats-card-${variant}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+          <p className="mb-1 text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
             {title}
           </p>
           <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -24,7 +24,7 @@ export function StatsCard({ title, value, icon, variant = 'primary', change }: S
           </p>
           {change && (
             <div
-              className={`flex items-center mt-2 text-sm ${
+              className={`mt-2 flex items-center text-sm ${
                 change.type === 'increase'
                   ? 'text-green-400'
                   : change.type === 'decrease'
@@ -43,8 +43,8 @@ export function StatsCard({ title, value, icon, variant = 'primary', change }: S
             </div>
           )}
         </div>
-        <div className="stats-icon-wrapper p-3 rounded-lg">
-          <i className={`${icon} text-xl stats-icon`}></i>
+        <div className="stats-icon-wrapper rounded-lg p-3">
+          <i className={`${icon} stats-icon text-xl`}></i>
         </div>
       </div>
     </div>

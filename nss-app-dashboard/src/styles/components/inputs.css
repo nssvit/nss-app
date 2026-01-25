@@ -16,7 +16,9 @@
 
 .input-dark:focus {
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.15),
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
   background: rgba(255, 255, 255, 0.05);
   outline: none;
 }
@@ -92,7 +94,8 @@
 
 .light .input-dark:focus {
   border-color: var(--input-focus-border);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15),
+  box-shadow:
+    0 0 0 3px rgba(99, 102, 241, 0.15),
     inset 0 1px 3px rgba(0, 0, 0, 0.1);
   background: rgba(255, 255, 255, 1);
 }

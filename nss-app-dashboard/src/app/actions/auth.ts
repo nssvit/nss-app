@@ -6,10 +6,10 @@
  * Reduces round trips from 4 to 1 for better performance
  */
 
-import { createClient } from '@/utils/supabase/server'
+import { eq, and } from 'drizzle-orm'
 import { db } from '@/db'
 import { volunteers, userRoles, roleDefinitions } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { createClient } from '@/utils/supabase/server'
 
 export interface AuthUserData {
   volunteer_id: string

@@ -8,11 +8,11 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { isCurrentUserAdmin } from '@/app/actions/roles'
 import {
   getVolunteers as fetchVolunteersAction,
   updateVolunteer as updateVolunteerAction,
 } from '@/app/actions/volunteers'
-import { isCurrentUserAdmin } from '@/app/actions/roles'
 import type { Volunteer } from '@/db/schema'
 
 // Extended volunteer type with computed fields and snake_case aliases

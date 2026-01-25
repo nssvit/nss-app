@@ -1,7 +1,7 @@
 'use server'
 
-import { queries } from '@/db/queries'
 import { revalidatePath } from 'next/cache'
+import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
 
 // Types for event creation/update

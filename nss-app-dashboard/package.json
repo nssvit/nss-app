@@ -44,6 +44,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -53,7 +55,10 @@
     "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "squawk-cli": "^2.37.0",
     "tailwindcss": "^4",
     "typescript": "^5"

@@ -3,8 +3,8 @@
  * Provides hours approval-related database operations
  */
 
-import { db } from '../index'
 import { eq, and, sql, count, desc, inArray } from 'drizzle-orm'
+import { db } from '../index'
 import { eventParticipation } from '../schema'
 
 /**

@@ -1,15 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    // Warning: Allow production builds even with type errors
-    ignoreBuildErrors: true,
-  },
   experimental: {
     optimizePackageImports: ['lucide-react']
   },

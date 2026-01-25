@@ -102,7 +102,8 @@ export function useProfile(): UseProfileReturn {
         totalHours,
         approvedHours: 0, // Would need separate query
         eventsParticipated: history.length,
-        pendingReviews: history.filter(p => p.hoursAttended > 0 && p.approvalStatus === 'pending').length,
+        pendingReviews: history.filter((p) => p.hoursAttended > 0 && p.approvalStatus === 'pending')
+          .length,
       })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch profile'

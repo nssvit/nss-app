@@ -3,8 +3,8 @@
  * Provides role-related database operations
  */
 
-import { db } from '../index'
 import { eq, and, count, asc, inArray } from 'drizzle-orm'
+import { db } from '../index'
 import { userRoles, roleDefinitions } from '../schema'
 
 /**

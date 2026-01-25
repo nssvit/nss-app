@@ -1,7 +1,7 @@
 'use server'
 
-import { queries } from '@/db/queries'
 import { revalidatePath } from 'next/cache'
+import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
 

@@ -3,8 +3,8 @@
  * Provides reporting and analytics database operations
  */
 
-import { db } from '../index'
 import { eq, and, sql, count } from 'drizzle-orm'
+import { db } from '../index'
 import { volunteers, userRoles, roleDefinitions } from '../schema'
 
 /**

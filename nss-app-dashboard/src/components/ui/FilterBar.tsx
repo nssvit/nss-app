@@ -48,7 +48,7 @@ export function FilterSelect({
 }: FilterSelectProps) {
   return (
     <select
-      className={`input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible flex-1 min-w-0 ${className}`}
+      className={`input-dark focus-visible min-w-0 flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none ${className}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >

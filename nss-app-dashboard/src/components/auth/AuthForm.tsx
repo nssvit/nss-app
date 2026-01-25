@@ -49,12 +49,12 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="flex min-h-screen items-center justify-center px-4"
       style={{ background: 'linear-gradient(135deg, #070709 0%, #0c0c0e 50%, #131315 100%)' }}
     >
-      <div className="max-w-md w-full space-y-8 card-glass rounded-2xl p-8">
+      <div className="card-glass w-full max-w-md space-y-8 rounded-2xl p-8">
         <div>
-          <div className="flex items-center justify-center mb-4">
+          <div className="mb-4 flex items-center justify-center">
             <i className="fas fa-users text-4xl text-indigo-400"></i>
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-100">
@@ -67,7 +67,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-900/30 border border-red-700/50 text-red-300 px-4 py-3 rounded-lg">
+            <div className="rounded-lg border border-red-700/50 bg-red-900/30 px-4 py-3 text-red-300">
               {error}
             </div>
           )}
@@ -87,7 +87,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -101,7 +101,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                     required
                     value={rollNumber}
                     onChange={(e) => setRollNumber(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>
 
@@ -132,7 +132,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                       required
                       value={branch}
                       onChange={(e) => setBranch(e.target.value as any)}
-                      className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     >
                       <option value="CMPN">Computer</option>
                       <option value="IT">Information Technology</option>
@@ -151,7 +151,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                       required
                       value={year}
                       onChange={(e) => setYear(e.target.value as any)}
-                      className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     >
                       <option value="FE">First Year</option>
                       <option value="SE">Second Year</option>
@@ -173,7 +173,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
 
@@ -188,7 +188,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 bg-gray-800/50 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="mt-1 block w-full rounded-lg border border-gray-600 bg-gray-800/50 px-3 py-2 text-gray-200 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
           </div>
@@ -197,11 +197,11 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors button-glass-primary"
+              className="group button-glass-primary relative flex w-full justify-center rounded-lg border border-transparent bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                   <span>Processing...</span>
                 </div>
               ) : mode === 'signin' ? (
@@ -216,7 +216,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
             <button
               type="button"
               onClick={onToggleMode}
-              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors"
+              className="text-sm font-medium text-indigo-400 transition-colors hover:text-indigo-300"
             >
               {mode === 'signin'
                 ? "Don't have an account? Sign up"

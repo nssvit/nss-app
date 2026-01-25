@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Skeleton } from '@/components/ui'
+import { supabase } from '@/lib/supabase'
 
 interface Participant {
   id: string
@@ -188,26 +188,26 @@ export function EventParticipantsModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 p-6 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-gray-700/50 bg-gray-900/95 p-6 shadow-2xl backdrop-blur-xl">
         {/* Header */}
-        <div className="flex justify-between items-start mb-4">
+        <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-100">{eventName}</h2>
             <p className="text-sm text-gray-400">Event Participants</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white text-2xl leading-none p-1"
+            className="p-1 text-2xl leading-none text-gray-500 hover:text-white"
           >
             &times;
           </button>
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-5 gap-3 mb-4">
+        <div className="mb-4 grid grid-cols-5 gap-3">
           <div className="card-glass rounded-lg p-3 text-center">
             <div className="text-xl font-bold text-indigo-400">{stats.total}</div>
             <div className="text-xs text-gray-500">Total</div>
@@ -231,19 +231,19 @@ export function EventParticipantsModal({
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          <div className="relative flex-1 min-w-0">
+        <div className="mb-4 flex flex-wrap gap-3">
+          <div className="relative min-w-0 flex-1">
             <input
               type="text"
               placeholder="Search participants..."
-              className="input-dark w-full rounded-lg py-2 px-3 pl-9 text-sm"
+              className="input-dark w-full rounded-lg px-3 py-2 pl-9 text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
+            <i className="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 transform text-sm text-gray-500"></i>
           </div>
           <select
-            className="input-dark rounded-lg py-2 px-3 text-sm"
+            className="input-dark rounded-lg px-3 py-2 text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -256,7 +256,7 @@ export function EventParticipantsModal({
           </select>
           <button
             onClick={handleExportCSV}
-            className="button-glass-secondary px-4 py-2 rounded-lg text-sm"
+            className="button-glass-secondary rounded-lg px-4 py-2 text-sm"
           >
             <i className="fas fa-download mr-2"></i>
             Export CSV
@@ -272,8 +272,8 @@ export function EventParticipantsModal({
               ))}
             </div>
           ) : filteredParticipants.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">
-              <i className="fas fa-users-slash text-4xl mb-3"></i>
+            <div className="py-8 text-center text-gray-400">
+              <i className="fas fa-users-slash mb-3 text-4xl"></i>
               <p>No participants found</p>
             </div>
           ) : (
@@ -281,18 +281,18 @@ export function EventParticipantsModal({
               {filteredParticipants.map((participant, index) => (
                 <div
                   key={`participant-${participant.id || index}`}
-                  className="card-glass rounded-lg p-3 flex items-center gap-4"
+                  className="card-glass flex items-center gap-4 rounded-lg p-3"
                 >
                   {/* Avatar */}
-                  <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
+                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gray-700">
                     {participant.profile_pic ? (
                       <img
                         src={participant.profile_pic}
                         alt={participant.first_name}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="text-gray-400 text-sm font-medium">
+                      <span className="text-sm font-medium text-gray-400">
                         {participant.first_name.charAt(0)}
                         {participant.last_name.charAt(0)}
                       </span>
@@ -300,9 +300,9 @@ export function EventParticipantsModal({
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-gray-200 truncate">
+                      <span className="truncate font-medium text-gray-200">
                         {participant.first_name} {participant.last_name}
                       </span>
                       <span className="text-xs text-gray-500">{participant.roll_number}</span>
@@ -314,16 +314,16 @@ export function EventParticipantsModal({
 
                   {/* Status */}
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${
+                    className={`rounded-full px-2 py-1 text-xs ${
                       STATUS_COLORS[participant.participation_status] ||
-                      'text-gray-400 bg-gray-700/30'
+                      'bg-gray-700/30 text-gray-400'
                     }`}
                   >
                     {participant.participation_status}
                   </span>
 
                   {/* Hours */}
-                  <div className="text-center min-w-[60px]">
+                  <div className="min-w-[60px] text-center">
                     <div className="text-sm font-medium text-gray-200">
                       {participant.hours_attended}h
                     </div>
@@ -336,11 +336,11 @@ export function EventParticipantsModal({
         </div>
 
         {/* Footer */}
-        <div className="mt-4 pt-4 border-t border-gray-700/30 flex justify-between items-center">
+        <div className="mt-4 flex items-center justify-between border-t border-gray-700/30 pt-4">
           <span className="text-sm text-gray-400">
             Showing {filteredParticipants.length} of {participants.length} participants
           </span>
-          <button onClick={onClose} className="button-glass-secondary px-4 py-2 rounded-lg text-sm">
+          <button onClick={onClose} className="button-glass-secondary rounded-lg px-4 py-2 text-sm">
             Close
           </button>
         </div>

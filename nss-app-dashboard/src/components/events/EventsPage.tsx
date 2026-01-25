@@ -6,17 +6,15 @@
  */
 
 import { useState, useEffect, useMemo } from 'react'
+import { Skeleton, EmptyState, ToastContainer } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { useEvents } from '@/hooks/useEvents'
 import { useCategories } from '@/hooks/useCategories'
+import { useEvents } from '@/hooks/useEvents'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { useToast } from '@/hooks/useToast'
 import { EventCard } from './EventCard'
 import { EventModal } from './EventModal'
 import { EventParticipantsModal } from './EventParticipantsModal'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { Skeleton } from '@/components/ui'
-import { EmptyState } from '@/components/ui'
-import { useToast } from '@/hooks/useToast'
-import { ToastContainer } from '@/components/ui'
 
 interface EventDisplay {
   id: string
@@ -264,26 +262,26 @@ export function EventsPage() {
   if (loading) {
     return (
       <div
-        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+        className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
       >
-        <div className="flex flex-wrap items-center gap-3 mb-6 px-1">
+        <div className="mb-6 flex flex-wrap items-center gap-3 px-1">
           <Skeleton className="h-10 w-32 rounded-lg" />
           <Skeleton className="h-10 w-40 rounded-lg" />
           <Skeleton className="h-10 w-24 rounded-lg" />
         </div>
-        <div className={`grid ${layout.getGridColumns()} gap-4 mb-8`}>
+        <div className={`grid ${layout.getGridColumns()} mb-8 gap-4`}>
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={`skeleton-${i}`}
-              className="card-glass rounded-xl p-4 h-[280px] flex flex-col"
+              className="card-glass flex h-[280px] flex-col rounded-xl p-4"
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="mb-4 flex items-start justify-between">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-16" />
               </div>
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-2/3 mb-4" />
-              <div className="flex gap-2 mb-auto">
+              <Skeleton className="mb-2 h-4 w-full" />
+              <Skeleton className="mb-4 h-4 w-2/3" />
+              <div className="mb-auto flex gap-2">
                 <Skeleton className="h-6 w-20 rounded-full" />
                 <Skeleton className="h-6 w-20 rounded-full" />
               </div>
@@ -298,7 +296,7 @@ export function EventsPage() {
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div
-        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+        className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
       >
         {/* Mobile Search Bar */}
         {layout.isMobile && (
@@ -307,21 +305,21 @@ export function EventsPage() {
               <input
                 type="text"
                 placeholder="Search events..."
-                className="input-dark text-sm rounded-lg py-3 px-4 pl-10 focus:outline-none placeholder-gray-500 focus-visible w-full"
+                className="input-dark focus-visible w-full rounded-lg px-4 py-3 pl-10 text-sm placeholder-gray-500 focus:outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+              <i className="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-500"></i>
             </div>
           </div>
         )}
 
         {/* Filters Row */}
         <div
-          className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? 'px-0' : 'px-1'}`}
+          className={`mb-6 flex flex-wrap items-center gap-3 ${layout.isMobile ? 'px-0' : 'px-1'}`}
         >
           <select
-            className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible flex-1 min-w-0"
+            className="input-dark focus-visible min-w-0 flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none"
             value={sessionFilter}
             onChange={(e) => setSessionFilter(e.target.value)}
           >
@@ -333,7 +331,7 @@ export function EventsPage() {
           </select>
 
           <select
-            className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible flex-1 min-w-0"
+            className="input-dark focus-visible min-w-0 flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
           >
@@ -356,13 +354,13 @@ export function EventsPage() {
         </div>
 
         {/* Results Summary */}
-        <div className="mb-4 text-body-sm" style={{ color: 'var(--text-tertiary)' }}>
+        <div className="text-body-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>
           Showing {paginatedEvents.length} of {filteredEvents.length} events
           {searchTerm && ` for "${searchTerm}"`}
         </div>
 
         {/* Events Grid */}
-        <div className={`grid ${layout.getGridColumns()} gap-4 mb-8`}>
+        <div className={`grid ${layout.getGridColumns()} mb-8 gap-4`}>
           {paginatedEvents.map((event, index) => (
             <EventCard
               key={`event-${event.id || index}`}
@@ -414,7 +412,7 @@ export function EventsPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-8 md:mt-6 safe-area-bottom">
+          <div className="safe-area-bottom mt-8 flex justify-center md:mt-6">
             <nav className={`flex ${layout.isMobile ? 'gap-1' : 'gap-2'}`}>
               <button
                 className="btn btn-sm btn-secondary"

@@ -7,20 +7,20 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { useToast } from '@/hooks/useToast'
+import { updateProfilePicture } from '@/app/actions/volunteers'
+import { ToastContainer, Skeleton } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
-import { updateProfilePicture } from '@/app/actions/volunteers'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { useToast } from '@/hooks/useToast'
 import { supabase } from '@/lib/supabase' // Only for storage uploads
-import { ToastContainer, Skeleton } from '@/components/ui'
 import { validateEmail, validatePhone, validateRequired } from '@/utils/validation'
-import { ProfileHeader } from './ProfileHeader'
-import { ProfileStats } from './ProfileStats'
-import { ProfileForm } from './ProfileForm'
 import { ProfileActivity } from './ProfileActivity'
+import { ProfileForm } from './ProfileForm'
+import { ProfileHeader } from './ProfileHeader'
 import { ProfileHistory } from './ProfileHistory'
 import { ProfilePreferences } from './ProfilePreferences'
+import { ProfileStats } from './ProfileStats'
 import type {
   ProfileData,
   ProfileStats as Stats,
@@ -229,11 +229,11 @@ export function ProfilePage() {
   if (loading) {
     return (
       <div
-        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg ${layout.getContentPadding()}`}
+        className={`main-content-bg flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
       >
-        <div className="max-w-6xl mx-auto">
-          <Skeleton className="h-48 rounded-xl mb-6" />
-          <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="mx-auto max-w-6xl">
+          <Skeleton className="mb-6 h-48 rounded-xl" />
+          <div className="mb-6 grid grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />
             ))}
@@ -246,9 +246,9 @@ export function ProfilePage() {
 
   return (
     <div
-      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         <ProfileHeader
           profileData={profileData}
           roles={currentUser?.roles || []}
@@ -258,16 +258,16 @@ export function ProfilePage() {
         />
         <ProfileStats stats={stats} isMobile={layout.isMobile} />
 
-        <div className="card-glass rounded-xl overflow-hidden">
-          <div className="flex border-b border-gray-700/30 overflow-x-auto">
+        <div className="card-glass overflow-hidden rounded-xl">
+          <div className="flex overflow-x-auto border-b border-gray-700/30">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium transition-all focus-visible whitespace-nowrap min-w-[100px] ${
+                className={`focus-visible flex min-w-[100px] flex-1 items-center justify-center space-x-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all ${
                   activeTab === tab.id
-                    ? 'bg-indigo-600/20 text-indigo-400 border-b-2 border-indigo-400'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+                    ? 'border-b-2 border-indigo-400 bg-indigo-600/20 text-indigo-400'
+                    : 'text-gray-400 hover:bg-gray-800/30 hover:text-gray-200'
                 }`}
               >
                 <i className={`${tab.icon} fa-sm`}></i>

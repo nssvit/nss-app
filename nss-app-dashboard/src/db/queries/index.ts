@@ -88,13 +88,13 @@ export {
 } from './reports'
 
 // Import all for namespace export
-import * as dashboard from './dashboard'
-import * as volunteers from './volunteers'
-import * as events from './events'
 import * as attendance from './attendance'
+import * as dashboard from './dashboard'
+import * as events from './events'
 import * as hours from './hours'
-import * as roles from './roles'
 import * as reports from './reports'
+import * as roles from './roles'
+import * as volunteers from './volunteers'
 
 /**
  * Backward-compatible queries namespace

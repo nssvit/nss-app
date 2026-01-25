@@ -39,7 +39,7 @@ async function setup() {
     // Use 'yes' to auto-accept the prompt - RLS policies will be recreated by migrations
     execSync('yes | npx drizzle-kit push --force', {
       stdio: 'inherit',
-      shell: '/bin/bash'
+      shell: '/bin/bash',
     })
     console.log('   ✅ Drizzle schema pushed successfully')
   } catch (error) {
@@ -55,11 +55,11 @@ async function setup() {
   try {
     // Get all SQL files (excluding Drizzle's 0000 schema file)
     const migrationFiles = readdirSync(MIGRATIONS_DIR)
-      .filter(f => f.endsWith('.sql') && !f.startsWith('0000'))
+      .filter((f) => f.endsWith('.sql') && !f.startsWith('0000'))
       .sort()
 
     console.log(`   Found ${migrationFiles.length} migration(s) to run:`)
-    migrationFiles.forEach(f => console.log(`   - ${f}`))
+    migrationFiles.forEach((f) => console.log(`   - ${f}`))
 
     for (const file of migrationFiles) {
       const filePath = join(MIGRATIONS_DIR, file)
@@ -124,7 +124,6 @@ async function setup() {
     console.log('  2. Run: npx tsx src/db/diagnose.ts')
     console.log('  3. You should see the new volunteer linked to auth')
     console.log('')
-
   } catch (error) {
     console.error('\n❌ Setup failed:', error)
     throw error

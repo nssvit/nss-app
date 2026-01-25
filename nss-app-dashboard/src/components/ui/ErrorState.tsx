@@ -13,11 +13,11 @@ export function ErrorState({ error, retry }: ErrorStateProps) {
     error.includes('Database functions not found') || error.includes('does not exist')
 
   return (
-    <div className="flex items-center justify-center min-h-[400px] p-6">
-      <div className="card-glass rounded-xl p-8 max-w-2xl w-full text-center">
+    <div className="flex min-h-[400px] items-center justify-center p-6">
+      <div className="card-glass w-full max-w-2xl rounded-xl p-8 text-center">
         {/* Error Icon */}
         <div className="mb-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/20">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
             <i className="fas fa-exclamation-triangle text-3xl text-red-400"></i>
           </div>
         </div>
@@ -34,17 +34,17 @@ export function ErrorState({ error, retry }: ErrorStateProps) {
 
         {/* Instructions for function not found */}
         {isFunctionNotFound && (
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6 text-left">
-            <h4 className="text-sm font-semibold text-blue-400 mb-2">
+          <div className="mb-6 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4 text-left">
+            <h4 className="mb-2 text-sm font-semibold text-blue-400">
               <i className="fas fa-info-circle mr-2"></i>
               Setup Instructions
             </h4>
-            <ol className="text-sm space-y-2" style={{ color: 'var(--text-secondary)' }}>
+            <ol className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
               <li>1. Open your Supabase Dashboard</li>
               <li>2. Go to SQL Editor (left sidebar)</li>
               <li>
                 3. Copy the contents of{' '}
-                <code className="px-2 py-1 bg-gray-800 rounded text-xs">
+                <code className="rounded bg-gray-800 px-2 py-1 text-xs">
                   db/supabase_functions.sql
                 </code>
               </li>
@@ -74,9 +74,9 @@ export function ErrorState({ error, retry }: ErrorStateProps) {
         </div>
 
         {/* Documentation Link */}
-        <div className="mt-6 pt-6 border-t border-gray-700/30">
+        <div className="mt-6 border-t border-gray-700/30 pt-6">
           <p className="text-caption mb-2">Need help? Check the integration guide:</p>
-          <code className="text-xs px-3 py-1 bg-gray-800 rounded">
+          <code className="rounded bg-gray-800 px-3 py-1 text-xs">
             DATABASE_INTEGRATION_COMPLETE.md
           </code>
         </div>

@@ -56,7 +56,7 @@ export function RoleAssignmentsTable({
   if (userRoles.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-gray-400">
-        <i className="fas fa-user-tag text-4xl mb-3"></i>
+        <i className="fas fa-user-tag mb-3 text-4xl"></i>
         <p>No role assignments found</p>
       </div>
     )
@@ -65,7 +65,7 @@ export function RoleAssignmentsTable({
   return (
     <div className="divide-y divide-gray-700/30">
       {userRoles.map((ur) => (
-        <div key={ur.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
+        <div key={ur.id} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
           {isMobile ? (
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
@@ -78,7 +78,7 @@ export function RoleAssignmentsTable({
                   }
                   width={40}
                   height={40}
-                  className="w-10 h-10 rounded-full"
+                  className="h-10 w-10 rounded-full"
                 />
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-200">
@@ -89,7 +89,7 @@ export function RoleAssignmentsTable({
                   <p className="text-sm text-gray-400">{ur.volunteer?.email}</p>
                 </div>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${getRoleColor(ur.role_definition?.role_name || '')}`}
+                  className={`rounded-full px-2 py-1 text-xs ${getRoleColor(ur.role_definition?.role_name || '')}`}
                 >
                   {ur.role_definition?.display_name || 'Unknown'}
                 </span>
@@ -98,14 +98,14 @@ export function RoleAssignmentsTable({
                 <span className="text-gray-500">Assigned: {formatDate(ur.assigned_at)}</span>
                 <button
                   onClick={() => onRevoke(ur.id)}
-                  className="text-red-400 hover:text-red-300 p-1"
+                  className="p-1 text-red-400 hover:text-red-300"
                 >
                   <i className="fas fa-times-circle"></i> Revoke
                 </button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-5 gap-4 items-center">
+            <div className="grid grid-cols-5 items-center gap-4">
               <div className="col-span-2 flex items-center space-x-3">
                 <Image
                   src={ur.volunteer?.profile_pic || '/icon-192x192.png'}
@@ -116,10 +116,10 @@ export function RoleAssignmentsTable({
                   }
                   width={32}
                   height={32}
-                  className="w-8 h-8 rounded-full"
+                  className="h-8 w-8 rounded-full"
                 />
                 <div>
-                  <div className="font-medium text-gray-200 text-sm">
+                  <div className="text-sm font-medium text-gray-200">
                     {ur.volunteer
                       ? `${ur.volunteer.first_name} ${ur.volunteer.last_name}`
                       : 'Unknown'}
@@ -129,7 +129,7 @@ export function RoleAssignmentsTable({
               </div>
               <div>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${getRoleColor(ur.role_definition?.role_name || '')}`}
+                  className={`rounded-full px-2 py-1 text-xs ${getRoleColor(ur.role_definition?.role_name || '')}`}
                 >
                   {ur.role_definition?.display_name || 'Unknown'}
                 </span>
@@ -138,7 +138,7 @@ export function RoleAssignmentsTable({
               <div className="flex space-x-2">
                 <button
                   onClick={() => onRevoke(ur.id)}
-                  className="text-gray-400 hover:text-red-400 p-1 rounded"
+                  className="rounded p-1 text-gray-400 hover:text-red-400"
                   title="Revoke role"
                 >
                   <i className="fas fa-times-circle"></i>

@@ -6,11 +6,11 @@
  */
 
 import { useState } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/useToast'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { useEventRegistration, type RegistrableEvent } from '@/hooks/useEventRegistration'
 import { ToastContainer } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
+import { useEventRegistration, type RegistrableEvent } from '@/hooks/useEventRegistration'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { useToast } from '@/hooks/useToast'
 
 export function EventRegistration() {
   const layout = useResponsiveLayout()
@@ -89,7 +89,7 @@ export function EventRegistration() {
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div
-        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+        className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
       >
         {/* Header */}
         <div className="mb-6">
@@ -122,12 +122,12 @@ export function EventRegistration() {
         <div className="mt-6">
           {loading ? (
             <div className="card-glass rounded-xl p-8 text-center">
-              <i className="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
+              <i className="fas fa-spinner fa-spin mb-4 text-3xl text-gray-400"></i>
               <p className="text-gray-400">Loading events...</p>
             </div>
           ) : events.length === 0 ? (
             <div className="card-glass rounded-xl p-8 text-center">
-              <i className="fas fa-calendar-times text-4xl text-gray-400 mb-4"></i>
+              <i className="fas fa-calendar-times mb-4 text-4xl text-gray-400"></i>
               <h3 className="text-heading-3 mb-2">No Events Found</h3>
               <p className="text-body">
                 {filter === 'registered'
@@ -144,14 +144,14 @@ export function EventRegistration() {
                 const isUpcoming = new Date(event.start_date) > new Date()
 
                 return (
-                  <div key={event.id} className="card-glass rounded-xl overflow-hidden">
+                  <div key={event.id} className="card-glass overflow-hidden rounded-xl">
                     <div className="p-6">
                       {/* Header */}
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="mb-4 flex items-start justify-between">
                         <h3 className="text-heading-3 flex-1">{event.name}</h3>
                         {event.category_name && (
                           <span
-                            className="px-3 py-1 rounded-full text-xs font-medium"
+                            className="rounded-full px-3 py-1 text-xs font-medium"
                             style={{
                               backgroundColor: `${event.color_hex || '#6366F1'}20`,
                               color: event.color_hex || '#6366F1',
@@ -164,11 +164,11 @@ export function EventRegistration() {
 
                       {/* Description */}
                       {event.description && (
-                        <p className="text-body text-sm mb-4 line-clamp-2">{event.description}</p>
+                        <p className="text-body mb-4 line-clamp-2 text-sm">{event.description}</p>
                       )}
 
                       {/* Details */}
-                      <div className="space-y-2 mb-4 text-sm">
+                      <div className="mb-4 space-y-2 text-sm">
                         <div className="flex items-center text-gray-400">
                           <i className="fas fa-calendar w-5"></i>
                           <span>{new Date(event.start_date).toLocaleDateString()}</span>

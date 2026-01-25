@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 interface HourRequestModalProps {
   isOpen: boolean
@@ -99,30 +99,30 @@ export function HourRequestModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 p-6 rounded-2xl shadow-2xl w-full max-w-md">
+      <div className="w-full max-w-md rounded-2xl border border-gray-700/50 bg-gray-900/95 p-6 shadow-2xl backdrop-blur-xl">
         {/* Header */}
-        <div className="flex justify-between items-start mb-6">
+        <div className="mb-6 flex items-start justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-100">Request Hour Review</h2>
-            <p className="text-sm text-gray-400 mt-1">Submit hours for approval</p>
+            <p className="mt-1 text-sm text-gray-400">Submit hours for approval</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white text-2xl leading-none p-1"
+            className="p-1 text-2xl leading-none text-gray-500 hover:text-white"
           >
             &times;
           </button>
         </div>
 
         {success ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="py-8 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
               <i className="fas fa-check text-3xl text-green-400"></i>
             </div>
-            <h3 className="text-lg font-medium text-gray-100 mb-2">Request Submitted!</h3>
+            <h3 className="mb-2 text-lg font-medium text-gray-100">Request Submitted!</h3>
             <p className="text-sm text-gray-400">
               Your hour review request has been submitted for approval.
             </p>
@@ -130,8 +130,8 @@ export function HourRequestModal({
         ) : (
           <form onSubmit={handleSubmit}>
             {/* Event Info */}
-            <div className="bg-gray-800/50 rounded-lg p-4 mb-6">
-              <h3 className="font-medium text-gray-100 mb-2">{participation.event_name}</h3>
+            <div className="mb-6 rounded-lg bg-gray-800/50 p-4">
+              <h3 className="mb-2 font-medium text-gray-100">{participation.event_name}</h3>
               <div className="flex items-center gap-4 text-sm text-gray-400">
                 <span>
                   <i className="fas fa-calendar mr-1"></i>
@@ -146,7 +146,7 @@ export function HourRequestModal({
 
             {/* Hours Input */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-300 mb-2">Hours Attended</label>
+              <label className="mb-2 block text-sm font-medium text-gray-300">Hours Attended</label>
               <input
                 type="number"
                 min="0"
@@ -154,10 +154,10 @@ export function HourRequestModal({
                 step="0.5"
                 value={requestedHours}
                 onChange={(e) => setRequestedHours(parseFloat(e.target.value) || 0)}
-                className="input-dark w-full rounded-lg py-2 px-3"
+                className="input-dark w-full rounded-lg px-3 py-2"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="mt-1 text-xs text-gray-500">
                 Enter the number of hours you attended this event (max:{' '}
                 {participation.declared_hours || 24}h)
               </p>
@@ -165,21 +165,21 @@ export function HourRequestModal({
 
             {/* Notes */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-300">
                 Additional Notes (Optional)
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="input-dark w-full rounded-lg py-2 px-3"
+                className="input-dark w-full rounded-lg px-3 py-2"
                 placeholder="Add any relevant details about your participation..."
               />
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
                 <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
@@ -189,14 +189,14 @@ export function HourRequestModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 button-glass-secondary py-2 rounded-lg text-sm"
+                className="button-glass-secondary flex-1 rounded-lg py-2 text-sm"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 button-glass-primary py-2 rounded-lg text-sm disabled:opacity-50"
+                className="button-glass-primary flex-1 rounded-lg py-2 text-sm disabled:opacity-50"
               >
                 {loading ? (
                   <>

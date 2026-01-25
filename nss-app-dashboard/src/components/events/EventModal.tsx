@@ -180,15 +180,15 @@ export function EventModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       onClick={handleBackdropClick}
     >
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 p-6 md:p-5 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6 md:mb-4">
-          <h2 className="text-xl md:text-lg font-semibold text-gray-100">{title}</h2>
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-gray-700/50 bg-gray-900/95 p-6 shadow-2xl backdrop-blur-xl md:p-5">
+        <div className="mb-6 flex items-center justify-between md:mb-4">
+          <h2 className="text-xl font-semibold text-gray-100 md:text-lg">{title}</h2>
           <button
             onClick={onClose}
-            className="pwa-button text-gray-500 hover:text-white text-3xl md:text-2xl leading-none p-2 md:p-1 transition-colors focus-visible rounded"
+            className="pwa-button focus-visible rounded p-2 text-3xl leading-none text-gray-500 transition-colors hover:text-white md:p-1 md:text-2xl"
           >
             ×
           </button>
@@ -197,7 +197,7 @@ export function EventModal({
           <div>
             <label
               htmlFor="eventName"
-              className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
             >
               Event Name
             </label>
@@ -206,17 +206,17 @@ export function EventModal({
               id="eventName"
               name="eventName"
               required
-              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
+              className="input-dark focus-visible w-full rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
               placeholder="e.g., Tree Plantation Drive"
               value={formData.eventName}
               onChange={handleInputChange}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-4">
             <div>
               <label
                 htmlFor="eventDate"
-                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+                className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
               >
                 Event Date
               </label>
@@ -225,7 +225,7 @@ export function EventModal({
                 id="eventDate"
                 name="eventDate"
                 required
-                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
+                className="input-dark focus-visible w-full rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
                 value={formData.eventDate}
                 onChange={handleInputChange}
               />
@@ -233,7 +233,7 @@ export function EventModal({
             <div>
               <label
                 htmlFor="declaredHours"
-                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+                className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
               >
                 Declared Hours
               </label>
@@ -243,18 +243,18 @@ export function EventModal({
                 name="declaredHours"
                 required
                 min="1"
-                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
+                className="input-dark focus-visible w-full rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
                 placeholder="e.g., 4"
                 value={formData.declaredHours}
                 onChange={handleInputChange}
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-4">
             <div>
               <label
                 htmlFor="eventCategory"
-                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+                className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
               >
                 Category
               </label>
@@ -262,7 +262,7 @@ export function EventModal({
                 id="eventCategory"
                 name="eventCategory"
                 required
-                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
+                className="input-dark focus-visible w-full rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
                 value={formData.eventCategory}
                 onChange={handleInputChange}
               >
@@ -286,7 +286,7 @@ export function EventModal({
             <div>
               <label
                 htmlFor="academicSession"
-                className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+                className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
               >
                 Academic Session
               </label>
@@ -295,7 +295,7 @@ export function EventModal({
                 id="academicSession"
                 name="academicSession"
                 required
-                className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
+                className="input-dark focus-visible w-full rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
                 placeholder="e.g., 2024-2025"
                 value={formData.academicSession}
                 onChange={handleInputChange}
@@ -305,7 +305,7 @@ export function EventModal({
           <div>
             <label
               htmlFor="eventLocation"
-              className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
             >
               Location (Optional)
             </label>
@@ -313,7 +313,7 @@ export function EventModal({
               type="text"
               id="eventLocation"
               name="eventLocation"
-              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible"
+              className="input-dark focus-visible w-full rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
               placeholder="e.g., Juhu Beach, Mumbai"
               value={formData.eventLocation}
               onChange={handleInputChange}
@@ -322,7 +322,7 @@ export function EventModal({
           <div>
             <label
               htmlFor="eventDescription"
-              className="block text-base md:text-sm font-medium text-gray-300 mb-3 md:mb-2"
+              className="mb-3 block text-base font-medium text-gray-300 md:mb-2 md:text-sm"
             >
               Description
             </label>
@@ -330,7 +330,7 @@ export function EventModal({
               id="eventDescription"
               name="eventDescription"
               rows={5}
-              className="input-dark w-full text-base md:text-sm rounded-lg px-4 py-4 md:py-3 focus:outline-none focus-visible resize-none mobile-scroll"
+              className="input-dark focus-visible mobile-scroll w-full resize-none rounded-lg px-4 py-4 text-base focus:outline-none md:py-3 md:text-sm"
               placeholder="Provide a detailed description of the event..."
               value={formData.eventDescription}
               onChange={handleInputChange}
@@ -339,8 +339,8 @@ export function EventModal({
 
           {/* Volunteer Selection Section */}
           <div className="border-t border-gray-700/30 pt-6 md:pt-4">
-            <div className="flex items-center justify-between mb-4">
-              <label className="block text-base md:text-sm font-medium text-gray-300">
+            <div className="mb-4 flex items-center justify-between">
+              <label className="block text-base font-medium text-gray-300 md:text-sm">
                 Mark Attendance ({formData.selectedVolunteers?.length || 0} selected)
               </label>
               <button
@@ -355,11 +355,11 @@ export function EventModal({
             {showVolunteerSection && (
               <div className="space-y-3">
                 {/* Search and Actions */}
-                <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     type="text"
                     placeholder="Search volunteers..."
-                    className="input-dark flex-1 text-sm rounded-lg px-3 py-2"
+                    className="input-dark flex-1 rounded-lg px-3 py-2 text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -382,25 +382,25 @@ export function EventModal({
                 </div>
 
                 {/* Volunteers List */}
-                <div className="max-h-64 overflow-y-auto border border-gray-700/30 rounded-lg p-3 space-y-2">
+                <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border border-gray-700/30 p-3">
                   {loadingVolunteers ? (
-                    <p className="text-sm text-gray-400 text-center py-4">Loading volunteers...</p>
+                    <p className="py-4 text-center text-sm text-gray-400">Loading volunteers...</p>
                   ) : filteredVolunteers.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-4">No volunteers found</p>
+                    <p className="py-4 text-center text-sm text-gray-400">No volunteers found</p>
                   ) : (
                     filteredVolunteers.map((volunteer, index) => (
                       <label
                         key={`vol-${volunteer.id || index}`}
-                        className="flex items-center gap-3 p-2 rounded hover:bg-gray-800/30 cursor-pointer"
+                        className="flex cursor-pointer items-center gap-3 rounded p-2 hover:bg-gray-800/30"
                       >
                         <input
                           type="checkbox"
                           checked={formData.selectedVolunteers?.includes(volunteer.id) || false}
                           onChange={() => toggleVolunteerSelection(volunteer.id)}
-                          className="w-4 h-4 rounded border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
+                          className="h-4 w-4 rounded border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-900"
                         />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-200 truncate">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-200">
                             {volunteer.firstName} {volunteer.lastName}
                           </p>
                           <p className="text-xs text-gray-400">
@@ -415,17 +415,17 @@ export function EventModal({
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-6 md:pt-4 safe-area-bottom">
+          <div className="safe-area-bottom flex flex-col justify-end space-y-3 pt-6 sm:flex-row sm:space-y-0 sm:space-x-3 md:pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="pwa-button button-glass-secondary hover-lift px-6 py-4 md:py-3 text-base md:text-sm font-medium rounded-lg focus-visible"
+              className="pwa-button button-glass-secondary hover-lift focus-visible rounded-lg px-6 py-4 text-base font-medium md:py-3 md:text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="pwa-button button-glass-primary hover-lift px-6 py-4 md:py-3 text-base md:text-sm font-medium rounded-lg focus-visible"
+              className="pwa-button button-glass-primary hover-lift focus-visible rounded-lg px-6 py-4 text-base font-medium md:py-3 md:text-sm"
             >
               Save Event
             </button>

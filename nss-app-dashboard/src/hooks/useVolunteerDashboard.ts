@@ -7,8 +7,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { getVolunteerDashboardData } from '@/app/actions/volunteers'
 import { registerForEvent as registerAction } from '@/app/actions/events'
+import { getVolunteerDashboardData } from '@/app/actions/volunteers'
 import { getPrefetchedVolunteerDashboard } from '@/lib/data-prefetch'
 
 // Client-side cache

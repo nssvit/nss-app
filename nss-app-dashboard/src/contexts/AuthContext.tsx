@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react'
 import { User, Session } from '@supabase/supabase-js'
+import { prefetchDashboardData, clearPrefetchCache } from '@/lib/data-prefetch'
 import { createClient } from '@/lib/supabase'
 import { CurrentUser } from '@/types'
-import { prefetchDashboardData, clearPrefetchCache } from '@/lib/data-prefetch'
 
 // Auth loading timeout - prevents infinite loading states (reduced for better UX)
 const AUTH_LOADING_TIMEOUT_MS = 15000 // 15 seconds

@@ -1,7 +1,7 @@
 'use client'
 
-import { useAuth } from '@/contexts/AuthContext'
 import { useState } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function UserProfileHeader() {
   const { currentUser, signOut } = useAuth()
@@ -13,15 +13,15 @@ export function UserProfileHeader() {
     <div className="relative">
       <button
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
+        className="flex items-center space-x-2 rounded-lg p-2 transition-colors hover:bg-gray-700/50"
       >
-        <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500">
           <span className="text-sm font-medium text-white">
             {currentUser.first_name[0]}
             {currentUser.last_name[0]}
           </span>
         </div>
-        <div className="hidden md:block text-left">
+        <div className="hidden text-left md:block">
           <p className="text-sm font-medium text-gray-200">
             {currentUser.first_name} {currentUser.last_name}
           </p>
@@ -33,19 +33,19 @@ export function UserProfileHeader() {
       {showMenu && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-          <div className="absolute right-0 top-full mt-2 w-64 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-20">
-            <div className="p-3 border-b border-gray-700">
+          <div className="absolute top-full right-0 z-20 mt-2 w-64 rounded-lg border border-gray-700 bg-gray-800 shadow-xl">
+            <div className="border-b border-gray-700 p-3">
               <p className="font-medium text-gray-200">
                 {currentUser.first_name} {currentUser.last_name}
               </p>
               <p className="text-sm text-gray-400">{currentUser.email}</p>
-              <p className="text-xs text-gray-500 mt-1">Roll: {currentUser.roll_number}</p>
+              <p className="mt-1 text-xs text-gray-500">Roll: {currentUser.roll_number}</p>
               {currentUser.roles.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="mt-2 flex flex-wrap gap-1">
                   {currentUser.roles.map((role) => (
                     <span
                       key={role}
-                      className="px-2 py-1 text-xs bg-indigo-900/50 text-indigo-300 rounded"
+                      className="rounded bg-indigo-900/50 px-2 py-1 text-xs text-indigo-300"
                     >
                       {role}
                     </span>
@@ -59,7 +59,7 @@ export function UserProfileHeader() {
                   setShowMenu(false)
                   // Navigate to profile page
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700/50 rounded flex items-center space-x-2"
+                className="flex w-full items-center space-x-2 rounded px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-700/50"
               >
                 <i className="fas fa-user"></i>
                 <span>View Profile</span>
@@ -69,7 +69,7 @@ export function UserProfileHeader() {
                   setShowMenu(false)
                   // Navigate to settings page
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700/50 rounded flex items-center space-x-2"
+                className="flex w-full items-center space-x-2 rounded px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-700/50"
               >
                 <i className="fas fa-cog"></i>
                 <span>Settings</span>
@@ -80,7 +80,7 @@ export function UserProfileHeader() {
                   setShowMenu(false)
                   signOut()
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-700/50 rounded flex items-center space-x-2"
+                className="flex w-full items-center space-x-2 rounded px-3 py-2 text-left text-sm text-red-400 hover:bg-gray-700/50"
               >
                 <i className="fas fa-sign-out-alt"></i>
                 <span>Sign Out</span>

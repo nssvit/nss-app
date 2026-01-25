@@ -83,7 +83,7 @@ export function HoursTable({
   if (participations.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-gray-400">
-        <i className="fas fa-clock text-4xl mb-3"></i>
+        <i className="fas fa-clock mb-3 text-4xl"></i>
         <p>No records found</p>
       </div>
     )
@@ -92,7 +92,7 @@ export function HoursTable({
   return (
     <div className="divide-y divide-gray-700/30">
       {participations.map((p) => (
-        <div key={p.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
+        <div key={p.id} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
           {isMobile ? (
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
@@ -109,7 +109,7 @@ export function HoursTable({
                   alt={p.volunteer ? `${p.volunteer.firstName} ${p.volunteer.lastName}` : 'Unknown'}
                   width={40}
                   height={40}
-                  className="w-10 h-10 rounded-full"
+                  className="h-10 w-10 rounded-full"
                 />
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-200">
@@ -122,7 +122,7 @@ export function HoursTable({
                     {p.approvalStatus === 'approved' ? p.approvedHours : p.hoursAttended}h
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${getStatusColor(p.approvalStatus)}`}
+                    className={`rounded-full px-2 py-1 text-xs ${getStatusColor(p.approvalStatus)}`}
                   >
                     {p.approvalStatus}
                   </span>
@@ -132,13 +132,13 @@ export function HoursTable({
                 <div className="flex justify-end space-x-2">
                   <button
                     onClick={() => onApprove(p)}
-                    className="text-green-400 hover:text-green-300 px-3 py-1 text-sm rounded bg-green-900/20"
+                    className="rounded bg-green-900/20 px-3 py-1 text-sm text-green-400 hover:text-green-300"
                   >
                     <i className="fas fa-check mr-1"></i> Approve
                   </button>
                   <button
                     onClick={() => onReject(p)}
-                    className="text-red-400 hover:text-red-300 px-3 py-1 text-sm rounded bg-red-900/20"
+                    className="rounded bg-red-900/20 px-3 py-1 text-sm text-red-400 hover:text-red-300"
                   >
                     <i className="fas fa-times mr-1"></i> Reject
                   </button>
@@ -146,7 +146,7 @@ export function HoursTable({
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-7 gap-4 items-center">
+            <div className="grid grid-cols-7 items-center gap-4">
               {filter === 'pending' && (
                 <div>
                   <input
@@ -165,10 +165,10 @@ export function HoursTable({
                   alt={p.volunteer ? `${p.volunteer.firstName} ${p.volunteer.lastName}` : 'Unknown'}
                   width={32}
                   height={32}
-                  className="w-8 h-8 rounded-full"
+                  className="h-8 w-8 rounded-full"
                 />
                 <div>
-                  <div className="font-medium text-gray-200 text-sm">
+                  <div className="text-sm font-medium text-gray-200">
                     {p.volunteer ? `${p.volunteer.firstName} ${p.volunteer.lastName}` : 'Unknown'}
                   </div>
                   <div className="text-xs text-gray-500">{p.volunteer?.rollNumber}</div>
@@ -185,7 +185,7 @@ export function HoursTable({
                   {p.approvalStatus === 'approved' ? p.approvedHours : p.hoursAttended} hrs
                 </div>
                 <span
-                  className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(p.approvalStatus)}`}
+                  className={`rounded-full px-2 py-0.5 text-xs ${getStatusColor(p.approvalStatus)}`}
                 >
                   {p.approvalStatus}
                 </span>
@@ -195,14 +195,14 @@ export function HoursTable({
                   <>
                     <button
                       onClick={() => onApprove(p)}
-                      className="text-gray-400 hover:text-green-400 p-1 rounded"
+                      className="rounded p-1 text-gray-400 hover:text-green-400"
                       title="Approve"
                     >
                       <i className="fas fa-check"></i>
                     </button>
                     <button
                       onClick={() => onReject(p)}
-                      className="text-gray-400 hover:text-red-400 p-1 rounded"
+                      className="rounded p-1 text-gray-400 hover:text-red-400"
                       title="Reject"
                     >
                       <i className="fas fa-times"></i>

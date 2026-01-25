@@ -55,11 +55,13 @@ async function diagnose() {
       AND routine_schema = 'public'
     `
     console.log(`   Found ${helpers.length}/3 helper functions:`)
-    helpers.forEach(f => console.log(`   ✅ ${f.routine_name}`))
+    helpers.forEach((f) => console.log(`   ✅ ${f.routine_name}`))
     if (helpers.length < 3) {
-      const found = helpers.map(h => h.routine_name)
-      const missing = ['is_admin', 'has_role', 'get_current_volunteer_id'].filter(n => !found.includes(n))
-      missing.forEach(m => console.log(`   ❌ Missing: ${m}`))
+      const found = helpers.map((h) => h.routine_name)
+      const missing = ['is_admin', 'has_role', 'get_current_volunteer_id'].filter(
+        (n) => !found.includes(n)
+      )
+      missing.forEach((m) => console.log(`   ❌ Missing: ${m}`))
     }
 
     // 4. Check updated_at triggers
@@ -70,7 +72,7 @@ async function diagnose() {
       WHERE trigger_name = 'set_updated_at' AND event_object_schema = 'public'
     `
     console.log(`   Found ${updateTriggers.length}/6 updated_at triggers:`)
-    updateTriggers.forEach(t => console.log(`   ✅ ${t.event_object_table}`))
+    updateTriggers.forEach((t) => console.log(`   ✅ ${t.event_object_table}`))
 
     // 5. Check RLS is enabled
     console.log('\n📌 5. Checking RLS status...')
@@ -80,7 +82,7 @@ async function diagnose() {
       WHERE schemaname = 'public'
       AND tablename IN ('volunteers', 'events', 'event_participation', 'event_categories', 'role_definitions', 'user_roles')
     `
-    rlsStatus.forEach(t => {
+    rlsStatus.forEach((t) => {
       const status = t.rowsecurity ? '✅ Enabled' : '❌ Disabled'
       console.log(`   ${status}: ${t.tablename}`)
     })
@@ -95,7 +97,7 @@ async function diagnose() {
     `
     console.log(`   Found ${policies.length} policies:`)
     const byTable: Record<string, string[]> = {}
-    policies.forEach(p => {
+    policies.forEach((p) => {
       if (!byTable[p.tablename]) byTable[p.tablename] = []
       byTable[p.tablename].push(p.policyname)
     })
@@ -107,7 +109,7 @@ async function diagnose() {
     console.log('\n📌 7. Checking seed data...')
     const roles = await client`SELECT role_name, display_name FROM role_definitions`
     console.log(`   Roles: ${roles.length}`)
-    roles.forEach(r => console.log(`   ✅ ${r.role_name} (${r.display_name})`))
+    roles.forEach((r) => console.log(`   ✅ ${r.role_name} (${r.display_name})`))
 
     const categories = await client`SELECT category_name FROM event_categories`
     console.log(`   Categories: ${categories.length}`)
@@ -123,7 +125,7 @@ async function diagnose() {
     `
     if (volunteers.length > 0) {
       console.log(`   Found ${volunteers.length} volunteer(s):`)
-      volunteers.forEach(v => {
+      volunteers.forEach((v) => {
         const linked = v.auth_user_id ? '🔗 Linked' : '⚠️  No auth_user_id'
         const role = v.role_name || 'No role'
         console.log(`   ${linked}: ${v.email} (${v.first_name} ${v.last_name}) - Role: ${role}`)
@@ -135,9 +137,10 @@ async function diagnose() {
     // 9. Check auth.users count
     console.log('\n📌 9. Checking auth.users...')
     try {
-      const authUsers = await client`SELECT id, email, created_at FROM auth.users ORDER BY created_at DESC LIMIT 5`
+      const authUsers =
+        await client`SELECT id, email, created_at FROM auth.users ORDER BY created_at DESC LIMIT 5`
       console.log(`   Found ${authUsers.length} auth user(s):`)
-      authUsers.forEach(u => console.log(`   👤 ${u.email} (${u.id})`))
+      authUsers.forEach((u) => console.log(`   👤 ${u.email} (${u.id})`))
     } catch (e) {
       console.log('   ⚠️  Cannot read auth.users (may need elevated permissions)')
     }
@@ -161,10 +164,9 @@ async function diagnose() {
       console.log('  3. You should see the new volunteer linked to auth')
     } else {
       console.log('\n⚠️  Issues found:')
-      issues.forEach(i => console.log(`   - ${i}`))
+      issues.forEach((i) => console.log(`   - ${i}`))
       console.log('\nRun: npm run db:setup')
     }
-
   } catch (error) {
     console.error('\n❌ Diagnostic failed:', error)
     throw error

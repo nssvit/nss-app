@@ -110,10 +110,10 @@ export function Sidebar({
 
         {/* Mobile sidebar */}
         <aside className={`mobile-sidebar sidebar-bg ${showMobileMenu ? 'open' : ''}`}>
-          <div className="flex flex-col h-full safe-area-padding">
+          <div className="safe-area-padding flex h-full flex-col">
             {/* Mobile Header */}
-            <div className="sidebar-header-box flex items-center justify-between px-4 py-3 h-14 mx-4 my-3">
-              <div className="branding-section flex items-center space-x-2 h-7">
+            <div className="sidebar-header-box mx-4 my-3 flex h-14 items-center justify-between px-4 py-3">
+              <div className="branding-section flex h-7 items-center space-x-2">
                 <Image
                   src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_36/v1740557668/img/nss-logo.png"
                   alt="NSS Logo"
@@ -131,7 +131,7 @@ export function Sidebar({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  className="pwa-button sidebar-toggle text-gray-400 hover:text-gray-200 p-2"
+                  className="pwa-button sidebar-toggle p-2 text-gray-400 hover:text-gray-200"
                   onClick={onToggleMobileMenu}
                 >
                   <i className="fas fa-times text-lg"></i>
@@ -140,13 +140,13 @@ export function Sidebar({
             </div>
 
             {/* Mobile Navigation */}
-            <div className="flex-grow flex flex-col px-4 space-y-1 mobile-scroll">
-              <nav className="flex-grow overflow-y-auto space-y-1 text-sm">
+            <div className="mobile-scroll flex flex-grow flex-col space-y-1 px-4">
+              <nav className="flex-grow space-y-1 overflow-y-auto text-sm">
                 {navigationLinks.map((link) => (
                   <a
                     key={link.href}
                     href={`#${link.href}`}
-                    className={`flex items-center space-x-4 px-4 py-3 rounded-lg ${
+                    className={`flex items-center space-x-4 rounded-lg px-4 py-3 ${
                       activeLink === link.href
                         ? 'active-sidebar-link font-medium'
                         : 'sidebar-link text-gray-400'
@@ -165,13 +165,13 @@ export function Sidebar({
                   </a>
                 ))}
 
-                <hr className="border-gray-700/30 my-4" />
+                <hr className="my-4 border-gray-700/30" />
 
                 {adminLinks.map((link) => (
                   <a
                     key={link.href}
                     href={`#${link.href}`}
-                    className={`flex items-center space-x-4 px-4 py-3 rounded-lg ${
+                    className={`flex items-center space-x-4 rounded-lg px-4 py-3 ${
                       activeLink === link.href
                         ? 'active-sidebar-link font-medium'
                         : 'sidebar-link text-gray-400'
@@ -192,10 +192,10 @@ export function Sidebar({
               </nav>
 
               {/* Mobile User Profile */}
-              <div className="mt-auto pt-4 border-t border-gray-700/30 safe-area-bottom">
+              <div className="safe-area-bottom mt-auto border-t border-gray-700/30 pt-4">
                 <a
                   href="#profile"
-                  className="sidebar-link flex items-center space-x-3 px-4 py-3 text-gray-300 rounded-lg"
+                  className="sidebar-link flex items-center space-x-3 rounded-lg px-4 py-3 text-gray-300"
                   title="Profile"
                   onClick={(e) => {
                     e.preventDefault()
@@ -209,17 +209,17 @@ export function Sidebar({
                       alt="User Avatar"
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full"
+                      className="h-8 w-8 rounded-full"
                     />
                     <span className="avatar-status-dot-sidebar bg-green-500"></span>
                   </div>
                   <div className="flex flex-col text-sm">
                     <span className="font-medium text-gray-200">Admin</span>
-                    <span className="text-gray-500 text-xs">Admin</span>
+                    <span className="text-xs text-gray-500">Admin</span>
                   </div>
                 </a>
                 <button
-                  className="pwa-button w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-400 hover:bg-red-900/30 hover:text-red-300 rounded-lg mt-2 transition-all duration-200"
+                  className="pwa-button mt-2 flex w-full items-center space-x-3 rounded-lg px-4 py-3 text-sm text-gray-400 transition-all duration-200 hover:bg-red-900/30 hover:text-red-300"
                   title="Logout"
                 >
                   <i className="fas fa-sign-out-alt w-5 text-center"></i>
@@ -236,29 +236,29 @@ export function Sidebar({
   // Desktop sidebar
   return (
     <aside
-      className={`sidebar sidebar-bg ${collapsed ? 'collapsed' : 'w-56'} flex-shrink-0 flex flex-col`}
+      className={`sidebar sidebar-bg ${collapsed ? 'collapsed' : 'w-56'} flex flex-shrink-0 flex-col`}
     >
       {/* Desktop Sidebar Header with Toggle */}
-      <div className="sidebar-header-box flex items-center justify-between px-3 py-2 h-12 mx-3 my-2">
-        <div className="branding-section flex items-center space-x-2 h-7">
+      <div className="sidebar-header-box mx-3 my-2 flex h-12 items-center justify-between px-3 py-2">
+        <div className="branding-section flex h-7 items-center space-x-2">
           <Image
             src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_36/v1740557668/img/nss-logo.png"
             alt="NSS Logo"
             width={20}
             height={20}
-            className="h-5 logo-nss"
+            className="logo-nss h-5"
           />
           <Image
             src="https://res.cloudinary.com/du6zyqqyw/image/upload/f_auto,q_auto,w_90/v1740557668/img/vit-logo.png"
             alt="VIT Logo"
             width={36}
             height={14}
-            className="h-3.5 opacity-85 logo-vit"
+            className="logo-vit h-3.5 opacity-85"
           />
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="sidebar-toggle text-gray-400 hover:text-gray-200 h-7 w-7 focus-visible"
+            className="sidebar-toggle focus-visible h-7 w-7 text-gray-400 hover:text-gray-200"
             onClick={onToggle}
           >
             <i className="fas fa-bars text-sm"></i>
@@ -267,27 +267,27 @@ export function Sidebar({
       </div>
 
       {/* Desktop Navigation Section */}
-      <div className="flex-grow flex flex-col px-3 space-y-1">
+      <div className="flex flex-grow flex-col space-y-1 px-3">
         <button
           onClick={() =>
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))
           }
-          className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-gray-200 transition-colors w-full text-left mb-2 group"
+          className="group mb-2 flex w-full items-center space-x-3 rounded-lg px-3 py-2.5 text-left text-gray-400 transition-colors hover:bg-white/5 hover:text-gray-200"
         >
-          <i className="fas fa-search w-4 text-center group-hover:text-white transition-colors"></i>
+          <i className="fas fa-search w-4 text-center transition-colors group-hover:text-white"></i>
           <span className="sidebar-text text-sm">
             Search...{' '}
-            <span className="text-xs text-gray-600 ml-2 border border-gray-700 rounded px-1">
+            <span className="ml-2 rounded border border-gray-700 px-1 text-xs text-gray-600">
               ⌘K
             </span>
           </span>
         </button>
-        <nav className="flex-grow overflow-y-auto pr-1 space-y-1 sidebar-nav-text">
+        <nav className="sidebar-nav-text flex-grow space-y-1 overflow-y-auto pr-1">
           {navigationLinks.map((link) => (
             <a
               key={link.href}
               href={`#${link.href}`}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg focus-visible ${
+              className={`focus-visible flex items-center space-x-3 rounded-lg px-3 py-2.5 ${
                 activeLink === link.href
                   ? 'active-sidebar-link font-medium'
                   : 'sidebar-link text-gray-400'
@@ -305,13 +305,13 @@ export function Sidebar({
             </a>
           ))}
 
-          <hr className="border-gray-700/30 my-3 sidebar-text" />
+          <hr className="sidebar-text my-3 border-gray-700/30" />
 
           {adminLinks.map((link) => (
             <a
               key={link.href}
               href={`#${link.href}`}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg focus-visible ${
+              className={`focus-visible flex items-center space-x-3 rounded-lg px-3 py-2.5 ${
                 activeLink === link.href
                   ? 'active-sidebar-link font-medium'
                   : 'sidebar-link text-gray-400'
@@ -331,10 +331,10 @@ export function Sidebar({
         </nav>
 
         {/* Desktop User Profile & Logout */}
-        <div className="mt-auto pt-3 border-t border-gray-700/30">
+        <div className="mt-auto border-t border-gray-700/30 pt-3">
           <a
             href="#profile"
-            className="sidebar-link flex items-center space-x-3 px-3 py-2 text-gray-300 rounded-lg focus-visible"
+            className="sidebar-link focus-visible flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-300"
             title="Profile"
             onClick={(e) => {
               e.preventDefault()
@@ -347,17 +347,17 @@ export function Sidebar({
                 alt="User Avatar"
                 width={28}
                 height={28}
-                className="w-7 h-7 rounded-full"
+                className="h-7 w-7 rounded-full"
               />
               <span className="avatar-status-dot-sidebar bg-green-500"></span>
             </div>
-            <div className="flex flex-col text-[0.7rem] sidebar-text">
+            <div className="sidebar-text flex flex-col text-[0.7rem]">
               <span className="font-medium text-gray-200">Admin</span>
               <span className="text-gray-500">Admin</span>
             </div>
           </a>
           <button
-            className="w-full flex items-center space-x-3 px-3 py-2.5 text-xs text-gray-400 hover:bg-red-900/30 hover:text-red-300 rounded-lg mt-2 transition-all duration-200 focus-visible"
+            className="focus-visible mt-2 flex w-full items-center space-x-3 rounded-lg px-3 py-2.5 text-xs text-gray-400 transition-all duration-200 hover:bg-red-900/30 hover:text-red-300"
             title="Logout"
           >
             <i className="fas fa-sign-out-alt w-4 text-center"></i>

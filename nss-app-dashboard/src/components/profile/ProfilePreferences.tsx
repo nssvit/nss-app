@@ -39,8 +39,8 @@ export function ProfilePreferences({ preferences, onPreferenceChange }: ProfileP
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Notification Preferences</h3>
-        <p className="text-sm text-gray-400 mb-4">
+        <h3 className="mb-4 text-lg font-semibold text-gray-100">Notification Preferences</h3>
+        <p className="mb-4 text-sm text-gray-400">
           These preferences are stored locally and will be saved when the settings feature is fully
           implemented.
         </p>

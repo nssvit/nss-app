@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ToastContainer } from '@/components/ui'
+import { useAuth } from '@/contexts/AuthContext'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { useToast } from '@/hooks/useToast'
-import { useAuth } from '@/contexts/AuthContext'
-import { ToastContainer } from '@/components/ui'
 import { validateEmail, validateRequired } from '@/utils/validation'
 
 const SETTINGS_KEY = 'nss_app_settings'
@@ -184,11 +184,11 @@ export function SettingsPage() {
   if (loading) {
     return (
       <div
-        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg ${layout.getContentPadding()}`}
+        className={`main-content-bg flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
       >
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
             <p className="text-gray-400">Loading settings...</p>
           </div>
         </div>
@@ -198,23 +198,23 @@ export function SettingsPage() {
 
   return (
     <div
-      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
     >
       {/* Settings Navigation */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row">
         {/* Sidebar Navigation */}
         <div className={`${layout.isMobile ? 'w-full' : 'w-64'} flex-shrink-0`}>
           <div className="card-glass rounded-xl p-4">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4">Settings</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-100">Settings</h3>
             <nav className="space-y-2">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-all focus-visible ${
+                  className={`focus-visible flex w-full items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
                     activeTab === tab.id
-                      ? 'bg-indigo-600/20 text-indigo-400 border-l-2 border-indigo-400'
-                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+                      ? 'border-l-2 border-indigo-400 bg-indigo-600/20 text-indigo-400'
+                      : 'text-gray-400 hover:bg-gray-800/30 hover:text-gray-200'
                   }`}
                 >
                   <i className={`${tab.icon} w-4 text-center`}></i>
@@ -232,42 +232,42 @@ export function SettingsPage() {
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4">General Settings</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-100">General Settings</h3>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
                         Organization Name
                       </label>
                       <input
                         type="text"
                         value={settings.general.organizationName}
                         onChange={(e) => updateGeneralSetting('organizationName', e.target.value)}
-                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.organizationName ? 'border-2 border-red-500' : ''}`}
+                        className={`input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none ${errors.organizationName ? 'border-2 border-red-500' : ''}`}
                       />
                       {errors.organizationName && (
-                        <p className="text-red-400 text-xs mt-1">{errors.organizationName}</p>
+                        <p className="mt-1 text-xs text-red-400">{errors.organizationName}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
                         Contact Email
                       </label>
                       <input
                         type="email"
                         value={settings.general.email}
                         onChange={(e) => updateGeneralSetting('email', e.target.value)}
-                        className={`input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible ${errors.email ? 'border-2 border-red-500' : ''}`}
+                        className={`input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none ${errors.email ? 'border-2 border-red-500' : ''}`}
                       />
-                      {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+                      {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
                         Timezone
                       </label>
                       <select
                         value={settings.general.timezone}
                         onChange={(e) => updateGeneralSetting('timezone', e.target.value)}
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                        className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                       >
                         <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
                         <option value="UTC">UTC</option>
@@ -276,13 +276,13 @@ export function SettingsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
                         Language
                       </label>
                       <select
                         value={settings.general.language}
                         onChange={(e) => updateGeneralSetting('language', e.target.value)}
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                        className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                       >
                         <option value="en">English</option>
                         <option value="hi">Hindi</option>
@@ -299,7 +299,7 @@ export function SettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-100">
                     Notification Settings
                   </h3>
                   <div className="space-y-4">
@@ -407,7 +407,7 @@ export function SettingsPage() {
             {activeTab === 'security' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4">Security Settings</h3>
+                  <h3 className="mb-4 text-lg font-semibold text-gray-100">Security Settings</h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -425,38 +425,38 @@ export function SettingsPage() {
                         <span className="toggle-slider"></span>
                       </button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-300">
                           Password Expiry (days)
                         </label>
                         <input
                           type="number"
                           value={settings.security.passwordExpiry}
                           onChange={(e) => updateSecuritySetting('passwordExpiry', e.target.value)}
-                          className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                          className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-300">
                           Session Timeout (minutes)
                         </label>
                         <input
                           type="number"
                           value={settings.security.sessionTimeout}
                           onChange={(e) => updateSecuritySetting('sessionTimeout', e.target.value)}
-                          className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                          className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="mb-2 block text-sm font-medium text-gray-300">
                           Max Login Attempts
                         </label>
                         <input
                           type="number"
                           value={settings.security.loginAttempts}
                           onChange={(e) => updateSecuritySetting('loginAttempts', e.target.value)}
-                          className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                          className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                         />
                       </div>
                     </div>
@@ -469,19 +469,19 @@ export function SettingsPage() {
             {activeTab === 'privacy' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4">
+                  <h3 className="mb-4 text-lg font-semibold text-gray-100">
                     Privacy & Data Settings
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
                         Data Retention Period (days)
                       </label>
                       <input
                         type="number"
                         value={settings.privacy.dataRetention}
                         onChange={(e) => updatePrivacySetting('dataRetention', e.target.value)}
-                        className="input-dark w-full text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+                        className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                       />
                     </div>
                     <div className="flex items-center justify-between">
@@ -528,37 +528,37 @@ export function SettingsPage() {
             {activeTab === 'integrations' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4">Integrations</h3>
+                  <h3 className="mb-4 text-lg font-semibold text-gray-100">Integrations</h3>
                   <div className="space-y-4">
-                    <div className="p-4 bg-gray-800/30 rounded-lg">
+                    <div className="rounded-lg bg-gray-800/30 p-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-medium text-gray-200">Google Calendar</h4>
                           <p className="text-xs text-gray-500">Sync events with Google Calendar</p>
                         </div>
-                        <button className="pwa-button button-glass-secondary px-3 py-1 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-secondary focus-visible rounded px-3 py-1 text-sm">
                           Connect
                         </button>
                       </div>
                     </div>
-                    <div className="p-4 bg-gray-800/30 rounded-lg">
+                    <div className="rounded-lg bg-gray-800/30 p-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-medium text-gray-200">Slack</h4>
                           <p className="text-xs text-gray-500">Send notifications to Slack</p>
                         </div>
-                        <button className="pwa-button button-glass-secondary px-3 py-1 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-secondary focus-visible rounded px-3 py-1 text-sm">
                           Connect
                         </button>
                       </div>
                     </div>
-                    <div className="p-4 bg-gray-800/30 rounded-lg">
+                    <div className="rounded-lg bg-gray-800/30 p-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-medium text-gray-200">Microsoft Teams</h4>
                           <p className="text-xs text-gray-500">Integrate with Microsoft Teams</p>
                         </div>
-                        <button className="pwa-button button-glass-secondary px-3 py-1 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-secondary focus-visible rounded px-3 py-1 text-sm">
                           Connect
                         </button>
                       </div>
@@ -572,33 +572,33 @@ export function SettingsPage() {
             {activeTab === 'backup' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-100 mb-4">Backup & Export</h3>
+                  <h3 className="mb-4 text-lg font-semibold text-gray-100">Backup & Export</h3>
                   <div className="space-y-4">
-                    <div className="p-4 bg-gray-800/30 rounded-lg">
-                      <h4 className="font-medium text-gray-200 mb-2">Database Backup</h4>
-                      <p className="text-sm text-gray-400 mb-3">
+                    <div className="rounded-lg bg-gray-800/30 p-4">
+                      <h4 className="mb-2 font-medium text-gray-200">Database Backup</h4>
+                      <p className="mb-3 text-sm text-gray-400">
                         Last backup: {new Date().toLocaleDateString()} at{' '}
                         {new Date().toLocaleTimeString()}
                       </p>
                       <div className="flex space-x-2">
-                        <button className="pwa-button button-glass-primary px-4 py-2 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-primary focus-visible rounded px-4 py-2 text-sm">
                           Create Backup
                         </button>
-                        <button className="pwa-button button-glass-secondary px-4 py-2 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-secondary focus-visible rounded px-4 py-2 text-sm">
                           Download
                         </button>
                       </div>
                     </div>
-                    <div className="p-4 bg-gray-800/30 rounded-lg">
-                      <h4 className="font-medium text-gray-200 mb-2">Export Data</h4>
-                      <p className="text-sm text-gray-400 mb-3">
+                    <div className="rounded-lg bg-gray-800/30 p-4">
+                      <h4 className="mb-2 font-medium text-gray-200">Export Data</h4>
+                      <p className="mb-3 text-sm text-gray-400">
                         Export all your data in various formats
                       </p>
                       <div className="flex space-x-2">
-                        <button className="pwa-button button-glass-secondary px-4 py-2 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-secondary focus-visible rounded px-4 py-2 text-sm">
                           Export CSV
                         </button>
-                        <button className="pwa-button button-glass-secondary px-4 py-2 text-sm rounded focus-visible">
+                        <button className="pwa-button button-glass-secondary focus-visible rounded px-4 py-2 text-sm">
                           Export JSON
                         </button>
                       </div>
@@ -609,10 +609,10 @@ export function SettingsPage() {
             )}
 
             {/* Save Button */}
-            <div className="flex justify-end pt-6 border-t border-gray-700/30">
+            <div className="flex justify-end border-t border-gray-700/30 pt-6">
               <button
                 onClick={handleSave}
-                className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-6 py-2 rounded-lg text-sm font-medium focus-visible"
+                className="pwa-button button-glass-primary hover-lift focus-visible flex items-center space-x-2 rounded-lg px-6 py-2 text-sm font-medium"
               >
                 <i className="fas fa-save fa-sm"></i>
                 <span>Save Settings</span>

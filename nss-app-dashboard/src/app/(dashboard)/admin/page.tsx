@@ -5,9 +5,9 @@
  * Only accessible to users with admin role
  */
 
-import { AdminDashboard } from '@/components/dashboards/AdminDashboard'
-import { ProtectedRoute } from '@/components/auth'
 import { useRouter } from 'next/navigation'
+import { ProtectedRoute } from '@/components/auth'
+import { AdminDashboard } from '@/components/dashboards/AdminDashboard'
 
 export default function AdminDashboardPage() {
   const router = useRouter()

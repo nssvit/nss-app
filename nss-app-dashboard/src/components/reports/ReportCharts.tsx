@@ -28,10 +28,10 @@ interface ReportChartsProps {
 
 export function ReportCharts({ chartData, categoryData, isMobile }: ReportChartsProps) {
   return (
-    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 mb-6`}>
+    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} mb-6 gap-6`}>
       {/* Activity Trend Chart */}
       <div className="card-glass rounded-xl p-4">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Activity Trend</h3>
+        <h3 className="mb-4 text-lg font-semibold text-gray-100">Activity Trend</h3>
         <div className="h-64">
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -64,7 +64,7 @@ export function ReportCharts({ chartData, categoryData, isMobile }: ReportCharts
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
+            <div className="flex h-full items-center justify-center text-gray-400">
               No data available
             </div>
           )}
@@ -73,7 +73,7 @@ export function ReportCharts({ chartData, categoryData, isMobile }: ReportCharts
 
       {/* Category Distribution Chart */}
       <div className="card-glass rounded-xl p-4">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Category Distribution</h3>
+        <h3 className="mb-4 text-lg font-semibold text-gray-100">Category Distribution</h3>
         <div className="h-64">
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -104,7 +104,7 @@ export function ReportCharts({ chartData, categoryData, isMobile }: ReportCharts
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
+            <div className="flex h-full items-center justify-center text-gray-400">
               No data available
             </div>
           )}

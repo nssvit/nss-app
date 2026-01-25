@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Toast } from './types'
 import { TOAST_VARIANTS } from './config'
+import { Toast } from './types'
 
 interface ToastItemProps {
   toast: Toast
@@ -25,24 +25,21 @@ export function ToastItem({ toast, onRemove }: ToastItemProps) {
 
   return (
     <div
-      className={`card-glass rounded-lg p-4 flex items-start gap-3 shadow-lg transition-all duration-300 ${
-        isLeaving ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
+      className={`card-glass flex items-start gap-3 rounded-lg p-4 shadow-lg transition-all duration-300 ${
+        isLeaving ? 'translate-x-full opacity-0' : 'translate-x-0 opacity-100'
       }`}
       style={{
         minWidth: '320px',
         maxWidth: '420px',
-        background: 'var(--bg-surface)'
+        background: 'var(--bg-surface)',
       }}
     >
       {/* Icon */}
       <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg"
         style={{ background: config.iconBg }}
       >
-        <i
-          className={`fas ${displayIcon} text-lg`}
-          style={{ color: config.iconColor }}
-        ></i>
+        <i className={`fas ${displayIcon} text-lg`} style={{ color: config.iconColor }}></i>
       </div>
 
       {/* Message */}

@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
+import { Skeleton, EmptyState } from '@/components/ui'
+import { usePagination } from '@/hooks'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { useVolunteers } from '@/hooks/useVolunteers'
-import Image from 'next/image'
 import { getStatusBadgeClass } from '@/utils/styles/badges'
-import { Skeleton } from '@/components/ui'
-import { EmptyState } from '@/components/ui'
 import { FilterBar, FilterSelect } from './FilterBar'
-import { usePagination } from '@/hooks'
 
 interface Volunteer {
   id: string
@@ -69,18 +68,18 @@ export function VolunteersPage() {
 
   return (
     <div
-      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
     >
       {/* ... (Search and Filters) */}
 
       {/* ... (Action Bar) */}
 
       {/* Volunteers List */}
-      <div className="card-glass rounded-xl overflow-hidden">
+      <div className="card-glass overflow-hidden rounded-xl">
         {/* Table Header */}
-        <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
+        <div className="border-b border-gray-700/30 bg-gray-800/30 px-4 py-3">
           <div
-            className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-8'} gap-4 items-center`}
+            className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-8'} items-center gap-4`}
           >
             {!layout.isMobile && (
               <>
@@ -114,7 +113,7 @@ export function VolunteersPage() {
         {/* Table Body */}
         <div className="divide-y divide-gray-700/30">
           {filteredVolunteers.map((volunteer) => (
-            <div key={volunteer.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
+            <div key={volunteer.id} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
               {layout.isMobile ? (
                 // Mobile Layout
                 <div className="space-y-3">
@@ -130,7 +129,7 @@ export function VolunteersPage() {
                       alt={`${volunteer.first_name} ${volunteer.last_name}`}
                       width={40}
                       height={40}
-                      className="w-10 h-10 rounded-full"
+                      className="h-10 w-10 rounded-full"
                     />
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-200">
@@ -159,7 +158,7 @@ export function VolunteersPage() {
                 </div>
               ) : (
                 // Desktop Layout
-                <div className="grid grid-cols-8 gap-4 items-center">
+                <div className="grid grid-cols-8 items-center gap-4">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -174,10 +173,10 @@ export function VolunteersPage() {
                       alt={`${volunteer.first_name} ${volunteer.last_name}`}
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full"
+                      className="h-8 w-8 rounded-full"
                     />
                     <div>
-                      <div className="font-medium text-gray-200 text-sm">
+                      <div className="text-sm font-medium text-gray-200">
                         {volunteer.first_name} {volunteer.last_name}
                       </div>
                       <div className="text-xs text-gray-500">{volunteer.email}</div>
@@ -200,26 +199,26 @@ export function VolunteersPage() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-6 safe-area-bottom">
+      <div className="safe-area-bottom mt-6 flex justify-center">
         <nav className={`flex ${layout.isMobile ? 'space-x-1' : 'space-x-2'}`}>
           <button
-            className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed pwa-button focus-visible`}
+            className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} pwa-button focus-visible rounded-lg disabled:cursor-not-allowed disabled:opacity-50`}
             disabled
           >
             {layout.isMobile ? '‹' : 'Previous'}
           </button>
           <button
-            className={`pagination-button active ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
+            className={`pagination-button active ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} pwa-button focus-visible rounded-lg`}
           >
             1
           </button>
           <button
-            className={`pagination-button ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
+            className={`pagination-button ${layout.isMobile ? 'px-3 py-2 text-sm' : 'px-3 py-2 text-sm'} pwa-button focus-visible rounded-lg`}
           >
             2
           </button>
           <button
-            className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} rounded-lg pwa-button focus-visible`}
+            className={`pagination-button ${layout.isMobile ? 'px-2 py-2 text-sm' : 'px-3 py-2 text-sm'} pwa-button focus-visible rounded-lg`}
           >
             {layout.isMobile ? '›' : 'Next'}
           </button>

@@ -75,20 +75,20 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'var(--modal-backdrop)' }}
       onClick={onCancel}
     >
       {/* Dialog */}
       <div
-        className="card-elevated rounded-xl max-w-md w-full p-6 animate-scale-in"
+        className="card-elevated animate-scale-in w-full max-w-md rounded-xl p-6"
         onClick={(e) => e.stopPropagation()}
         style={{ background: 'var(--modal-bg)' }}
       >
         {/* Icon */}
-        <div className="flex justify-center mb-4">
+        <div className="mb-4 flex justify-center">
           <div
-            className="w-16 h-16 rounded-full flex items-center justify-center"
+            className="flex h-16 w-16 items-center justify-center rounded-full"
             style={{ background: config.iconBg }}
           >
             <i className={`fas ${displayIcon} text-2xl`} style={{ color: config.iconColor }}></i>
@@ -96,10 +96,10 @@ export function ConfirmDialog({
         </div>
 
         {/* Title */}
-        <h3 className="text-heading-3 text-center mb-2">{title}</h3>
+        <h3 className="text-heading-3 mb-2 text-center">{title}</h3>
 
         {/* Message */}
-        <p className="text-body text-center mb-6" style={{ color: 'var(--text-secondary)' }}>
+        <p className="text-body mb-6 text-center" style={{ color: 'var(--text-secondary)' }}>
           {message}
         </p>
 

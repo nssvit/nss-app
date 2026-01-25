@@ -1,5 +1,5 @@
-import { createClient } from '@/utils/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
 
 /**
  * OAuth Callback Route Handler

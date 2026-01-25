@@ -3,8 +3,8 @@
  * Provides volunteer-related database operations
  */
 
-import { db } from '../index'
 import { eq, sql } from 'drizzle-orm'
+import { db } from '../index'
 import { volunteers, userRoles, type Volunteer } from '../schema'
 
 /**

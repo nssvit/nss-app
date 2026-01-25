@@ -46,15 +46,15 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
 
   return (
     <div
-      className={`fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 animate-slide-up ${getToastStyles()} border backdrop-blur-sm rounded-lg shadow-lg px-4 py-3 max-w-sm`}
+      className={`animate-slide-up fixed right-4 bottom-4 z-50 md:right-6 md:bottom-6 ${getToastStyles()} max-w-sm rounded-lg border px-4 py-3 shadow-lg backdrop-blur-sm`}
       role="alert"
     >
       <div className="flex items-center space-x-3">
-        <i className={`${getIcon()} text-white text-lg`}></i>
-        <p className="text-white text-sm font-medium flex-1">{message}</p>
+        <i className={`${getIcon()} text-lg text-white`}></i>
+        <p className="flex-1 text-sm font-medium text-white">{message}</p>
         <button
           onClick={onClose}
-          className="text-white/80 hover:text-white transition-colors focus:outline-none"
+          className="text-white/80 transition-colors hover:text-white focus:outline-none"
           aria-label="Close notification"
         >
           <i className="fas fa-times"></i>
@@ -75,7 +75,7 @@ export interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   return (
-    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 space-y-2">
+    <div className="fixed right-4 bottom-4 z-50 space-y-2 md:right-6 md:bottom-6">
       {toasts.map((toast) => (
         <Toast
           key={toast.id}

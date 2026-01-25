@@ -48,7 +48,7 @@ export function EmptyState({
       </h3>
       {description && (
         <p
-          className={`${classes.description} max-w-md mb-6`}
+          className={`${classes.description} mb-6 max-w-md`}
           style={{ color: 'var(--text-tertiary)' }}
         >
           {description}

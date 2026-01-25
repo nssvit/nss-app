@@ -1,10 +1,10 @@
 import { relations } from 'drizzle-orm'
-import { volunteers } from './volunteers'
-import { events } from './events'
-import { eventParticipation } from './eventParticipation'
 import { eventCategories } from './eventCategories'
+import { eventParticipation } from './eventParticipation'
+import { events } from './events'
 import { roleDefinitions } from './roleDefinitions'
 import { userRoles } from './userRoles'
+import { volunteers } from './volunteers'
 
 // Volunteer relations
 export const volunteersRelations = relations(volunteers, ({ many }) => ({

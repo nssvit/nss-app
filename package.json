@@ -13,15 +13,22 @@
     "lint:fix": "cd nss-app-dashboard && npm run lint:fix"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "^5"
   },
   "lint-staged": {
-    "nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
+    "nss-app-dashboard/src/**/*.{ts,tsx}": [
+      "npx --prefix nss-app-dashboard eslint --fix",
+      "prettier --write"
+    ],
+    "nss-app-dashboard/src/**/*.{js,jsx,json,css,md}": "prettier --write"
   }
 }

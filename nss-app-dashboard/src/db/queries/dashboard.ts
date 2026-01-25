@@ -3,8 +3,8 @@
  * Provides dashboard-specific statistics and activity trends
  */
 
-import { db } from '../index'
 import { eq, and, sql, count, sum } from 'drizzle-orm'
+import { db } from '../index'
 import { volunteers, events, eventParticipation } from '../schema'
 
 /**

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { useCategories, Category, CategoryWithStats } from '@/hooks/useCategories'
 import { Skeleton } from '@/components/ui'
+import { useCategories, Category, CategoryWithStats } from '@/hooks/useCategories'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { useToast } from '@/hooks/useToast'
 
 interface CategoryModalProps {
@@ -74,17 +74,17 @@ function CategoryModal({ isOpen, onClose, onSubmit, initialData, mode }: Categor
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 p-6 rounded-2xl shadow-2xl w-full max-w-lg">
-        <div className="flex justify-between items-center mb-6">
+      <div className="w-full max-w-lg rounded-2xl border border-gray-700/50 bg-gray-900/95 p-6 shadow-2xl backdrop-blur-xl">
+        <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-100">
             {mode === 'create' ? 'Create Category' : 'Edit Category'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-white text-2xl leading-none p-1"
+            className="p-1 text-2xl leading-none text-gray-500 hover:text-white"
           >
             ×
           </button>
@@ -92,11 +92,11 @@ function CategoryModal({ isOpen, onClose, onSubmit, initialData, mode }: Categor
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Category Name</label>
+            <label className="mb-2 block text-sm font-medium text-gray-300">Category Name</label>
             <input
               type="text"
               required
-              className="input-dark w-full text-sm rounded-lg px-4 py-3"
+              className="input-dark w-full rounded-lg px-4 py-3 text-sm"
               placeholder="e.g., Community Service"
               value={formData.category_name}
               onChange={(e) => handleCategoryNameChange(e.target.value)}
@@ -104,25 +104,25 @@ function CategoryModal({ isOpen, onClose, onSubmit, initialData, mode }: Categor
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Code (Internal)</label>
+            <label className="mb-2 block text-sm font-medium text-gray-300">Code (Internal)</label>
             <input
               type="text"
               required
-              className="input-dark w-full text-sm rounded-lg px-4 py-3"
+              className="input-dark w-full rounded-lg px-4 py-3 text-sm"
               placeholder="e.g., community-service"
               value={formData.code}
               onChange={(e) => setFormData((prev) => ({ ...prev, code: e.target.value }))}
               disabled={mode === 'edit'}
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="mt-1 text-xs text-gray-500">
               Lowercase with hyphens, auto-generated from name
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+            <label className="mb-2 block text-sm font-medium text-gray-300">Description</label>
             <textarea
-              className="input-dark w-full text-sm rounded-lg px-4 py-3 resize-none"
+              className="input-dark w-full resize-none rounded-lg px-4 py-3 text-sm"
               rows={3}
               placeholder="Describe this category..."
               value={formData.description}
@@ -136,7 +136,7 @@ function CategoryModal({ isOpen, onClose, onSubmit, initialData, mode }: Categor
               id="is_active"
               checked={formData.is_active}
               onChange={(e) => setFormData((prev) => ({ ...prev, is_active: e.target.checked }))}
-              className="w-4 h-4 rounded"
+              className="h-4 w-4 rounded"
             />
             <label htmlFor="is_active" className="text-sm text-gray-300">
               Active
@@ -147,14 +147,14 @@ function CategoryModal({ isOpen, onClose, onSubmit, initialData, mode }: Categor
             <button
               type="button"
               onClick={onClose}
-              className="button-glass-secondary hover-lift px-4 py-2 text-sm rounded-lg"
+              className="button-glass-secondary hover-lift rounded-lg px-4 py-2 text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="button-glass-primary hover-lift px-4 py-2 text-sm rounded-lg disabled:opacity-50"
+              className="button-glass-primary hover-lift rounded-lg px-4 py-2 text-sm disabled:opacity-50"
             >
               {submitting ? 'Saving...' : mode === 'create' ? 'Create Category' : 'Save Changes'}
             </button>
@@ -289,13 +289,13 @@ export function CategoryManagementPage() {
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <i className="fas fa-exclamation-circle text-4xl text-red-400 mb-4"></i>
+          <i className="fas fa-exclamation-circle mb-4 text-4xl text-red-400"></i>
           <p className="text-gray-400">{error}</p>
           <button
             onClick={fetchCategories}
-            className="mt-4 button-glass-primary px-4 py-2 rounded-lg"
+            className="button-glass-primary mt-4 rounded-lg px-4 py-2"
           >
             Retry
           </button>
@@ -306,10 +306,10 @@ export function CategoryManagementPage() {
 
   return (
     <div
-      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
     >
       {/* Stats Row */}
-      <div className={`grid ${layout.isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mb-6`}>
+      <div className={`grid ${layout.isMobile ? 'grid-cols-2' : 'grid-cols-4'} mb-6 gap-4`}>
         {loading ? (
           <>
             <Skeleton className="h-24 rounded-xl" />
@@ -330,20 +330,20 @@ export function CategoryManagementPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="relative flex-1 min-w-0">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="relative min-w-0 flex-1">
           <input
             type="text"
             placeholder="Search categories..."
-            className="input-dark text-sm rounded-lg py-2 px-3 pl-9 w-full"
+            className="input-dark w-full rounded-lg px-3 py-2 pl-9 text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
+          <i className="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 transform text-sm text-gray-500"></i>
         </div>
 
         <select
-          className="input-dark text-sm rounded-lg py-2 px-3"
+          className="input-dark rounded-lg px-3 py-2 text-sm"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as '' | 'active' | 'inactive')}
         >
@@ -357,21 +357,21 @@ export function CategoryManagementPage() {
             setSearchTerm('')
             setStatusFilter('')
           }}
-          className="text-gray-500 hover:text-gray-300 text-sm py-2 px-3"
+          className="px-3 py-2 text-sm text-gray-500 hover:text-gray-300"
         >
           Clear
         </button>
       </div>
 
       {/* Action Bar */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => {
               setEditingCategory(undefined)
               setShowModal(true)
             }}
-            className="button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium"
+            className="button-glass-primary hover-lift flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium"
           >
             <i className="fas fa-plus fa-sm"></i>
             <span>Create Category</span>
@@ -381,7 +381,7 @@ export function CategoryManagementPage() {
         <div className="flex items-center space-x-2">
           <button
             onClick={fetchCategories}
-            className="action-button text-gray-400 hover:text-gray-200 p-2 rounded-lg"
+            className="action-button rounded-lg p-2 text-gray-400 hover:text-gray-200"
           >
             <i className="fas fa-sync"></i>
           </button>
@@ -395,21 +395,21 @@ export function CategoryManagementPage() {
         {loading ? (
           Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)
         ) : filteredCategories.length === 0 ? (
-          <div className="col-span-full card-glass rounded-xl p-8 text-center text-gray-400">
-            <i className="fas fa-folder-open text-4xl mb-3"></i>
+          <div className="card-glass col-span-full rounded-xl p-8 text-center text-gray-400">
+            <i className="fas fa-folder-open mb-3 text-4xl"></i>
             <p>No categories found</p>
           </div>
         ) : (
           filteredCategories.map((category) => (
             <div
               key={category.id}
-              className={`card-glass rounded-xl p-4 hover:bg-gray-800/30 transition-colors ${
+              className={`card-glass rounded-xl p-4 transition-colors hover:bg-gray-800/30 ${
                 !category.is_active ? 'opacity-60' : ''
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="mb-3 flex items-start justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-900/30">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-900/30">
                     <i className="fas fa-tag text-indigo-400"></i>
                   </div>
                   <div>
@@ -418,17 +418,17 @@ export function CategoryManagementPage() {
                   </div>
                 </div>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${
+                  className={`rounded-full px-2 py-1 text-xs ${
                     category.is_active
-                      ? 'text-green-400 bg-green-900/30'
-                      : 'text-red-400 bg-red-900/30'
+                      ? 'bg-green-900/30 text-green-400'
+                      : 'bg-red-900/30 text-red-400'
                   }`}
                 >
                   {category.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
 
-              <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+              <p className="mb-3 line-clamp-2 text-sm text-gray-400">
                 {category.description || 'No description'}
               </p>
 
@@ -446,14 +446,14 @@ export function CategoryManagementPage() {
                       setEditingCategory(category)
                       setShowModal(true)
                     }}
-                    className="text-gray-400 hover:text-blue-400 p-1 rounded"
+                    className="rounded p-1 text-gray-400 hover:text-blue-400"
                     title="Edit category"
                   >
                     <i className="fas fa-edit"></i>
                   </button>
                   <button
                     onClick={() => handleToggleActive(category)}
-                    className={`p-1 rounded ${
+                    className={`rounded p-1 ${
                       category.is_active
                         ? 'text-gray-400 hover:text-yellow-400'
                         : 'text-gray-400 hover:text-green-400'
@@ -465,7 +465,7 @@ export function CategoryManagementPage() {
                   {(category.event_count || 0) === 0 && (
                     <button
                       onClick={() => handleDeleteCategory(category)}
-                      className="text-gray-400 hover:text-red-400 p-1 rounded"
+                      className="rounded p-1 text-gray-400 hover:text-red-400"
                       title="Delete category"
                     >
                       <i className="fas fa-trash"></i>

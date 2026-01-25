@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { Skeleton } from '@/components/ui'
 import { useAttendance } from '@/hooks/useAttendance'
 import type { EventParticipant } from '@/hooks/useAttendance'
-import { Skeleton } from '@/components/ui'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 
 interface AttendanceRecord {
   id: string
@@ -144,11 +144,11 @@ export function AttendancePage() {
 
   return (
     <div
-      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
     >
       {/* Summary Cards */}
       <div
-        className={`grid ${layout.isMobile ? 'grid-cols-1' : layout.isTablet ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mb-6`}
+        className={`grid ${layout.isMobile ? 'grid-cols-1' : layout.isTablet ? 'grid-cols-2' : 'grid-cols-4'} mb-6 gap-4`}
       >
         {loading ? (
           <>
@@ -160,44 +160,44 @@ export function AttendancePage() {
         ) : (
           <>
             <div className="card-glass rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 rounded-lg bg-blue-900/30 flex items-center justify-center">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-900/30">
                   <i className="fas fa-calendar-check text-lg text-blue-400"></i>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-100 mb-1">{totalEvents}</h3>
+              <h3 className="mb-1 text-2xl font-bold text-gray-100">{totalEvents}</h3>
               <p className="text-sm text-gray-400">Total Events</p>
             </div>
 
             <div className="card-glass rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 rounded-lg bg-green-900/30 flex items-center justify-center">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-900/30">
                   <i className="fas fa-user-check text-lg text-green-400"></i>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-100 mb-1">{avgAttendance}%</h3>
+              <h3 className="mb-1 text-2xl font-bold text-gray-100">{avgAttendance}%</h3>
               <p className="text-sm text-gray-400">Avg. Attendance</p>
             </div>
 
             <div className="card-glass rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 rounded-lg bg-purple-900/30 flex items-center justify-center">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-900/30">
                   <i className="fas fa-users text-lg text-purple-400"></i>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-100 mb-1">
+              <h3 className="mb-1 text-2xl font-bold text-gray-100">
                 {totalParticipants.toLocaleString()}
               </h3>
               <p className="text-sm text-gray-400">Total Participants</p>
             </div>
 
             <div className="card-glass rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-12 h-12 rounded-lg bg-orange-900/30 flex items-center justify-center">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-900/30">
                   <i className="fas fa-clock text-lg text-orange-400"></i>
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-100 mb-1">
+              <h3 className="mb-1 text-2xl font-bold text-gray-100">
                 {totalHours.toLocaleString()}
               </h3>
               <p className="text-sm text-gray-400">Total Hours</p>
@@ -208,21 +208,21 @@ export function AttendancePage() {
 
       {/* Search and Filters */}
       <div
-        className={`flex flex-wrap items-center gap-3 mb-6 ${layout.isMobile ? 'px-0' : 'px-1'}`}
+        className={`mb-6 flex flex-wrap items-center gap-3 ${layout.isMobile ? 'px-0' : 'px-1'}`}
       >
-        <div className="relative flex-1 min-w-0">
+        <div className="relative min-w-0 flex-1">
           <input
             type="text"
             placeholder="Search events or participants..."
-            className="input-dark text-sm rounded-lg py-2 px-3 pl-9 focus:outline-none placeholder-gray-500 focus-visible w-full"
+            className="input-dark focus-visible w-full rounded-lg px-3 py-2 pl-9 text-sm placeholder-gray-500 focus:outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></i>
+          <i className="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 transform text-sm text-gray-500"></i>
         </div>
 
         <select
-          className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+          className="input-dark focus-visible rounded-lg px-3 py-2 text-sm focus:outline-none"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
         >
@@ -234,7 +234,7 @@ export function AttendancePage() {
 
         {selectedEvent && (
           <select
-            className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+            className="input-dark focus-visible rounded-lg px-3 py-2 text-sm focus:outline-none"
             value={attendanceFilter}
             onChange={(e) => setAttendanceFilter(e.target.value)}
           >
@@ -247,7 +247,7 @@ export function AttendancePage() {
         )}
 
         <button
-          className="text-gray-500 hover:text-gray-300 text-sm py-2 px-3 transition-colors focus-visible rounded"
+          className="focus-visible rounded px-3 py-2 text-sm text-gray-500 transition-colors hover:text-gray-300"
           onClick={clearFilters}
         >
           Clear
@@ -257,8 +257,8 @@ export function AttendancePage() {
       {/* Content Area */}
       <div className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
         {/* Events List */}
-        <div className="card-glass rounded-xl overflow-hidden">
-          <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
+        <div className="card-glass overflow-hidden rounded-xl">
+          <div className="border-b border-gray-700/30 bg-gray-800/30 px-4 py-3">
             <h3 className="text-lg font-semibold text-gray-100">Event Attendance</h3>
           </div>
           <div className="max-h-96 overflow-y-auto">
@@ -266,29 +266,29 @@ export function AttendancePage() {
               {filteredRecords.map((record) => (
                 <div
                   key={record.id}
-                  className={`px-4 py-3 hover:bg-gray-800/20 transition-colors cursor-pointer ${
+                  className={`cursor-pointer px-4 py-3 transition-colors hover:bg-gray-800/20 ${
                     selectedEvent === record.id ? 'bg-indigo-900/20' : ''
                   }`}
                   onClick={() => setSelectedEvent(record.id)}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-200 text-sm">{record.eventName}</h4>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-200">{record.eventName}</h4>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getStatusColor(record.status)}`}
+                      className={`rounded-full px-2 py-1 text-xs ${getStatusColor(record.status)}`}
                     >
                       {record.status}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mb-3">{record.eventDate}</p>
+                  <p className="mb-3 text-xs text-gray-500">{record.eventDate}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="text-xs">
                         <span className="text-gray-400">Registered:</span>
-                        <span className="text-gray-300 ml-1">{record.totalRegistered}</span>
+                        <span className="ml-1 text-gray-300">{record.totalRegistered}</span>
                       </div>
                       <div className="text-xs">
                         <span className="text-gray-400">Attended:</span>
-                        <span className="text-gray-300 ml-1">{record.totalAttended}</span>
+                        <span className="ml-1 text-gray-300">{record.totalAttended}</span>
                       </div>
                     </div>
                     <div
@@ -304,8 +304,8 @@ export function AttendancePage() {
         </div>
 
         {/* Participants List */}
-        <div className="card-glass rounded-xl overflow-hidden">
-          <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
+        <div className="card-glass overflow-hidden rounded-xl">
+          <div className="border-b border-gray-700/30 bg-gray-800/30 px-4 py-3">
             <h3 className="text-lg font-semibold text-gray-100">
               {selectedEvent
                 ? `Participants - ${attendanceRecords.find((r) => r.id === selectedEvent)?.eventName}`
@@ -336,17 +336,17 @@ export function AttendancePage() {
                   return (
                     <div
                       key={participant.participant_id || participant.participantId}
-                      className="px-4 py-3 hover:bg-gray-800/20 transition-colors"
+                      className="px-4 py-3 transition-colors hover:bg-gray-800/20"
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-medium text-white">
                           {name.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
-                            <h4 className="font-medium text-gray-200 text-sm">{name}</h4>
+                            <h4 className="text-sm font-medium text-gray-200">{name}</h4>
                             <span
-                              className={`text-xs px-2 py-1 rounded-full ${getAttendanceColor(attendanceStatus)}`}
+                              className={`rounded-full px-2 py-1 text-xs ${getAttendanceColor(attendanceStatus)}`}
                             >
                               {attendanceStatus}
                             </span>
@@ -354,7 +354,7 @@ export function AttendancePage() {
                           <p className="text-xs text-gray-500">
                             {rollNumber} | {hours}h attended
                           </p>
-                          <div className="flex items-center justify-between mt-1">
+                          <div className="mt-1 flex items-center justify-between">
                             <span className="text-xs text-gray-400">
                               {regDate
                                 ? `Registered: ${new Date(regDate).toLocaleDateString()}`
@@ -368,9 +368,9 @@ export function AttendancePage() {
                 })}
               </div>
             ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
+              <div className="flex h-64 items-center justify-center text-gray-500">
                 <div className="text-center">
-                  <i className="fas fa-users text-4xl mb-3"></i>
+                  <i className="fas fa-users mb-3 text-4xl"></i>
                   <p>Select an event to view participants</p>
                 </div>
               </div>
@@ -380,16 +380,16 @@ export function AttendancePage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center mt-6 space-x-3">
-        <button className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible">
+      <div className="mt-6 flex justify-center space-x-3">
+        <button className="pwa-button button-glass-primary hover-lift focus-visible flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium">
           <i className="fas fa-download fa-sm"></i>
           <span>Export Attendance</span>
         </button>
-        <button className="pwa-button button-glass-secondary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible">
+        <button className="pwa-button button-glass-secondary hover-lift focus-visible flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium">
           <i className="fas fa-user-check fa-sm"></i>
           <span>Mark Attendance</span>
         </button>
-        <button className="pwa-button button-glass-secondary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible">
+        <button className="pwa-button button-glass-secondary hover-lift focus-visible flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium">
           <i className="fas fa-chart-line fa-sm"></i>
           <span>View Analytics</span>
         </button>

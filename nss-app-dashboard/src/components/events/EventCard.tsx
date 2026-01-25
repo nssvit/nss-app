@@ -36,27 +36,27 @@ export function EventCard({
   canEdit = false,
 }: EventCardProps) {
   return (
-    <div className="card-glass card-interactive rounded-xl flex flex-col px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-3.5 h-full">
+    <div className="card-glass card-interactive flex h-full flex-col rounded-xl px-4 py-3.5 md:px-3.5 md:py-3 lg:px-4 lg:py-3.5">
       <div className="flex-grow">
-        <div className="flex justify-between items-start mb-3 md:mb-2">
+        <div className="mb-3 flex items-start justify-between md:mb-2">
           <h3 className="text-heading-4 truncate pr-2" title={title}>
             {title}
           </h3>
           <span className="text-caption whitespace-nowrap">{date}</span>
         </div>
         <p
-          className="text-body-sm mb-4 md:mb-3 leading-relaxed line-clamp-3 md:line-clamp-2"
+          className="text-body-sm mb-4 line-clamp-3 leading-relaxed md:mb-3 md:line-clamp-2"
           style={{ color: 'var(--text-tertiary)' }}
         >
           {description}
         </p>
-        <div className="flex flex-wrap items-center mb-4 md:mb-3 gap-2">
+        <div className="mb-4 flex flex-wrap items-center gap-2 md:mb-3">
           <span className={getCategoryBadgeClass(category)}>{category}</span>
           <span className="badge badge-success text-xs">{hours} Hrs</span>
         </div>
       </div>
       <div
-        className="flex items-center justify-between pt-3 border-t mt-auto"
+        className="mt-auto flex items-center justify-between border-t pt-3"
         style={{ borderColor: 'var(--border-subtle)' }}
       >
         <div className="flex items-center -space-x-2">
@@ -67,7 +67,7 @@ export function EventCard({
                   key={`avatar-${index}`}
                   src={participant.avatar}
                   alt={participant.alt}
-                  className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2"
+                  className="h-6 w-6 rounded-full border-2 md:h-5 md:w-5"
                   style={{ borderColor: 'var(--bg-primary)' }}
                   width={24}
                   height={24}
@@ -75,7 +75,7 @@ export function EventCard({
               ) : (
                 <div
                   key={`avatar-${index}`}
-                  className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2 bg-indigo-600 flex items-center justify-center text-white text-xs font-medium"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 bg-indigo-600 text-xs font-medium text-white md:h-5 md:w-5"
                   style={{ borderColor: 'var(--bg-primary)' }}
                   title={participant.alt}
                 >
@@ -88,10 +88,10 @@ export function EventCard({
               {[0, 1, 2].slice(0, Math.min(3, participantCount)).map((i) => (
                 <div
                   key={`placeholder-${i}`}
-                  className="w-6 h-6 md:w-5 md:h-5 rounded-full border-2 bg-gray-600 flex items-center justify-center"
+                  className="flex h-6 w-6 items-center justify-center rounded-full border-2 bg-gray-600 md:h-5 md:w-5"
                   style={{ borderColor: 'var(--bg-primary)' }}
                 >
-                  <i className="fas fa-user text-gray-400 text-xs"></i>
+                  <i className="fas fa-user text-xs text-gray-400"></i>
                 </div>
               ))}
             </div>

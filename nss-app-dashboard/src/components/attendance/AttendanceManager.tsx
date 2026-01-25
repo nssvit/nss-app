@@ -6,15 +6,15 @@
  */
 
 import { useState, useEffect } from 'react'
+import { Skeleton, ToastContainer } from '@/components/ui'
 import {
   useAttendance,
   ParticipationStatus,
   EventParticipant,
   EventForAttendance,
 } from '@/hooks/useAttendance'
-import { useToast } from '@/hooks/useToast'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { Skeleton, ToastContainer } from '@/components/ui'
+import { useToast } from '@/hooks/useToast'
 
 interface ParticipantWithSelection extends EventParticipant {
   selected: boolean
@@ -243,21 +243,21 @@ export function AttendanceManager() {
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div
-        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg ${layout.getContentPadding()}`}
+        className={`main-content-bg flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
       >
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-100 mb-2">Attendance Manager</h1>
+          <h1 className="mb-2 text-2xl font-bold text-gray-100">Attendance Manager</h1>
           <p className="text-gray-400">Mark attendance for events</p>
         </div>
 
         {/* Event Selection */}
-        <div className="card-glass rounded-xl p-4 mb-6">
-          <label className="block text-sm font-medium text-gray-300 mb-2">Select Event</label>
+        <div className="card-glass mb-6 rounded-xl p-4">
+          <label className="mb-2 block text-sm font-medium text-gray-300">Select Event</label>
           {loadingEvents ? (
             <Skeleton className="h-10 w-full rounded-lg" />
           ) : (
             <select
-              className="input-dark w-full rounded-lg py-2 px-3"
+              className="input-dark w-full rounded-lg px-3 py-2"
               value={selectedEvent?.id || ''}
               onChange={(e) => {
                 const event = events.find((ev) => ev.id === e.target.value)
@@ -276,7 +276,7 @@ export function AttendanceManager() {
 
         {/* Selected Event Info */}
         {selectedEvent && (
-          <div className="card-glass rounded-xl p-4 mb-6">
+          <div className="card-glass mb-6 rounded-xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-100">{selectedEvent.event_name}</h2>
@@ -307,14 +307,14 @@ export function AttendanceManager() {
 
         {/* Bulk Actions */}
         {selectedEvent && participants.length > 0 && (
-          <div className="card-glass rounded-xl p-4 mb-6">
+          <div className="card-glass mb-6 rounded-xl p-4">
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={selectAll}
                   onChange={(e) => handleSelectAll(e.target.checked)}
-                  className="w-4 h-4 rounded"
+                  className="h-4 w-4 rounded"
                 />
                 <span className="text-sm text-gray-300">Select All ({selectedCount} selected)</span>
               </div>
@@ -334,7 +334,7 @@ export function AttendanceManager() {
               <button
                 onClick={handleBulkMarkPresent}
                 disabled={saving || selectedCount === 0}
-                className="button-glass-primary px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                className="button-glass-primary rounded-lg px-4 py-2 text-sm disabled:opacity-50"
               >
                 <i className="fas fa-check mr-2"></i>
                 Mark {selectedCount} as Present
@@ -343,7 +343,7 @@ export function AttendanceManager() {
               <button
                 onClick={handleSaveAll}
                 disabled={saving}
-                className="button-glass-secondary px-4 py-2 rounded-lg text-sm disabled:opacity-50"
+                className="button-glass-secondary rounded-lg px-4 py-2 text-sm disabled:opacity-50"
               >
                 <i className="fas fa-save mr-2"></i>
                 Save All Changes
@@ -359,11 +359,11 @@ export function AttendanceManager() {
               <input
                 type="text"
                 placeholder="Search by name or roll number..."
-                className="input-dark w-full rounded-lg py-2 px-3 pl-9"
+                className="input-dark w-full rounded-lg px-3 py-2 pl-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <i className="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+              <i className="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 transform text-gray-500"></i>
             </div>
           </div>
         )}
@@ -377,7 +377,7 @@ export function AttendanceManager() {
           </div>
         ) : selectedEvent && filteredParticipants.length === 0 ? (
           <div className="card-glass rounded-xl p-8 text-center text-gray-400">
-            <i className="fas fa-users-slash text-4xl mb-3"></i>
+            <i className="fas fa-users-slash mb-3 text-4xl"></i>
             <p>No participants found</p>
           </div>
         ) : (
@@ -397,12 +397,12 @@ export function AttendanceManager() {
                     onChange={(e) =>
                       handleSelectParticipant(participant.participant_id, e.target.checked)
                     }
-                    className="w-4 h-4 rounded mt-1"
+                    className="mt-1 h-4 w-4 rounded"
                   />
 
                   {/* Participant Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center gap-2">
                       <span className="font-medium text-gray-200">
                         {participant.volunteer_name}
                       </span>
@@ -455,7 +455,7 @@ export function AttendanceManager() {
                   <button
                     onClick={() => handleSaveIndividual(participant)}
                     disabled={saving}
-                    className="text-indigo-400 hover:text-indigo-300 p-2"
+                    className="p-2 text-indigo-400 hover:text-indigo-300"
                     title="Save"
                   >
                     <i className="fas fa-save"></i>

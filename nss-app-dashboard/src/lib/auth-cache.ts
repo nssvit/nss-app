@@ -6,8 +6,8 @@
  */
 
 import { cache } from 'react'
-import { createClient } from '@/utils/supabase/server'
 import { queries } from '@/db/queries'
+import { createClient } from '@/utils/supabase/server'
 
 export type CachedUser = {
   id: string

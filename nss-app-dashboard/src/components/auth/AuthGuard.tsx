@@ -1,8 +1,8 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { AuthForm } from './AuthForm'
-import { useState, useEffect } from 'react'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -46,16 +46,16 @@ export function AuthGuard({ children }: AuthGuardProps) {
   if (isTimedOut || authError) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="flex min-h-screen items-center justify-center"
         style={{
           background: 'linear-gradient(135deg, #070709 0%, #0c0c0e 50%, #131315 100%)',
         }}
       >
-        <div className="flex flex-col items-center space-y-6 max-w-md px-6 text-center">
+        <div className="flex max-w-md flex-col items-center space-y-6 px-6 text-center">
           {/* Error Icon */}
-          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
             <svg
-              className="w-8 h-8 text-red-400"
+              className="h-8 w-8 text-red-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -80,12 +80,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <button
               onClick={retryAuth}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+              className="flex items-center justify-center space-x-2 rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition-colors hover:bg-indigo-700"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -101,7 +101,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
                 window.localStorage.clear()
                 window.location.href = '/'
               }}
-              className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg font-medium transition-colors"
+              className="rounded-lg bg-gray-700 px-6 py-3 font-medium text-gray-200 transition-colors hover:bg-gray-600"
             >
               Sign Out & Reset
             </button>
@@ -120,25 +120,25 @@ export function AuthGuard({ children }: AuthGuardProps) {
   if (loading) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="flex min-h-screen items-center justify-center"
         style={{
           background: 'linear-gradient(135deg, #070709 0%, #0c0c0e 50%, #131315 100%)',
         }}
       >
         <div className="flex flex-col items-center space-y-4">
           {/* Spinner */}
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
 
           {/* Loading Text */}
           <p className="text-gray-400">Loading NSS Dashboard{loadingDots}</p>
 
           {/* Extended Loading Message */}
           {showExtendedMessage && (
-            <div className="mt-4 text-center space-y-3">
+            <div className="mt-4 space-y-3 text-center">
               <p className="text-sm text-gray-500">This is taking longer than usual...</p>
               <button
                 onClick={retryAuth}
-                className="text-sm text-indigo-400 hover:text-indigo-300 underline transition-colors"
+                className="text-sm text-indigo-400 underline transition-colors hover:text-indigo-300"
               >
                 Click here to refresh
               </button>

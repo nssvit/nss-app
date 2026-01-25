@@ -3,8 +3,8 @@
  * Provides event-related database operations
  */
 
-import { db } from '../index'
 import { eq, and, sql, gte, count } from 'drizzle-orm'
+import { db } from '../index'
 import { events, eventParticipation, type Event } from '../schema'
 
 /**

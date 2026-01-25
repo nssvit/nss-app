@@ -3,8 +3,8 @@
  * Provides attendance-related database operations
  */
 
-import { db } from '../index'
 import { eq, and, sql, count, inArray } from 'drizzle-orm'
+import { db } from '../index'
 import { events, eventParticipation } from '../schema'
 
 /**

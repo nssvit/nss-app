@@ -82,8 +82,4 @@ export {
 } from './reports'
 
 // Category actions
-export {
-  getCategories,
-  getCategoryById,
-  getCategoryByCode,
-} from './categories'
+export { getCategories, getCategoryById, getCategoryByCode } from './categories'

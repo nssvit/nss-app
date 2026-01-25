@@ -5,8 +5,8 @@
  * Default dashboard for all authenticated users
  */
 
-import { VolunteerDashboard } from '@/components/dashboards/VolunteerDashboard'
 import { useRouter } from 'next/navigation'
+import { VolunteerDashboard } from '@/components/dashboards/VolunteerDashboard'
 
 export default function VolunteerDashboardPage() {
   const router = useRouter()

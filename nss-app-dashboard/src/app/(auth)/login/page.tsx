@@ -1,9 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { AuthForm } from '@/components/auth'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 
 export default function LoginPage() {
   const { user, loading } = useAuth()
@@ -18,12 +18,12 @@ export default function LoginPage() {
   if (loading) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="flex min-h-screen items-center justify-center"
         style={{
           background: 'linear-gradient(135deg, #070709 0%, #0c0c0e 50%, #131315 100%)',
         }}
       >
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     )
   }

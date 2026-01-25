@@ -7,11 +7,11 @@
  */
 
 import { useState } from 'react'
-import { Sidebar, UserProfileHeader } from '@/components/layout'
+import { usePathname, useRouter } from 'next/navigation'
 import { AuthGuard } from '@/components/auth'
+import { Sidebar, UserProfileHeader } from '@/components/layout'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { usePathname, useRouter } from 'next/navigation'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -68,18 +68,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         />
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col header-bg">
+        <main className="header-bg flex flex-1 flex-col">
           {/* Responsive Top Bar */}
           <header
-            className={`flex items-center justify-between border-b border-gray-700/30 sticky top-0 z-20 header-bg safe-area-top ${
-              layout.isMobile ? 'mobile-header px-4 py-3' : 'px-5 py-4 h-16'
+            className={`header-bg safe-area-top sticky top-0 z-20 flex items-center justify-between border-b border-gray-700/30 ${
+              layout.isMobile ? 'mobile-header px-4 py-3' : 'h-16 px-5 py-4'
             }`}
           >
-            <div className="flex items-center space-x-3 h-8">
+            <div className="flex h-8 items-center space-x-3">
               {/* Mobile menu button */}
               {layout.isMobile && (
                 <button
-                  className="pwa-button text-gray-400 hover:text-gray-200 p-2 mr-2"
+                  className="pwa-button mr-2 p-2 text-gray-400 hover:text-gray-200"
                   onClick={layout.toggleMobileMenu}
                 >
                   <i className="fas fa-bars text-lg"></i>
@@ -103,7 +103,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Header Actions */}
             <div className={`flex items-center ${layout.isMobile ? 'space-x-2' : 'space-x-3'}`}>
               <ThemeToggle />
-              <button className="pwa-button action-button hover-lift text-gray-400 hover:text-gray-200 p-2 rounded-lg focus-visible">
+              <button className="pwa-button action-button hover-lift focus-visible rounded-lg p-2 text-gray-400 hover:text-gray-200">
                 <i className={`far fa-bell ${layout.isMobile ? 'text-base' : 'fa-sm'}`}></i>
               </button>
               <UserProfileHeader />

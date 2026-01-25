@@ -38,7 +38,7 @@ export function RoleDefinitionsTable({
   if (roles.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-gray-400">
-        <i className="fas fa-cog text-4xl mb-3"></i>
+        <i className="fas fa-cog mb-3 text-4xl"></i>
         <p>No roles found</p>
       </div>
     )
@@ -47,7 +47,7 @@ export function RoleDefinitionsTable({
   return (
     <div className="divide-y divide-gray-700/30">
       {roles.map((role) => (
-        <div key={role.id} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
+        <div key={role.id} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
           {isMobile ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -56,7 +56,7 @@ export function RoleDefinitionsTable({
                   <p className="text-xs text-gray-500">{role.role_name}</p>
                 </div>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${role.is_active ? 'text-green-400 bg-green-900/30' : 'text-red-400 bg-red-900/30'}`}
+                  className={`rounded-full px-2 py-1 text-xs ${role.is_active ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}
                 >
                   {role.is_active ? 'Active' : 'Inactive'}
                 </span>
@@ -67,14 +67,14 @@ export function RoleDefinitionsTable({
                 <div className="flex space-x-2">
                   <button
                     onClick={() => onEdit(role)}
-                    className="text-blue-400 hover:text-blue-300 p-1"
+                    className="p-1 text-blue-400 hover:text-blue-300"
                   >
                     <i className="fas fa-edit"></i>
                   </button>
                   {role.is_active && (
                     <button
                       onClick={() => onDeactivate(role.id)}
-                      className="text-red-400 hover:text-red-300 p-1"
+                      className="p-1 text-red-400 hover:text-red-300"
                     >
                       <i className="fas fa-ban"></i>
                     </button>
@@ -83,17 +83,17 @@ export function RoleDefinitionsTable({
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-5 gap-4 items-center">
+            <div className="grid grid-cols-5 items-center gap-4">
               <div>
-                <div className="font-medium text-gray-200 text-sm">{role.display_name}</div>
+                <div className="text-sm font-medium text-gray-200">{role.display_name}</div>
                 <div className="text-xs text-gray-500">{role.role_name}</div>
               </div>
-              <div className="col-span-2 text-sm text-gray-400 truncate">
+              <div className="col-span-2 truncate text-sm text-gray-400">
                 {role.description || 'No description'}
               </div>
               <div>
                 <span
-                  className={`text-xs px-2 py-1 rounded-full ${role.is_active ? 'text-green-400 bg-green-900/30' : 'text-red-400 bg-red-900/30'}`}
+                  className={`rounded-full px-2 py-1 text-xs ${role.is_active ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}
                 >
                   {role.is_active ? 'Active' : 'Inactive'}
                 </span>
@@ -101,7 +101,7 @@ export function RoleDefinitionsTable({
               <div className="flex space-x-2">
                 <button
                   onClick={() => onEdit(role)}
-                  className="text-gray-400 hover:text-blue-400 p-1 rounded"
+                  className="rounded p-1 text-gray-400 hover:text-blue-400"
                   title="Edit role"
                 >
                   <i className="fas fa-edit"></i>
@@ -109,7 +109,7 @@ export function RoleDefinitionsTable({
                 {role.is_active && (
                   <button
                     onClick={() => onDeactivate(role.id)}
-                    className="text-gray-400 hover:text-red-400 p-1 rounded"
+                    className="rounded p-1 text-gray-400 hover:text-red-400"
                     title="Deactivate role"
                   >
                     <i className="fas fa-ban"></i>

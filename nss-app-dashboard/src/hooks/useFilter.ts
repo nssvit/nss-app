@@ -38,6 +38,6 @@ export function useFilter<T>(items: T[]) {
     removeFilter,
     clearFilters,
     setFilter,
-    hasFilters: filters.length > 0
+    hasFilters: filters.length > 0,
   }
 }

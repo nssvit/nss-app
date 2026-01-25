@@ -65,7 +65,7 @@ export function Pagination({
       {/* Mobile: Current page indicator */}
       {isMobile && (
         <span
-          className="flex items-center px-3 text-body-sm"
+          className="text-body-sm flex items-center px-3"
           style={{ color: 'var(--text-secondary)' }}
         >
           {currentPage} / {totalPages}

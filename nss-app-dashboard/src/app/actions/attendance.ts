@@ -1,15 +1,18 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { createClient } from '@/utils/supabase/server'
-import { revalidatePath } from 'next/cache'
 
 /**
  * Auth helper - ensures user is authenticated
  */
 async function requireAuth() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error || !user) {
     throw new Error('Unauthorized: Please sign in')

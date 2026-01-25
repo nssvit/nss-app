@@ -1,11 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
-import { useToast } from '@/hooks/useToast'
-import { useDashboardStats } from '@/hooks/useDashboardStats'
-import { useReports } from '@/hooks/useReports'
-import { ToastContainer, Skeleton } from '@/components/ui'
 import {
   LineChart,
   Line,
@@ -19,6 +14,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { ToastContainer, Skeleton } from '@/components/ui'
+import { useDashboardStats } from '@/hooks/useDashboardStats'
+import { useReports } from '@/hooks/useReports'
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
+import { useToast } from '@/hooks/useToast'
 
 export function ReportsPage() {
   const layout = useResponsiveLayout()
@@ -185,16 +185,16 @@ export function ReportsPage() {
 
   return (
     <div
-      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+      className={`main-content-bg mobile-scroll safe-area-bottom flex-1 overflow-x-hidden overflow-y-auto ${layout.getContentPadding()}`}
     >
       {/* Header Controls */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
           {reportTypes.map((type) => (
             <button
               key={type.id}
               onClick={() => setSelectedReport(type.id)}
-              className={`pwa-button flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium focus-visible ${
+              className={`pwa-button focus-visible flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium ${
                 selectedReport === type.id ? 'button-glass-primary' : 'button-glass-secondary'
               }`}
             >
@@ -206,7 +206,7 @@ export function ReportsPage() {
 
         <div className="flex items-center space-x-3">
           <select
-            className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible"
+            className="input-dark focus-visible rounded-lg px-3 py-2 text-sm focus:outline-none"
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value)}
           >
@@ -218,7 +218,7 @@ export function ReportsPage() {
           </select>
           <button
             onClick={() => handleExport('pdf')}
-            className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible"
+            className="pwa-button button-glass-primary hover-lift focus-visible flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium"
           >
             <i className="fas fa-download fa-sm"></i>
             <span>Export</span>
@@ -228,13 +228,13 @@ export function ReportsPage() {
 
       {/* Metrics Grid */}
       <div
-        className={`grid ${layout.isMobile ? 'grid-cols-1' : layout.isTablet ? 'grid-cols-2' : 'grid-cols-4'} gap-4 mb-6`}
+        className={`grid ${layout.isMobile ? 'grid-cols-1' : layout.isTablet ? 'grid-cols-2' : 'grid-cols-4'} mb-6 gap-4`}
       >
         {metrics.map((metric, index) => (
           <div key={index} className="card-glass rounded-xl p-4 md:p-5">
-            <div className="flex items-center justify-between mb-3">
+            <div className="mb-3 flex items-center justify-between">
               <div
-                className={`w-12 h-12 rounded-lg bg-gray-800/50 flex items-center justify-center ${metric.color}`}
+                className={`flex h-12 w-12 items-center justify-center rounded-lg bg-gray-800/50 ${metric.color}`}
               >
                 <i className={`${metric.icon} text-lg`}></i>
               </div>
@@ -249,17 +249,17 @@ export function ReportsPage() {
                 <span>{metric.change}</span>
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-gray-100 mb-1">{metric.value}</h3>
+            <h3 className="mb-1 text-2xl font-bold text-gray-100">{metric.value}</h3>
             <p className="text-sm text-gray-400">{metric.title}</p>
           </div>
         ))}
       </div>
 
       {/* Charts Section */}
-      <div className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6 mb-6`}>
+      <div className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-2'} mb-6 gap-6`}>
         {/* Monthly Trends Chart */}
         <div className="card-glass rounded-xl p-5">
-          <h3 className="text-lg font-semibold text-gray-100 mb-4">Monthly Trends</h3>
+          <h3 className="mb-4 text-lg font-semibold text-gray-100">Monthly Trends</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -281,18 +281,18 @@ export function ReportsPage() {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
-                          <p className="text-[var(--text-primary)] font-medium mb-2">{label}</p>
+                        <div className="rounded-lg border border-[var(--border-medium)] bg-[var(--bg-surface)] p-3 shadow-xl backdrop-blur-md">
+                          <p className="mb-2 font-medium text-[var(--text-primary)]">{label}</p>
                           {payload.map((entry: any, index: number) => (
                             <div key={index} className="flex items-center gap-2 text-sm">
                               <div
-                                className="w-2 h-2 rounded-full"
+                                className="h-2 w-2 rounded-full"
                                 style={{ backgroundColor: entry.color }}
                               />
                               <span className="text-[var(--text-secondary)] capitalize">
                                 {entry.name}:
                               </span>
-                              <span className="text-[var(--text-primary)] font-semibold">
+                              <span className="font-semibold text-[var(--text-primary)]">
                                 {entry.value}
                               </span>
                             </div>
@@ -327,7 +327,7 @@ export function ReportsPage() {
 
         {/* Category Distribution */}
         <div className="card-glass rounded-xl p-5">
-          <h3 className="text-lg font-semibold text-gray-100 mb-4">Event Categories</h3>
+          <h3 className="mb-4 text-lg font-semibold text-gray-100">Event Categories</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -350,14 +350,14 @@ export function ReportsPage() {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload
                       return (
-                        <div className="bg-[var(--bg-surface)] backdrop-blur-md border border-[var(--border-medium)] rounded-lg p-3 shadow-xl">
+                        <div className="rounded-lg border border-[var(--border-medium)] bg-[var(--bg-surface)] p-3 shadow-xl backdrop-blur-md">
                           <div className="flex items-center gap-2 text-sm">
                             <div
-                              className="w-2 h-2 rounded-full"
+                              className="h-2 w-2 rounded-full"
                               style={{ backgroundColor: data.fill || data.color }}
                             />
                             <span className="text-[var(--text-secondary)]">{data.name}:</span>
-                            <span className="text-[var(--text-primary)] font-semibold">
+                            <span className="font-semibold text-[var(--text-primary)]">
                               {data.value}%
                             </span>
                           </div>
@@ -376,8 +376,8 @@ export function ReportsPage() {
       {/* Data Tables */}
       <div className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
         {/* Top Events */}
-        <div className="card-glass rounded-xl overflow-hidden">
-          <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
+        <div className="card-glass overflow-hidden rounded-xl">
+          <div className="border-b border-gray-700/30 bg-gray-800/30 px-4 py-3">
             <h3 className="text-lg font-semibold text-gray-100">Top Events by Impact</h3>
           </div>
           <div className="divide-y divide-gray-700/30">
@@ -389,11 +389,11 @@ export function ReportsPage() {
               </>
             ) : formattedTopEvents.length > 0 ? (
               formattedTopEvents.map((event, index) => (
-                <div key={index} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-200 text-sm">{event.name}</h4>
+                <div key={index} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
+                  <div className="mb-2 flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-200">{event.name}</h4>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${getImpactColor(event.impact)}`}
+                      className={`rounded-full px-2 py-1 text-xs ${getImpactColor(event.impact)}`}
                     >
                       {event.impact}
                     </span>
@@ -405,24 +405,24 @@ export function ReportsPage() {
                 </div>
               ))
             ) : (
-              <p className="text-caption text-center py-4">No events data</p>
+              <p className="text-caption py-4 text-center">No events data</p>
             )}
           </div>
         </div>
 
         {/* Recent Reports */}
-        <div className="card-glass rounded-xl overflow-hidden">
-          <div className="bg-gray-800/30 px-4 py-3 border-b border-gray-700/30">
+        <div className="card-glass overflow-hidden rounded-xl">
+          <div className="border-b border-gray-700/30 bg-gray-800/30 px-4 py-3">
             <h3 className="text-lg font-semibold text-gray-100">Recent Reports</h3>
           </div>
           <div className="divide-y divide-gray-700/30">
             {recentReports.map((report, index) => (
-              <div key={index} className="px-4 py-3 hover:bg-gray-800/20 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-gray-200 text-sm">{report.name}</h4>
+              <div key={index} className="px-4 py-3 transition-colors hover:bg-gray-800/20">
+                <div className="mb-2 flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-gray-200">{report.name}</h4>
                   <button
                     onClick={() => handleDownloadReport(report.name)}
-                    className="pwa-button action-button text-indigo-400 hover:text-indigo-300 p-1 rounded focus-visible"
+                    className="pwa-button action-button focus-visible rounded p-1 text-indigo-400 hover:text-indigo-300"
                   >
                     <i className="fas fa-download text-sm"></i>
                   </button>
@@ -438,12 +438,12 @@ export function ReportsPage() {
       </div>
 
       {/* Generate Report Section */}
-      <div className="card-glass rounded-xl p-5 mt-6">
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Generate Custom Report</h3>
+      <div className="card-glass mt-6 rounded-xl p-5">
+        <h3 className="mb-4 text-lg font-semibold text-gray-100">Generate Custom Report</h3>
         <div className={`grid ${layout.isMobile ? 'grid-cols-1' : 'grid-cols-3'} gap-4`}>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Report Type</label>
-            <select className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible w-full">
+            <label className="mb-2 block text-sm font-medium text-gray-300">Report Type</label>
+            <select className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option>Event Summary</option>
               <option>Volunteer Analysis</option>
               <option>Attendance Report</option>
@@ -451,8 +451,8 @@ export function ReportsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Date Range</label>
-            <select className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible w-full">
+            <label className="mb-2 block text-sm font-medium text-gray-300">Date Range</label>
+            <select className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option>Last 30 Days</option>
               <option>Last 3 Months</option>
               <option>Last 6 Months</option>
@@ -461,18 +461,18 @@ export function ReportsPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Format</label>
-            <select className="input-dark text-sm rounded-lg py-2 px-3 focus:outline-none focus-visible w-full">
+            <label className="mb-2 block text-sm font-medium text-gray-300">Format</label>
+            <select className="input-dark focus-visible w-full rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option>PDF</option>
               <option>Excel</option>
               <option>CSV</option>
             </select>
           </div>
         </div>
-        <div className="flex justify-end mt-4">
+        <div className="mt-4 flex justify-end">
           <button
             onClick={handleGenerateReport}
-            className="pwa-button button-glass-primary hover-lift flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium focus-visible"
+            className="pwa-button button-glass-primary hover-lift focus-visible flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium"
           >
             <i className="fas fa-chart-bar fa-sm"></i>
             <span>Generate Report</span>
