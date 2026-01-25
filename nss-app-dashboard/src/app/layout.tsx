@@ -1,11 +1,11 @@
-import type { Metadata, Viewport } from 'next'
-import './globals.css'
+import { Inter, JetBrains_Mono } from 'next/font/google'
+import { CommandPalette } from '@/components/CommandPalette'
 import { PWAManager } from '@/components/PWAManager'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { ThemeProvider } from '@/contexts/ThemeContext'
 import { DashboardCacheProvider } from '@/contexts/DashboardCacheContext'
-import { CommandPalette } from '@/components/CommandPalette'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import type { Viewport } from 'next'
+import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 const jetbrainsMono = JetBrains_Mono({

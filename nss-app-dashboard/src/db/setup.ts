@@ -14,13 +14,13 @@
  */
 
 import 'dotenv/config'
-import { config } from 'dotenv'
-config({ path: '.env.local' })
-
 import { execSync } from 'child_process'
 import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
+import { config } from 'dotenv'
 import postgres from 'postgres'
+
+config({ path: '.env.local' })
 
 const MIGRATIONS_DIR = join(__dirname, 'migrations')
 

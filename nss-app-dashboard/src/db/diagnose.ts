@@ -5,9 +5,9 @@
 
 import 'dotenv/config'
 import { config } from 'dotenv'
-config({ path: '.env.local' })
-
 import postgres from 'postgres'
+
+config({ path: '.env.local' })
 
 async function diagnose() {
   console.log('🔍 NSS App Database Diagnostics\n')

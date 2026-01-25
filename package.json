@@ -25,10 +25,6 @@
     "typescript": "^5"
   },
   "lint-staged": {
-    "nss-app-dashboard/src/**/*.{ts,tsx}": [
-      "npx --prefix nss-app-dashboard eslint --fix",
-      "prettier --write"
-    ],
-    "nss-app-dashboard/src/**/*.{js,jsx,json,css,md}": "prettier --write"
+    "nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
   }
 }
