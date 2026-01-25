@@ -12,11 +12,11 @@
   /* Slate 600 */
 
   /* Background Colors - Dark Mode (Deep Navy/Slate) */
-  --bg-primary: #0B0C15;
+  --bg-primary: #0b0c15;
   /* Deepest Navy */
   --bg-secondary: #121420;
   /* Slightly lighter */
-  --bg-tertiary: #1A1D2D;
+  --bg-tertiary: #1a1d2d;
   /* Card bg base */
   --bg-surface: rgba(26, 29, 45, 0.4);
   /* Glass base */
@@ -82,11 +82,21 @@
 
   /* Modal */
   --modal-backdrop: rgba(11, 12, 21, 0.8);
-  --modal-bg: #1A1D2D;
+  --modal-bg: #1a1d2d;
 
-  /* Shadows */
+  /* Shadows - Minimal (Swiss Design: prefer borders over shadows) */
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   --shadow-glass-hover: 0 12px 40px 0 rgba(99, 102, 241, 0.08);
+
+  /* Role Badge Colors */
+  --role-admin: rgba(239, 68, 68, 0.2);
+  --role-admin-text: #f87171;
+  --role-officer: rgba(168, 85, 247, 0.2);
+  --role-officer-text: #a855f7;
+  --role-lead: rgba(59, 130, 246, 0.2);
+  --role-lead-text: #3b82f6;
+  --role-volunteer: rgba(34, 197, 94, 0.2);
+  --role-volunteer-text: #22c55e;
 }
 
 .light {
@@ -172,8 +182,7 @@
   --modal-bg: #ffffff;
 
   /* Shadows (Enhanced Depth) */
-  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.12),
-                  0 4px 16px -2px rgba(0, 0, 0, 0.08);
-  --shadow-glass-hover: 0 12px 48px -6px rgba(99, 102, 241, 0.15),
-                        0 8px 24px -4px rgba(0, 0, 0, 0.1);
+  --shadow-glass: 0 8px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 16px -2px rgba(0, 0, 0, 0.08);
+  --shadow-glass-hover:
+    0 12px 48px -6px rgba(99, 102, 241, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.1);
 }

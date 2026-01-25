@@ -13,9 +13,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useProfile } from '@/hooks/useProfile'
 import { updateProfilePicture } from '@/app/actions/volunteers'
 import { supabase } from '@/lib/supabase' // Only for storage uploads
-import { ToastContainer } from '@/components/Toast'
+import { ToastContainer, Skeleton } from '@/components/ui'
 import { validateEmail, validatePhone, validateRequired } from '@/utils/validation'
-import { Skeleton } from '../Skeleton'
 import { ProfileHeader } from './ProfileHeader'
 import { ProfileStats } from './ProfileStats'
 import { ProfileForm } from './ProfileForm'
@@ -42,7 +41,14 @@ export function ProfilePage() {
   const layout = useResponsiveLayout()
   const { currentUser } = useAuth()
   const { toasts, removeToast, success, error } = useToast()
-  const { profileData: hookProfileData, stats: hookStats, participationHistory: hookHistory, loading: hookLoading, updateProfile, refetch } = useProfile()
+  const {
+    profileData: hookProfileData,
+    stats: hookStats,
+    participationHistory: hookHistory,
+    loading: hookLoading,
+    updateProfile,
+    refetch,
+  } = useProfile()
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('profile')
   const [saving, setSaving] = useState(false)
@@ -51,16 +57,33 @@ export function ProfilePage() {
 
   // Use hook data or fall back to currentUser
   const [profileData, setProfileData] = useState<ProfileData>({
-    firstName: '', lastName: '', email: '', phoneNo: '', branch: '',
-    year: 0, rollNumber: '', address: '', birthDate: '', gender: '',
-    nssJoinYear: 0, profilePic: null,
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNo: '',
+    branch: '',
+    year: 0,
+    rollNumber: '',
+    address: '',
+    birthDate: '',
+    gender: '',
+    nssJoinYear: 0,
+    profilePic: null,
   })
 
-  const [stats, setStats] = useState<Stats>({ totalHours: 0, approvedHours: 0, eventsParticipated: 0, pendingReviews: 0 })
+  const [stats, setStats] = useState<Stats>({
+    totalHours: 0,
+    approvedHours: 0,
+    eventsParticipated: 0,
+    pendingReviews: 0,
+  })
   const [participationHistory, setParticipationHistory] = useState<ParticipationHistory[]>([])
   const [monthlyActivity, setMonthlyActivity] = useState<MonthlyActivity[]>([])
   const [preferences, setPreferences] = useState<Preferences>({
-    emailNotifications: true, smsNotifications: false, eventReminders: true, newsletter: true,
+    emailNotifications: true,
+    smsNotifications: false,
+    eventReminders: true,
+    newsletter: true,
   })
 
   // Sync hook data to local state
@@ -101,11 +124,17 @@ export function ProfilePage() {
       const now = new Date()
       for (let i = 5; i >= 0; i--) {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        monthlyData[date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })] = { events: 0, hours: 0 }
+        monthlyData[date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })] = {
+          events: 0,
+          hours: 0,
+        }
       }
       hookHistory.forEach((p) => {
         if (p.eventDate) {
-          const key = new Date(p.eventDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+          const key = new Date(p.eventDate).toLocaleDateString('en-US', {
+            month: 'short',
+            year: '2-digit',
+          })
           if (monthlyData[key]) {
             monthlyData[key].events += 1
             monthlyData[key].hours += p.hoursAttended
@@ -117,8 +146,16 @@ export function ProfilePage() {
   }, [hookHistory])
 
   const handleAvatarChange = async (file: File) => {
-    if (!currentUser?.volunteer_id || file.size > 5 * 1024 * 1024 || !file.type.startsWith('image/')) {
-      error(file.size > 5 * 1024 * 1024 ? 'File size must be less than 5MB' : 'Please select an image file')
+    if (
+      !currentUser?.volunteer_id ||
+      file.size > 5 * 1024 * 1024 ||
+      !file.type.startsWith('image/')
+    ) {
+      error(
+        file.size > 5 * 1024 * 1024
+          ? 'File size must be less than 5MB'
+          : 'Please select an image file'
+      )
       return
     }
     try {
@@ -126,10 +163,14 @@ export function ProfilePage() {
       const fileName = `profile-pics/${currentUser.volunteer_id}-${Date.now()}.${file.name.split('.').pop()}`
 
       // Use Supabase Storage for file upload (acceptable - this is file storage, not data)
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true })
       if (uploadError) throw uploadError
 
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName)
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
       // Update profile pic URL via Server Action (Drizzle)
       await updateProfilePicture(publicUrl)
@@ -153,7 +194,8 @@ export function ProfilePage() {
     if (!validateRequired(profileData.firstName)) newErrors.firstName = 'First name is required'
     if (!validateRequired(profileData.lastName)) newErrors.lastName = 'Last name is required'
     if (!validateEmail(profileData.email)) newErrors.email = 'Please enter a valid email address'
-    if (profileData.phoneNo && !validatePhone(profileData.phoneNo)) newErrors.phoneNo = 'Please enter a valid phone number'
+    if (profileData.phoneNo && !validatePhone(profileData.phoneNo))
+      newErrors.phoneNo = 'Please enter a valid phone number'
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) {
       error('Please fix the errors')
@@ -186,11 +228,15 @@ export function ProfilePage() {
 
   if (loading) {
     return (
-      <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg ${layout.getContentPadding()}`}>
+      <div
+        className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg ${layout.getContentPadding()}`}
+      >
         <div className="max-w-6xl mx-auto">
           <Skeleton className="h-48 rounded-xl mb-6" />
           <div className="grid grid-cols-4 gap-4 mb-6">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
           </div>
           <Skeleton className="h-96 rounded-xl" />
         </div>
@@ -199,27 +245,56 @@ export function ProfilePage() {
   }
 
   return (
-    <div className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}>
+    <div
+      className={`flex-1 overflow-x-hidden overflow-y-auto main-content-bg mobile-scroll safe-area-bottom ${layout.getContentPadding()}`}
+    >
       <div className="max-w-6xl mx-auto">
-        <ProfileHeader profileData={profileData} roles={currentUser?.roles || []} isMobile={layout.isMobile} uploading={uploading} onAvatarChange={handleAvatarChange} />
+        <ProfileHeader
+          profileData={profileData}
+          roles={currentUser?.roles || []}
+          isMobile={layout.isMobile}
+          uploading={uploading}
+          onAvatarChange={handleAvatarChange}
+        />
         <ProfileStats stats={stats} isMobile={layout.isMobile} />
 
         <div className="card-glass rounded-xl overflow-hidden">
           <div className="flex border-b border-gray-700/30 overflow-x-auto">
             {TABS.map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium transition-all focus-visible whitespace-nowrap min-w-[100px] ${
-                  activeTab === tab.id ? 'bg-indigo-600/20 text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
-                }`}>
-                <i className={`${tab.icon} fa-sm`}></i><span>{tab.name}</span>
+                  activeTab === tab.id
+                    ? 'bg-indigo-600/20 text-indigo-400 border-b-2 border-indigo-400'
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/30'
+                }`}
+              >
+                <i className={`${tab.icon} fa-sm`}></i>
+                <span>{tab.name}</span>
               </button>
             ))}
           </div>
           <div className="p-6">
-            {activeTab === 'profile' && <ProfileForm profileData={profileData} errors={errors} saving={saving} onFieldChange={handleFieldChange} onSave={handleSave} />}
-            {activeTab === 'activity' && <ProfileActivity monthlyActivity={monthlyActivity} stats={stats} />}
+            {activeTab === 'profile' && (
+              <ProfileForm
+                profileData={profileData}
+                errors={errors}
+                saving={saving}
+                onFieldChange={handleFieldChange}
+                onSave={handleSave}
+              />
+            )}
+            {activeTab === 'activity' && (
+              <ProfileActivity monthlyActivity={monthlyActivity} stats={stats} />
+            )}
             {activeTab === 'history' && <ProfileHistory history={participationHistory} />}
-            {activeTab === 'preferences' && <ProfilePreferences preferences={preferences} onPreferenceChange={(k, v) => setPreferences((p) => ({ ...p, [k]: v }))} />}
+            {activeTab === 'preferences' && (
+              <ProfilePreferences
+                preferences={preferences}
+                onPreferenceChange={(k, v) => setPreferences((p) => ({ ...p, [k]: v }))}
+              />
+            )}
           </div>
         </div>
       </div>

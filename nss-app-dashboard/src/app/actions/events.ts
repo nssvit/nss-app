@@ -1,22 +1,8 @@
 'use server'
 
 import { queries } from '@/db/queries'
-import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-
-/**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
+import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -54,7 +40,7 @@ export interface UpdateEventInput {
  * Get all events with participant stats
  */
 export async function getEvents() {
-  await requireAuth()
+  await getAuthUser() // Cached auth check
   return queries.getEventsWithStats()
 }
 
@@ -62,7 +48,7 @@ export async function getEvents() {
  * Get a single event by ID with full details
  */
 export async function getEventById(eventId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getEventById(eventId)
 }
 
@@ -70,7 +56,7 @@ export async function getEventById(eventId: string) {
  * Get upcoming events
  */
 export async function getUpcomingEvents(limit?: number) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getUpcomingEvents(limit)
 }
 
@@ -78,14 +64,7 @@ export async function getUpcomingEvents(limit?: number) {
  * Create a new event
  */
 export async function createEvent(data: CreateEventInput) {
-  const user = await requireAuth()
-
-  // Get the volunteer ID for the current user
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-
+  const volunteer = await getCurrentVolunteer() // Gets cached volunteer
   const result = await queries.createEvent(data, volunteer.id)
   revalidatePath('/events')
   return result
@@ -95,7 +74,7 @@ export async function createEvent(data: CreateEventInput) {
  * Update an event
  */
 export async function updateEvent(eventId: string, updates: UpdateEventInput) {
-  await requireAuth()
+  await getAuthUser()
   const result = await queries.updateEvent(eventId, updates)
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
@@ -106,7 +85,7 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
  * Delete (soft-delete) an event
  */
 export async function deleteEvent(eventId: string) {
-  await requireAuth()
+  await getAuthUser()
   const result = await queries.deleteEvent(eventId)
   revalidatePath('/events')
   return result
@@ -116,7 +95,7 @@ export async function deleteEvent(eventId: string) {
  * Get event participants
  */
 export async function getEventParticipants(eventId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getEventParticipants(eventId)
 }
 
@@ -124,13 +103,7 @@ export async function getEventParticipants(eventId: string) {
  * Register for an event
  */
 export async function registerForEvent(eventId: string, declaredHours?: number) {
-  const user = await requireAuth()
-
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-
+  const volunteer = await getCurrentVolunteer()
   const result = await queries.registerForEvent(eventId, volunteer.id, declaredHours)
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
@@ -141,8 +114,10 @@ export async function registerForEvent(eventId: string, declaredHours?: number) 
  * Check if registration is possible for an event
  */
 export async function canRegisterForEvent(eventId: string) {
-  const user = await requireAuth()
-
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-  return queries.canRegisterForEvent(eventId, volunteer?.id)
+  try {
+    const volunteer = await getCurrentVolunteer()
+    return queries.canRegisterForEvent(eventId, volunteer.id)
+  } catch {
+    return queries.canRegisterForEvent(eventId)
+  }
 }

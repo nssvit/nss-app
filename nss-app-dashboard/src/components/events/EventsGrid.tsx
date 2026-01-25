@@ -5,9 +5,9 @@
  * Grid display of event cards
  */
 
-import { EventCard } from '../EventCard'
-import { Skeleton } from '../Skeleton'
-import { EmptyState } from '../EmptyState'
+import { EventCard } from './EventCard'
+import { Skeleton } from '@/components/ui'
+import { EmptyState } from '@/components/ui'
 import type { Event } from './types'
 
 interface EventsGridProps {

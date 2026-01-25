@@ -7,7 +7,7 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useHeadsDashboard } from '@/hooks/useHeadsDashboard'
-import { StatsCard } from '@/components/StatsCard'
+import { StatsCard } from '@/components/ui'
 
 interface HeadsDashboardProps {
   onNavigate?: (page: string) => void
@@ -43,7 +43,8 @@ export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
           Welcome, {currentUser?.first_name}!
         </h1>
         <p className="text-gray-400">
-          {getRoleDisplayName(currentUser?.roles || [])} Dashboard - Manage events and track volunteer progress
+          {getRoleDisplayName(currentUser?.roles || [])} Dashboard - Manage events and track
+          volunteer progress
         </p>
       </div>
 
@@ -98,21 +99,15 @@ export function HeadsDashboard({ onNavigate }: HeadsDashboardProps) {
                 className="p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors"
               >
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-gray-100 truncate pr-2">
-                    {event.event_name}
-                  </h4>
+                  <h4 className="font-medium text-gray-100 truncate pr-2">{event.event_name}</h4>
                   <span className="text-xs text-gray-400 whitespace-nowrap">
                     {new Date(event.event_date || event.start_date).toLocaleDateString()}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-400">
-                    {event.participant_count || 0} participants
-                  </span>
-                  <span className="text-indigo-400">
-                    {event.declared_hours} hours
-                  </span>
+                  <span className="text-gray-400">{event.participant_count || 0} participants</span>
+                  <span className="text-indigo-400">{event.declared_hours} hours</span>
                 </div>
               </div>
             ))}

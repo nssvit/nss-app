@@ -1,0 +1,219 @@
+/**
+ * Event Queries
+ * Provides event-related database operations
+ */
+
+import { db } from '../index'
+import { eq, and, sql, gte, count } from 'drizzle-orm'
+import { events, eventParticipation, type Event } from '../schema'
+
+/**
+ * Get all events with statistics
+ * Replaces: get_events_with_stats RPC function
+ */
+export async function getEventsWithStats() {
+  const result = await db.execute(sql`
+    SELECT
+      e.id,
+      e.event_name,
+      e.description,
+      e.start_date,
+      e.end_date,
+      e.event_date,
+      e.location,
+      e.max_participants,
+      e.min_participants,
+      e.registration_deadline,
+      e.event_status,
+      e.category_id,
+      e.created_by_volunteer_id,
+      e.is_active,
+      e.created_at,
+      e.updated_at,
+      COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int as participant_count,
+      COALESCE(SUM(ep.approved_hours), 0)::int as total_hours,
+      ec.category_name,
+      ec.color_hex as category_color
+    FROM events e
+    LEFT JOIN event_participation ep ON e.id = ep.event_id
+    LEFT JOIN event_categories ec ON e.category_id = ec.id
+    WHERE e.is_active = true
+    GROUP BY e.id, ec.category_name, ec.color_hex
+    ORDER BY e.created_at DESC
+  `)
+
+  return result as unknown[]
+}
+
+/**
+ * Get a single event by ID with full details
+ */
+export async function getEventById(eventId: string) {
+  const result = await db.query.events.findFirst({
+    where: eq(events.id, eventId),
+    with: {
+      category: true,
+      createdBy: true,
+      participations: {
+        with: {
+          volunteer: true,
+        },
+      },
+    },
+  })
+
+  return result
+}
+
+/**
+ * Get upcoming events
+ */
+export async function getUpcomingEvents(limit: number = 10) {
+  const result = await db.query.events.findMany({
+    where: and(eq(events.isActive, true), gte(events.startDate, sql`CURRENT_DATE`)),
+    with: {
+      category: true,
+      createdBy: true,
+    },
+    orderBy: [events.startDate],
+    limit,
+  })
+
+  return result
+}
+
+/**
+ * Create event (server-side version)
+ * Replaces: create_event RPC function
+ */
+export async function createEvent(
+  eventData: {
+    eventName: string
+    description?: string | null
+    eventDate?: Date | null
+    startDate: string
+    endDate: string
+    declaredHours: number
+    categoryId: number
+    location?: string | null
+    maxParticipants?: number | null
+    minParticipants?: number | null
+    registrationDeadline?: Date | null
+    eventStatus?: string
+  },
+  createdByVolunteerId: string
+) {
+  return await db.transaction(async (tx) => {
+    const [newEvent] = await tx
+      .insert(events)
+      .values({
+        eventName: eventData.eventName,
+        description: eventData.description,
+        eventDate: eventData.eventDate,
+        startDate: eventData.startDate,
+        endDate: eventData.endDate,
+        declaredHours: eventData.declaredHours,
+        categoryId: eventData.categoryId,
+        location: eventData.location,
+        maxParticipants: eventData.maxParticipants,
+        minParticipants: eventData.minParticipants,
+        registrationDeadline: eventData.registrationDeadline,
+        eventStatus: eventData.eventStatus ?? 'planned',
+        createdByVolunteerId,
+        isActive: true,
+      })
+      .returning()
+
+    return { success: true, eventId: newEvent.id }
+  })
+}
+
+/**
+ * Update event
+ */
+export async function updateEvent(eventId: string, updates: Partial<Event>) {
+  return await db.transaction(async (tx) => {
+    await tx
+      .update(events)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, eventId))
+
+    return { success: true }
+  })
+}
+
+/**
+ * Soft delete event
+ */
+export async function deleteEvent(eventId: string) {
+  return await db.transaction(async (tx) => {
+    await tx
+      .update(events)
+      .set({
+        isActive: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(events.id, eventId))
+
+    return { success: true }
+  })
+}
+
+/**
+ * Check if a volunteer can register for an event
+ * Replaces: can_register_for_event RPC function
+ */
+export async function canRegisterForEvent(eventId: string, volunteerId?: string): Promise<boolean> {
+  const [event] = await db
+    .select()
+    .from(events)
+    .where(and(eq(events.id, eventId), eq(events.isActive, true)))
+
+  if (!event) {
+    return false
+  }
+
+  // Check event status
+  if (!['planned', 'registration_open'].includes(event.eventStatus)) {
+    return false
+  }
+
+  // Check registration deadline
+  if (event.registrationDeadline && new Date(event.registrationDeadline) < new Date()) {
+    return false
+  }
+
+  // Check capacity
+  if (event.maxParticipants) {
+    const [{ count: currentCount }] = await db
+      .select({ count: count() })
+      .from(eventParticipation)
+      .where(eq(eventParticipation.eventId, eventId))
+
+    if (currentCount >= event.maxParticipants) {
+      return false
+    }
+  }
+
+  // If volunteerId provided, check if already registered
+  if (volunteerId) {
+    const [existing] = await db
+      .select()
+      .from(eventParticipation)
+      .where(
+        and(
+          eq(eventParticipation.eventId, eventId),
+          eq(eventParticipation.volunteerId, volunteerId)
+        )
+      )
+
+    if (existing) {
+      return false
+    }
+  }
+
+  return true
+}

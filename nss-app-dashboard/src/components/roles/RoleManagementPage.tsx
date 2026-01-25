@@ -11,7 +11,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout'
 import { useRoles } from '@/hooks/useRoles'
 import { useVolunteers } from '@/hooks/useVolunteers'
 import { useToast } from '@/hooks/useToast'
-import { Skeleton } from '../Skeleton'
+import { Skeleton } from '@/components/ui'
 import { AssignRoleModal } from './AssignRoleModal'
 import { RoleDefinitionModal } from './RoleDefinitionModal'
 import { RoleAssignmentsTable } from './RoleAssignmentsTable'
@@ -31,8 +31,18 @@ export function RoleManagementPage() {
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [editingRole, setEditingRole] = useState<Role | undefined>()
 
-  // Convert hook data to component-compatible format
-  const roleDefinitions = roles as unknown as Role[]
+  // Convert hook data (camelCase) to component-compatible format (snake_case)
+  const roleDefinitions: Role[] = roles.map((r) => ({
+    id: r.id,
+    role_name: r.roleName,
+    display_name: r.displayName,
+    description: r.description,
+    permissions: (r.permissions as Record<string, unknown>) || {},
+    hierarchy_level: r.hierarchyLevel ?? 0,
+    is_active: r.isActive ?? true,
+    created_at: r.createdAt?.toISOString(),
+    updated_at: r.updatedAt?.toISOString(),
+  }))
   const userRoles: UserRoleWithDetails[] = [] // TODO: Get from useRoles when available
 
   const stats = {
@@ -56,8 +66,8 @@ export function RoleManagementPage() {
 
   const filteredRoles = roleDefinitions.filter(
     (role) =>
-      role.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      role.role_name.toLowerCase().includes(searchTerm.toLowerCase())
+      (role.display_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (role.role_name || '').toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleAssignRole = async (

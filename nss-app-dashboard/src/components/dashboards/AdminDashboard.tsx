@@ -7,7 +7,7 @@
 
 import { useAuth } from '@/contexts/AuthContext'
 import { useAdminDashboard } from '@/hooks/useAdminDashboard'
-import { StatsCard } from '@/components/StatsCard'
+import { StatsCard } from '@/components/ui'
 
 interface AdminDashboardProps {
   onNavigate?: (page: string) => void
@@ -35,9 +35,7 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         <h1 className="text-2xl font-bold text-gray-100 mb-2">
           Welcome back, {currentUser?.first_name}!
         </h1>
-        <p className="text-gray-400">
-          Here's what's happening with NSS VIT today.
-        </p>
+        <p className="text-gray-400">Here's what's happening with NSS VIT today.</p>
       </div>
 
       {/* Stats Grid */}
@@ -121,7 +119,10 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           <div className="space-y-3">
             {(alerts?.pendingReviews ?? 0) > 0 ? (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-sm text-red-400">{alerts?.pendingReviews} hour review request{alerts?.pendingReviews !== 1 ? 's' : ''} pending</p>
+                <p className="text-sm text-red-400">
+                  {alerts?.pendingReviews} hour review request
+                  {alerts?.pendingReviews !== 1 ? 's' : ''} pending
+                </p>
               </div>
             ) : (
               <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
@@ -130,7 +131,10 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             )}
             {(alerts?.eventsEndingSoon ?? 0) > 0 ? (
               <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                <p className="text-sm text-yellow-400">{alerts?.eventsEndingSoon} event{alerts?.eventsEndingSoon !== 1 ? 's' : ''} ending this week</p>
+                <p className="text-sm text-yellow-400">
+                  {alerts?.eventsEndingSoon} event{alerts?.eventsEndingSoon !== 1 ? 's' : ''} ending
+                  this week
+                </p>
               </div>
             ) : (
               <div className="p-3 bg-gray-500/10 border border-gray-500/20 rounded-lg">
@@ -139,7 +143,9 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
             )}
             {(alerts?.newRegistrations ?? 0) > 0 && (
               <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                <p className="text-sm text-blue-400">New volunteer registrations: {alerts?.newRegistrations}</p>
+                <p className="text-sm text-blue-400">
+                  New volunteer registrations: {alerts?.newRegistrations}
+                </p>
               </div>
             )}
           </div>
@@ -153,15 +159,21 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Hours Logged</span>
-              <span className="text-gray-100 font-semibold">{(monthlyStats?.hoursLogged ?? 0).toLocaleString()}</span>
+              <span className="text-gray-100 font-semibold">
+                {(monthlyStats?.hoursLogged ?? 0).toLocaleString()}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">Events Created</span>
-              <span className="text-gray-100 font-semibold">{monthlyStats?.eventsCreated ?? 0}</span>
+              <span className="text-gray-100 font-semibold">
+                {monthlyStats?.eventsCreated ?? 0}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-400">New Volunteers</span>
-              <span className="text-gray-100 font-semibold">{monthlyStats?.newVolunteers ?? 0}</span>
+              <span className="text-gray-100 font-semibold">
+                {monthlyStats?.newVolunteers ?? 0}
+              </span>
             </div>
           </div>
         </div>
@@ -186,25 +198,19 @@ export function AdminDashboard({ onNavigate }: AdminDashboardProps) {
               className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6 hover:bg-gray-800/70 transition-colors"
             >
               <div className="flex justify-between items-start mb-3">
-                <h3 className="font-semibold text-gray-100 truncate pr-2">
-                  {event.event_name}
-                </h3>
+                <h3 className="font-semibold text-gray-100 truncate pr-2">{event.event_name}</h3>
                 <span className="text-xs text-gray-400 whitespace-nowrap">
-                  {event.event_date ? new Date(event.event_date).toLocaleDateString() : new Date(event.start_date).toLocaleDateString()}
+                  {event.event_date
+                    ? new Date(event.event_date).toLocaleDateString()
+                    : new Date(event.start_date).toLocaleDateString()}
                 </span>
               </div>
 
-              <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                {event.event_description}
-              </p>
+              <p className="text-gray-400 text-sm mb-4 line-clamp-2">{event.event_description}</p>
 
               <div className="flex justify-between items-center text-sm">
-                <span className="text-indigo-400">
-                  {event.declared_hours} hours
-                </span>
-                <span className="text-gray-500">
-                  {event.participant_count || 0} participants
-                </span>
+                <span className="text-indigo-400">{event.declared_hours} hours</span>
+                <span className="text-gray-500">{event.participant_count || 0} participants</span>
               </div>
             </div>
           ))}
