@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { createRoleDefinition, updateRoleDefinition } from '@/app/actions/roles'
 
 const roleDefinitionSchema = z.object({
   roleName: z.string().min(1, 'Role name is required').max(50, 'Role name is too long'),
@@ -86,10 +87,12 @@ export function RoleDefinitionModal({
   async function onSubmit(values: RoleDefinitionFormValues) {
     setSubmitting(true)
     try {
-      // Role definitions are managed via direct DB queries in production
-      // For now, log and close - role CRUD server actions can be added later
       const payload = { ...values, hierarchyLevel: Number(values.hierarchyLevel) }
-      console.log(isEditing ? 'Updating role:' : 'Creating role:', payload)
+      if (isEditing && role) {
+        await updateRoleDefinition(role.id, payload)
+      } else {
+        await createRoleDefinition(payload)
+      }
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {

@@ -35,10 +35,10 @@ export async function getVolunteersWithStats() {
       v.created_at,
       v.updated_at,
       COALESCE(COUNT(DISTINCT ep.event_id), 0)::int as events_participated,
-      COALESCE(SUM(ep.approved_hours), 0)::int as total_hours
+      COALESCE(SUM(ep.hours_attended), 0)::int as total_hours,
+      COALESCE(SUM(CASE WHEN ep.approval_status = 'approved' THEN ep.approved_hours ELSE 0 END), 0)::int as approved_hours
     FROM volunteers v
     LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
-      AND ep.approval_status = 'approved'
     WHERE v.is_active = true
     GROUP BY v.id
     ORDER BY v.created_at DESC
@@ -65,6 +65,7 @@ export async function getVolunteersWithStats() {
     updated_at: string
     events_participated: number
     total_hours: number
+    approved_hours: number
   }[]
 }
 
@@ -127,6 +128,10 @@ export async function adminGetAllVolunteers() {
  * Replaces: admin_update_volunteer RPC function
  */
 export async function adminUpdateVolunteer(volunteerId: string, updates: Partial<Volunteer>) {
+  // Filter out undefined values to avoid overwriting existing data with NULL
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([, v]) => v !== undefined)
+  )
   return await db.transaction(async (tx) => {
     const [volunteer] = await tx.select().from(volunteers).where(eq(volunteers.id, volunteerId))
 
@@ -137,7 +142,7 @@ export async function adminUpdateVolunteer(volunteerId: string, updates: Partial
     await tx
       .update(volunteers)
       .set({
-        ...updates,
+        ...cleanUpdates,
         updatedAt: new Date(),
       })
       .where(eq(volunteers.id, volunteerId))

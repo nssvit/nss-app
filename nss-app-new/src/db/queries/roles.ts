@@ -3,16 +3,25 @@
  * Provides role-related database operations
  */
 
-import { eq, and, count, asc, inArray } from 'drizzle-orm'
+import { eq, and, count, asc, inArray, sql, or, isNull } from 'drizzle-orm'
 import { db } from '../index'
 import { userRoles, roleDefinitions } from '../schema'
+
+/** Reusable condition: role is active and not expired */
+const roleIsActiveAndNotExpired = and(
+  eq(userRoles.isActive, true),
+  or(isNull(userRoles.expiresAt), sql`${userRoles.expiresAt} > NOW()`)
+)
 
 /**
  * Get all active roles for a volunteer
  */
 export async function getVolunteerRoles(volunteerId: string) {
   const result = await db.query.userRoles.findMany({
-    where: and(eq(userRoles.volunteerId, volunteerId), eq(userRoles.isActive, true)),
+    where: and(
+      eq(userRoles.volunteerId, volunteerId),
+      roleIsActiveAndNotExpired
+    ),
     with: {
       roleDefinition: true,
     },
@@ -32,7 +41,7 @@ export async function volunteerHasRole(volunteerId: string, roleName: string): P
     .where(
       and(
         eq(userRoles.volunteerId, volunteerId),
-        eq(userRoles.isActive, true),
+        roleIsActiveAndNotExpired,
         eq(roleDefinitions.roleName, roleName),
         eq(roleDefinitions.isActive, true)
       )
@@ -56,7 +65,7 @@ export async function volunteerHasAnyRole(
     .where(
       and(
         eq(userRoles.volunteerId, volunteerId),
-        eq(userRoles.isActive, true),
+        roleIsActiveAndNotExpired,
         inArray(roleDefinitions.roleName, roleNames),
         eq(roleDefinitions.isActive, true)
       )
@@ -84,6 +93,57 @@ export async function getAllRoles() {
 }
 
 /**
+ * Create a new role definition
+ */
+export async function createRoleDefinition(data: {
+  roleName: string
+  description?: string | null
+  hierarchyLevel: number
+  isActive?: boolean
+}) {
+  const [result] = await db
+    .insert(roleDefinitions)
+    .values({
+      roleName: data.roleName,
+      displayName: data.roleName.charAt(0).toUpperCase() + data.roleName.slice(1),
+      description: data.description,
+      hierarchyLevel: data.hierarchyLevel,
+      isActive: data.isActive ?? true,
+    })
+    .returning()
+
+  return result
+}
+
+/**
+ * Update a role definition
+ */
+export async function updateRoleDefinition(
+  roleId: string,
+  data: {
+    roleName?: string
+    description?: string | null
+    hierarchyLevel?: number
+    isActive?: boolean
+  }
+) {
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  )
+
+  const [result] = await db
+    .update(roleDefinitions)
+    .set({
+      ...cleanUpdates,
+      updatedAt: new Date(),
+    })
+    .where(eq(roleDefinitions.id, roleId))
+    .returning()
+
+  return result
+}
+
+/**
  * Admin: Assign role to volunteer
  * Replaces: admin_assign_role RPC function
  */
@@ -94,29 +154,42 @@ export async function adminAssignRole(
   expiresAt?: Date | null
 ) {
   return await db.transaction(async (tx) => {
-    // Check if role is already assigned
+    // Check if role assignment already exists (active or revoked)
     const [existing] = await tx
       .select()
       .from(userRoles)
       .where(
         and(
           eq(userRoles.volunteerId, volunteerId),
-          eq(userRoles.roleDefinitionId, roleDefinitionId),
-          eq(userRoles.isActive, true)
+          eq(userRoles.roleDefinitionId, roleDefinitionId)
         )
       )
 
-    if (existing) {
+    if (existing && existing.isActive) {
       throw new Error('Role already assigned to this volunteer')
     }
 
-    // Assign role
-    await tx.insert(userRoles).values({
-      volunteerId,
-      roleDefinitionId,
-      assignedBy,
-      expiresAt,
-    })
+    if (existing) {
+      // Re-activate previously revoked role
+      await tx
+        .update(userRoles)
+        .set({
+          isActive: true,
+          assignedBy,
+          assignedAt: new Date(),
+          expiresAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(userRoles.id, existing.id))
+    } else {
+      // Assign new role
+      await tx.insert(userRoles).values({
+        volunteerId,
+        roleDefinitionId,
+        assignedBy,
+        expiresAt,
+      })
+    }
 
     return { success: true }
   })

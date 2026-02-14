@@ -57,6 +57,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         lastName: values.lastName,
         phoneNo: values.phoneNo || undefined,
         address: values.address || undefined,
+        birthDate: values.birthDate || undefined,
       })
       onSuccess?.()
     } catch (err) {

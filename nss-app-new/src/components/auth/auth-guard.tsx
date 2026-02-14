@@ -35,5 +35,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     )
   }
 
+  if (!currentUser) {
+    return null
+  }
+
   return <>{children}</>
 }

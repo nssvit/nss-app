@@ -30,10 +30,12 @@ export interface VolunteerWithStats extends Volunteer {
 export interface EventCategory {
   id: number
   categoryName: string
+  code: string
   description: string | null
   colorHex: string
   isActive: boolean
   createdAt: Date
+  updatedAt: Date
 }
 
 export interface Event {
@@ -43,10 +45,13 @@ export interface Event {
   startDate: Date | string | null
   endDate: Date | string | null
   location: string | null
+  minParticipants: number | null
   maxParticipants: number | null
   eventStatus: string
   declaredHours: number
   categoryId: number | null
+  registrationDeadline: Date | string | null
+  isActive: boolean
   createdBy: string | null
   createdAt: Date
   updatedAt: Date
@@ -89,18 +94,22 @@ export interface EventParticipationWithVolunteer extends EventParticipation {
 export interface EventParticipationWithEvent extends EventParticipation {
   event?: Event
   eventName?: string
+  startDate?: Date | string | null
   categoryName?: string
+  approvedHours?: number | null
 }
 
 // Roles
 export interface RoleDefinition {
   id: string
   roleName: string
+  displayName: string
   description: string | null
   hierarchyLevel: number
   permissions: Record<string, string[]> | null
   isActive: boolean
   createdAt: Date
+  updatedAt: Date
 }
 
 export interface UserRole {

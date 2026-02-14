@@ -137,16 +137,10 @@ export async function bulkApproveHoursTransaction(
   }
 
   return await db.transaction(async (tx) => {
-    // Update all participations
-    await tx
-      .update(eventParticipation)
-      .set({
-        approvalStatus: 'approved',
-        approvedBy,
-        approvedAt: new Date(),
-        approvalNotes: notes ?? 'Bulk approved',
-        updatedAt: new Date(),
-      })
+    // Get participations to read their hoursAttended for approvedHours
+    const pending = await tx
+      .select({ id: eventParticipation.id, hoursAttended: eventParticipation.hoursAttended })
+      .from(eventParticipation)
       .where(
         and(
           inArray(eventParticipation.id, participationIds),
@@ -154,7 +148,22 @@ export async function bulkApproveHoursTransaction(
         )
       )
 
-    return { success: true, count: participationIds.length }
+    // Update each with its own approvedHours
+    for (const p of pending) {
+      await tx
+        .update(eventParticipation)
+        .set({
+          approvalStatus: 'approved',
+          approvedBy,
+          approvedAt: new Date(),
+          approvedHours: p.hoursAttended,
+          approvalNotes: notes ?? 'Bulk approved',
+          updatedAt: new Date(),
+        })
+        .where(eq(eventParticipation.id, p.id))
+    }
+
+    return { success: true, count: pending.length }
   })
 }
 

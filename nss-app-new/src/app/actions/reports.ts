@@ -1,7 +1,7 @@
 'use server'
 
 import { queries } from '@/db/queries'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth-cache'
 import {
   mapCategoryDistributionRow,
   mapTopEventRow,
@@ -10,28 +10,11 @@ import {
 } from '@/lib/mappers'
 
 /**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
-
-/**
  * Get category distribution for reports
  * Returns: event count, participant count, total hours per category
  */
 export async function getCategoryDistribution() {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getCategoryDistribution()
   return rows.map(mapCategoryDistributionRow)
 }
@@ -41,7 +24,7 @@ export async function getCategoryDistribution() {
  * Impact = participant_count × total_hours
  */
 export async function getTopEventsByImpact(limit?: number) {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getTopEventsByImpact(limit)
   return rows.map(mapTopEventRow)
 }
@@ -51,7 +34,7 @@ export async function getTopEventsByImpact(limit?: number) {
  * Returns: registered, present, absent counts, attendance rate
  */
 export async function getAttendanceSummary() {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getAttendanceSummary()
   return rows.map(mapAttendanceSummaryRow)
 }
@@ -61,7 +44,7 @@ export async function getAttendanceSummary() {
  * Returns: per-volunteer total hours, approved hours, events count
  */
 export async function getVolunteerHoursSummary() {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getVolunteerHoursSummary()
   return rows.map(mapVolunteerHoursSummaryRow)
 }
@@ -71,7 +54,7 @@ export async function getVolunteerHoursSummary() {
  * Returns: last 12 months of activity data
  */
 export async function getMonthlyTrends() {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getMonthlyActivityTrends()
   return rows.map((r) => ({
     month: r.month,
@@ -88,7 +71,7 @@ export async function getMonthlyTrends() {
  * Returns: total users, active, pending, admin count
  */
 export async function getUserStats() {
-  await requireAuth()
+  await getAuthUser()
   return queries.getUserStats()
 }
 
@@ -97,6 +80,6 @@ export async function getUserStats() {
  * Returns: totalEvents, activeVolunteers, totalHours, ongoingProjects
  */
 export async function getDashboardStats() {
-  await requireAuth()
+  await getAuthUser()
   return queries.getDashboardStats()
 }

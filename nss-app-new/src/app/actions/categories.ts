@@ -1,32 +1,16 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { eventCategories } from '@/db/schema'
-import { createClient } from '@/lib/supabase/server'
-
-/**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
+import { getAuthUser } from '@/lib/auth-cache'
 
 /**
  * Get all active event categories
  */
 export async function getCategories() {
-  await requireAuth()
+  await getAuthUser()
 
   const rows = await db.query.eventCategories.findMany({
     where: eq(eventCategories.isActive, true),
@@ -43,7 +27,7 @@ export async function getCategories() {
  * Get a category by ID
  */
 export async function getCategoryById(categoryId: number) {
-  await requireAuth()
+  await getAuthUser()
 
   return db.query.eventCategories.findFirst({
     where: eq(eventCategories.id, categoryId),
@@ -54,7 +38,7 @@ export async function getCategoryById(categoryId: number) {
  * Get category by code
  */
 export async function getCategoryByCode(code: string) {
-  await requireAuth()
+  await getAuthUser()
 
   return db.query.eventCategories.findFirst({
     where: eq(eventCategories.code, code),
@@ -65,7 +49,7 @@ export async function getCategoryByCode(code: string) {
  * Get all categories (including inactive) with stats
  */
 export async function getAllCategories() {
-  await requireAuth()
+  await getAuthUser()
 
   const rows = await db.query.eventCategories.findMany({
     orderBy: (categories, { asc }) => [asc(categories.categoryName)],
@@ -86,7 +70,7 @@ export async function createCategory(data: {
   description?: string
   colorHex?: string
 }) {
-  await requireAuth()
+  await getAuthUser()
 
   const [result] = await db
     .insert(eventCategories)
@@ -99,6 +83,8 @@ export async function createCategory(data: {
     })
     .returning()
 
+  revalidatePath('/categories')
+  revalidatePath('/events')
   return result
 }
 
@@ -114,7 +100,7 @@ export async function updateCategory(
     colorHex?: string
   }
 ) {
-  await requireAuth()
+  await getAuthUser()
 
   const [result] = await db
     .update(eventCategories)
@@ -125,6 +111,8 @@ export async function updateCategory(
     .where(eq(eventCategories.id, categoryId))
     .returning()
 
+  revalidatePath('/categories')
+  revalidatePath('/events')
   return result
 }
 
@@ -132,7 +120,7 @@ export async function updateCategory(
  * Deactivate a category
  */
 export async function deactivateCategory(categoryId: number) {
-  await requireAuth()
+  await getAuthUser()
 
   const [result] = await db
     .update(eventCategories)
@@ -140,6 +128,8 @@ export async function deactivateCategory(categoryId: number) {
     .where(eq(eventCategories.id, categoryId))
     .returning()
 
+  revalidatePath('/categories')
+  revalidatePath('/events')
   return result
 }
 
@@ -147,7 +137,7 @@ export async function deactivateCategory(categoryId: number) {
  * Reactivate a category
  */
 export async function reactivateCategory(categoryId: number) {
-  await requireAuth()
+  await getAuthUser()
 
   const [result] = await db
     .update(eventCategories)
@@ -155,19 +145,14 @@ export async function reactivateCategory(categoryId: number) {
     .where(eq(eventCategories.id, categoryId))
     .returning()
 
+  revalidatePath('/categories')
+  revalidatePath('/events')
   return result
 }
 
 /**
- * Delete a category (hard delete)
+ * Delete a category (soft-delete via deactivation)
  */
 export async function deleteCategory(categoryId: number) {
-  await requireAuth()
-
-  const [result] = await db
-    .delete(eventCategories)
-    .where(eq(eventCategories.id, categoryId))
-    .returning()
-
-  return result
+  return deactivateCategory(categoryId)
 }

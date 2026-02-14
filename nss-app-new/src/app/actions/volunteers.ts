@@ -77,11 +77,11 @@ export async function getVolunteerHoursSummary() {
  */
 export async function getMyProfile() {
   const volunteer = await getCachedVolunteer()
-  const participation = await queries.getVolunteerParticipationHistory(volunteer.id)
+  const rows = await queries.getVolunteerParticipationHistory(volunteer.id)
 
   return {
     volunteer,
-    participation,
+    participation: rows.map((r) => mapParticipationRow(r, volunteer.id)),
   }
 }
 
@@ -94,6 +94,7 @@ export async function updateMyProfile(updates: {
   phoneNo?: string
   address?: string
   gender?: string
+  birthDate?: string
 }) {
   const volunteer = await getCachedVolunteer()
 
@@ -103,6 +104,7 @@ export async function updateMyProfile(updates: {
     phoneNo: updates.phoneNo,
     address: updates.address,
     gender: updates.gender,
+    birthDate: updates.birthDate,
   })
 
   revalidatePath('/profile')
@@ -123,33 +125,36 @@ export async function getVolunteerDashboardData() {
   ])
 
   // Ensure arrays are not undefined
-  const participationHistory = participationHistoryRaw || []
+  const rawHistory = participationHistoryRaw || []
   const upcomingEvents = upcomingEventsRaw || []
 
-  // Calculate stats from participation
-  /* eslint-disable @typescript-eslint/no-explicit-any -- untyped query results */
+  // Calculate stats from raw snake_case rows BEFORE mapping
+  /* eslint-disable @typescript-eslint/no-explicit-any -- raw SQL rows */
   const stats = {
-    totalHours: participationHistory.reduce(
-      (sum: number, p: any) => sum + (p.hours_attended || 0),
+    totalHours: rawHistory.reduce(
+      (sum: number, p: any) => sum + (p.hours_attended ?? 0),
       0
     ),
-    approvedHours: participationHistory
+    approvedHours: rawHistory
       .filter((p: any) => p.approval_status === 'approved')
-      .reduce((sum: number, p: any) => sum + (p.approved_hours || p.hours_attended || 0), 0),
-    eventsParticipated: participationHistory.length,
-    pendingReviews: participationHistory.filter(
-      (p: any) => p.participation_status === 'present' && p.hours_attended > 0
+      .reduce((sum: number, p: any) => sum + (p.approved_hours ?? p.hours_attended ?? 0), 0),
+    eventsParticipated: rawHistory.length,
+    pendingReviews: rawHistory.filter(
+      (p: any) => p.approval_status === 'pending' && p.hours_attended > 0
     ).length,
   }
 
   // Filter out events already registered for
-  const participatedEventIds = new Set(participationHistory.map((p: any) => p.event_id))
+  const participatedEventIds = new Set(rawHistory.map((p: any) => p.event_id))
   /* eslint-enable @typescript-eslint/no-explicit-any */
   const availableEvents = upcomingEvents.filter((e) => !participatedEventIds.has(e.id))
 
+  // Map to camelCase for frontend
+  const participation = rawHistory.map((r) => mapParticipationRow(r, volunteer.id))
+
   return {
     volunteer,
-    participation: participationHistory,
+    participation,
     availableEvents,
     stats,
   }

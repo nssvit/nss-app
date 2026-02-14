@@ -152,6 +152,7 @@ export async function getVolunteerHoursSummary() {
 export async function getVolunteerParticipationHistory(volunteerId: string) {
   const result = await db.execute(sql`
     SELECT
+      ep.id as participation_id,
       e.id as event_id,
       e.event_name,
       e.start_date,
@@ -159,6 +160,8 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
       ep.participation_status,
       ep.hours_attended,
       ep.attendance_date,
+      ep.registration_date,
+      ep.notes,
       ep.approval_status,
       ep.approved_hours,
       ep.approved_by,
@@ -171,6 +174,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
   `)
 
   return result as unknown[] as {
+    participation_id: string
     event_id: string
     event_name: string
     start_date: Date | null
@@ -178,6 +182,8 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     participation_status: string
     hours_attended: number
     attendance_date: Date | null
+    registration_date: Date | null
+    notes: string | null
     approval_status: string | null
     approved_hours: number | null
     approved_by: string | null

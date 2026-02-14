@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import {
   BarChart3,
   Calendar,
@@ -77,7 +78,11 @@ export function CommandPalette() {
             <Calendar className="mr-2 size-4" />
             Create Event
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => router.push('/login'))}>
+          <CommandItem onSelect={() => {
+            setOpen(false)
+            const supabase = createClient()
+            supabase.auth.signOut().then(() => router.push('/login'))
+          }}>
             <LogOut className="mr-2 size-4" />
             Sign Out
           </CommandItem>

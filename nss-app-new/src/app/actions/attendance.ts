@@ -2,37 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
 import { mapAttendanceSummaryRow } from '@/lib/mappers'
-
-/**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
-
-/**
- * Get current user's volunteer ID
- */
-async function getCurrentVolunteerId() {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-  return volunteer.id
-}
 
 /**
  * Mark attendance for multiple volunteers at an event
@@ -42,8 +13,8 @@ export async function markAttendance(
   volunteerIds: string[],
   declaredHours?: number
 ) {
-  const recordedBy = await getCurrentVolunteerId()
-  const result = await queries.markEventAttendance(eventId, volunteerIds, declaredHours, recordedBy)
+  const volunteer = await getCurrentVolunteer()
+  const result = await queries.markEventAttendance(eventId, volunteerIds, declaredHours, volunteer.id)
   revalidatePath('/attendance')
   revalidatePath(`/events/${eventId}`)
   return result
@@ -53,8 +24,8 @@ export async function markAttendance(
  * Update attendance list (add new, keep existing)
  */
 export async function updateAttendance(eventId: string, volunteerIds: string[]) {
-  const recordedBy = await getCurrentVolunteerId()
-  const result = await queries.updateEventAttendance(eventId, volunteerIds, recordedBy)
+  const volunteer = await getCurrentVolunteer()
+  const result = await queries.updateEventAttendance(eventId, volunteerIds, volunteer.id)
   revalidatePath('/attendance')
   revalidatePath(`/events/${eventId}`)
   return result
@@ -64,7 +35,7 @@ export async function updateAttendance(eventId: string, volunteerIds: string[]) 
  * Sync attendance - replace all participants with selected volunteers
  */
 export async function syncAttendance(eventId: string, selectedVolunteerIds: string[]) {
-  await requireAuth()
+  await getAuthUser()
   const result = await queries.syncEventAttendance(eventId, selectedVolunteerIds)
   revalidatePath('/attendance')
   revalidatePath(`/events/${eventId}`)
@@ -76,7 +47,7 @@ export async function syncAttendance(eventId: string, selectedVolunteerIds: stri
  * Maps snake_case DB rows to camelCase frontend types
  */
 export async function getEventParticipants(eventId: string) {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getEventParticipants(eventId)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
   return rows.map((r: any) => ({
@@ -87,8 +58,9 @@ export async function getEventParticipants(eventId: string) {
     participationStatus: r.participation_status,
     hoursAttended: r.hours_attended ?? 0,
     approvalStatus: r.approval_status ?? 'pending',
-    approvedBy: null,
-    approvedAt: null,
+    approvedBy: r.approved_by ?? null,
+    approvedAt: r.approved_at ?? null,
+    approvedHours: r.approved_hours ?? null,
     feedback: r.notes,
     registeredAt: r.registration_date,
     updatedAt: r.attendance_date ?? r.registration_date,
@@ -99,7 +71,7 @@ export async function getEventParticipants(eventId: string) {
  * Get attendance summary for all events
  */
 export async function getAttendanceSummary() {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getAttendanceSummary()
   return rows.map(mapAttendanceSummaryRow)
 }
@@ -113,7 +85,7 @@ export async function updateParticipationStatus(
   hoursAttended?: number,
   notes?: string
 ) {
-  await requireAuth()
+  await getAuthUser()
   const result = await queries.updateParticipationStatus(participantId, {
     participationStatus: status,
     hoursAttended,
@@ -133,14 +105,14 @@ export async function bulkMarkAttendance(params: {
   hoursAttended?: number
   notes?: string
 }) {
-  const recordedBy = await getCurrentVolunteerId()
+  const volunteer = await getCurrentVolunteer()
   const result = await queries.bulkMarkAttendance({
     eventId: params.eventId,
     volunteerIds: params.volunteerIds,
     status: params.status,
     hoursAttended: params.hoursAttended,
     notes: params.notes,
-    recordedBy,
+    recordedBy: volunteer.id,
   })
   revalidatePath('/attendance')
   revalidatePath(`/events/${params.eventId}`)
@@ -151,6 +123,6 @@ export async function bulkMarkAttendance(params: {
  * Get events list for attendance manager
  */
 export async function getEventsForAttendance(limit: number = 50) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getEventsForAttendance(limit)
 }

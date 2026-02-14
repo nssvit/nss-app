@@ -39,6 +39,7 @@ export function mapVolunteerRow(r: any): VolunteerWithStats {
     updatedAt: r.updated_at,
     eventsParticipated: r.events_participated ?? 0,
     totalHours: r.total_hours ?? 0,
+    approvedHours: r.approved_hours ?? 0,
   }
 }
 
@@ -67,6 +68,9 @@ export function mapEventRow(r: any): EventWithStats {
     eventStatus: r.event_status,
     declaredHours: r.declared_hours ?? 0,
     categoryId: r.category_id,
+    registrationDeadline: r.registration_deadline ?? null,
+    minParticipants: r.min_participants ?? null,
+    isActive: r.is_active ?? true,
     createdBy: r.created_by_volunteer_id,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
@@ -80,7 +84,7 @@ export function mapEventRow(r: any): EventWithStats {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
 export function mapParticipationRow(r: any, volunteerId: string): EventParticipationWithEvent {
   return {
-    id: r.event_id,
+    id: r.participation_id ?? r.event_id,
     eventId: r.event_id,
     volunteerId,
     participationStatus: r.participation_status,
@@ -88,10 +92,12 @@ export function mapParticipationRow(r: any, volunteerId: string): EventParticipa
     approvalStatus: r.approval_status ?? 'pending',
     approvedBy: r.approved_by ?? null,
     approvedAt: r.approved_at ?? null,
+    approvedHours: r.approved_hours ?? null,
     feedback: r.notes ?? null,
-    registeredAt: r.attendance_date ?? new Date(),
+    registeredAt: r.registration_date ?? r.attendance_date ?? new Date(),
     updatedAt: r.attendance_date ?? new Date(),
     eventName: r.event_name,
+    startDate: r.start_date ?? null,
     categoryName: r.category_name ?? undefined,
   }
 }

@@ -11,6 +11,11 @@ export {
   getMonthlyTrends,
   getPendingApprovalsCount,
   getUserStats,
+  getAdminDashboardStats,
+  getFullAdminDashboard,
+  getRecentEvents,
+  getHeadsDashboardStats,
+  getVolunteerHoursSummary as getDashboardVolunteerHours,
 } from './dashboard'
 
 // Volunteer actions
@@ -22,6 +27,11 @@ export {
   updateVolunteer,
   getVolunteerParticipationHistory,
   getVolunteerHoursSummary,
+  getMyProfile,
+  updateMyProfile,
+  updateProfilePicture,
+  getVolunteerDashboardData,
+  getActiveVolunteersList,
 } from './volunteers'
 
 // Event actions
@@ -45,6 +55,9 @@ export {
   syncAttendance,
   getEventParticipants as getAttendanceParticipants,
   getAttendanceSummary,
+  updateParticipationStatus,
+  bulkMarkAttendance,
+  getEventsForAttendance,
 } from './attendance'
 
 // Hours approval actions
@@ -68,6 +81,8 @@ export {
   isCurrentUserAdmin,
   assignRole,
   revokeRole,
+  createRoleDefinition,
+  updateRoleDefinition,
 } from './roles'
 
 // Report actions
@@ -82,4 +97,14 @@ export {
 } from './reports'
 
 // Category actions
-export { getCategories, getCategoryById, getCategoryByCode } from './categories'
+export {
+  getCategories,
+  getCategoryById,
+  getCategoryByCode,
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  deactivateCategory,
+  reactivateCategory,
+  deleteCategory,
+} from './categories'

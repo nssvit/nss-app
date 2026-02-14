@@ -35,7 +35,7 @@ export async function getEventsWithStats() {
       ec.category_name,
       ec.color_hex as category_color
     FROM events e
-    LEFT JOIN event_participation ep ON e.id = ep.event_id
+    LEFT JOIN event_participation ep ON e.id = ep.event_id AND ep.approval_status = 'approved'
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     WHERE e.is_active = true
     GROUP BY e.id, ec.category_name, ec.color_hex
@@ -151,11 +151,15 @@ export async function createEvent(
  * Update event
  */
 export async function updateEvent(eventId: string, updates: Partial<Event>) {
+  // Filter out undefined values to avoid overwriting existing data with NULL
+  const cleanUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([, v]) => v !== undefined)
+  )
   return await db.transaction(async (tx) => {
     await tx
       .update(events)
       .set({
-        ...updates,
+        ...cleanUpdates,
         updatedAt: new Date(),
       })
       .where(eq(events.id, eventId))

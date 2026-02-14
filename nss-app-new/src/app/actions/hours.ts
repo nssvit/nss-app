@@ -2,42 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
-import { createClient } from '@/lib/supabase/server'
-
-/**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
-
-/**
- * Get current user's volunteer ID
- */
-async function getCurrentVolunteerId() {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-  return volunteer.id
-}
+import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
 
 /**
  * Get all pending hour approvals
  */
 export async function getPendingApprovals() {
-  await requireAuth()
+  await getAuthUser()
   const rows = await queries.getPendingParticipations()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- map Drizzle types to frontend types
   return rows.map((r: any) => ({
@@ -68,10 +39,10 @@ export async function approveHours(
   approvedHours?: number,
   notes?: string
 ) {
-  const approvedBy = await getCurrentVolunteerId()
+  const volunteer = await getCurrentVolunteer()
   const result = await queries.approveHoursTransaction(
     participationId,
-    approvedBy,
+    volunteer.id,
     approvedHours,
     notes
   )
@@ -84,8 +55,8 @@ export async function approveHours(
  * Reject hours for a participation
  */
 export async function rejectHours(participationId: string, notes?: string) {
-  const rejectedBy = await getCurrentVolunteerId()
-  const result = await queries.rejectHoursTransaction(participationId, rejectedBy, notes)
+  const volunteer = await getCurrentVolunteer()
+  const result = await queries.rejectHoursTransaction(participationId, volunteer.id, notes)
   revalidatePath('/hours-approval')
   return result
 }
@@ -94,8 +65,8 @@ export async function rejectHours(participationId: string, notes?: string) {
  * Bulk approve multiple participations
  */
 export async function bulkApproveHours(participationIds: string[], notes?: string) {
-  const approvedBy = await getCurrentVolunteerId()
-  const result = await queries.bulkApproveHoursTransaction(participationIds, approvedBy, notes)
+  const volunteer = await getCurrentVolunteer()
+  const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, notes)
   revalidatePath('/hours-approval')
   revalidatePath('/reports')
   return result
@@ -105,7 +76,7 @@ export async function bulkApproveHours(participationIds: string[], notes?: strin
  * Reset approval status back to pending
  */
 export async function resetApproval(participationId: string) {
-  await requireAuth()
+  await getAuthUser()
   const result = await queries.resetApprovalTransaction(participationId)
   revalidatePath('/hours-approval')
   return result
@@ -115,6 +86,6 @@ export async function resetApproval(participationId: string) {
  * Get pending approvals count
  */
 export async function getPendingCount() {
-  await requireAuth()
+  await getAuthUser()
   return queries.getPendingApprovalsCount()
 }

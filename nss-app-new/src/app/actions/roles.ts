@@ -74,6 +74,47 @@ export async function isCurrentUserAdmin() {
 }
 
 /**
+ * Create a new role definition (admin only)
+ */
+export async function createRoleDefinition(data: {
+  roleName: string
+  description?: string
+  hierarchyLevel: number
+  isActive?: boolean
+}) {
+  const adminCheck = await cachedIsAdmin()
+  if (!adminCheck) {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  const result = await queries.createRoleDefinition(data)
+  revalidatePath('/role-management')
+  return result
+}
+
+/**
+ * Update a role definition (admin only)
+ */
+export async function updateRoleDefinition(
+  roleId: string,
+  data: {
+    roleName?: string
+    description?: string
+    hierarchyLevel?: number
+    isActive?: boolean
+  }
+) {
+  const adminCheck = await cachedIsAdmin()
+  if (!adminCheck) {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
+  const result = await queries.updateRoleDefinition(roleId, data)
+  revalidatePath('/role-management')
+  return result
+}
+
+/**
  * Assign a role to a volunteer (admin only)
  */
 export async function assignRole(volunteerId: string, roleDefinitionId: string, expiresAt?: Date) {

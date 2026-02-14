@@ -181,22 +181,47 @@ export async function updateEventAttendance(
  */
 export async function syncEventAttendance(eventId: string, selectedVolunteerIds: string[]) {
   return await db.transaction(async (tx) => {
-    // Remove all current participants not in the new list
-    await tx.delete(eventParticipation).where(
-      and(
-        eq(eventParticipation.eventId, eventId),
-        selectedVolunteerIds.length > 0
-          ? sql`${eventParticipation.volunteerId} NOT IN (${sql.join(
-              selectedVolunteerIds.map((id) => sql`${id}`),
-              sql`, `
-            )})`
-          : sql`true`
+    // Get current participants
+    const currentParticipants = await tx
+      .select({ volunteerId: eventParticipation.volunteerId })
+      .from(eventParticipation)
+      .where(eq(eventParticipation.eventId, eventId))
+
+    const currentIds = new Set(currentParticipants.map((p) => p.volunteerId))
+    const newIds = new Set(selectedVolunteerIds)
+
+    // Find volunteers to add and remove
+    const toAdd = selectedVolunteerIds.filter((id) => !currentIds.has(id))
+    const toRemove = [...currentIds].filter((id) => !newIds.has(id))
+
+    // Remove participants no longer in the list
+    if (toRemove.length > 0) {
+      await tx
+        .delete(eventParticipation)
+        .where(
+          and(
+            eq(eventParticipation.eventId, eventId),
+            inArray(eventParticipation.volunteerId, toRemove)
+          )
+        )
+    }
+
+    // Add new participants
+    if (toAdd.length > 0) {
+      await tx.insert(eventParticipation).values(
+        toAdd.map((volunteerId) => ({
+          eventId,
+          volunteerId,
+          participationStatus: 'present' as const,
+          hoursAttended: 0,
+        }))
       )
-    )
+    }
 
     return {
-      removedCount: 0,
-      message: 'Synced event attendance',
+      addedCount: toAdd.length,
+      removedCount: toRemove.length,
+      message: `Synced: added ${toAdd.length}, removed ${toRemove.length}`,
     }
   })
 }
@@ -266,14 +291,15 @@ export async function updateParticipationStatus(
     notes?: string
   }
 ) {
+  // Only set fields that are explicitly provided to avoid overwriting with NULL
+  const setFields: Record<string, unknown> = { updatedAt: new Date() }
+  if (updates.participationStatus !== undefined) setFields.participationStatus = updates.participationStatus
+  if (updates.hoursAttended !== undefined) setFields.hoursAttended = updates.hoursAttended
+  if (updates.notes !== undefined) setFields.notes = updates.notes
+
   const [result] = await db
     .update(eventParticipation)
-    .set({
-      participationStatus: updates.participationStatus,
-      hoursAttended: updates.hoursAttended,
-      notes: updates.notes,
-      updatedAt: new Date(),
-    })
+    .set(setFields)
     .where(eq(eventParticipation.id, participantId))
     .returning()
 
@@ -293,47 +319,52 @@ export async function bulkMarkAttendance(params: {
 }) {
   const { eventId, volunteerIds, status, hoursAttended, notes, recordedBy } = params
 
-  let updatedCount = 0
+  return await db.transaction(async (tx) => {
+    let updatedCount = 0
 
-  for (const volunteerId of volunteerIds) {
-    // Check if participation exists
-    const existing = await db.query.eventParticipation.findFirst({
-      where: and(
-        eq(eventParticipation.eventId, eventId),
-        eq(eventParticipation.volunteerId, volunteerId)
-      ),
-    })
+    for (const volunteerId of volunteerIds) {
+      // Check if participation exists
+      const [existing] = await tx
+        .select()
+        .from(eventParticipation)
+        .where(
+          and(
+            eq(eventParticipation.eventId, eventId),
+            eq(eventParticipation.volunteerId, volunteerId)
+          )
+        )
 
-    if (existing) {
-      // Update existing
-      await db
-        .update(eventParticipation)
-        .set({
+      if (existing) {
+        // Update existing
+        await tx
+          .update(eventParticipation)
+          .set({
+            participationStatus: status,
+            hoursAttended: hoursAttended ?? existing.hoursAttended,
+            notes: notes ?? existing.notes,
+            attendanceDate: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(eventParticipation.id, existing.id))
+        updatedCount++
+      } else {
+        // Insert new
+        await tx.insert(eventParticipation).values({
+          eventId,
+          volunteerId,
           participationStatus: status,
-          hoursAttended: hoursAttended ?? existing.hoursAttended,
-          notes: notes ?? existing.notes,
+          hoursAttended: hoursAttended ?? 0,
+          notes,
+          registrationDate: new Date(),
           attendanceDate: new Date(),
-          updatedAt: new Date(),
+          recordedByVolunteerId: recordedBy,
         })
-        .where(eq(eventParticipation.id, existing.id))
-      updatedCount++
-    } else {
-      // Insert new
-      await db.insert(eventParticipation).values({
-        eventId,
-        volunteerId,
-        participationStatus: status,
-        hoursAttended: hoursAttended ?? 0,
-        notes,
-        registrationDate: new Date(),
-        attendanceDate: new Date(),
-        recordedByVolunteerId: recordedBy,
-      })
-      updatedCount++
+        updatedCount++
+      }
     }
-  }
 
-  return { count: updatedCount, error: null }
+    return { count: updatedCount, error: null }
+  })
 }
 
 /**
@@ -348,6 +379,7 @@ export async function getEventsForAttendance(limit: number = 50) {
       e.declared_hours,
       e.location
     FROM events e
+    WHERE e.is_active = true
     ORDER BY e.start_date DESC
     LIMIT ${limit}
   `)

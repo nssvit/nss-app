@@ -73,6 +73,8 @@ export {
   volunteerHasAnyRole,
   isVolunteerAdmin,
   getAllRoles,
+  createRoleDefinition,
+  updateRoleDefinition,
   adminAssignRole,
   adminRevokeRole,
 } from './roles'
@@ -151,6 +153,8 @@ export const queries = {
   volunteerHasAnyRole: roles.volunteerHasAnyRole,
   isVolunteerAdmin: roles.isVolunteerAdmin,
   getAllRoles: roles.getAllRoles,
+  createRoleDefinition: roles.createRoleDefinition,
+  updateRoleDefinition: roles.updateRoleDefinition,
 
   // Admin
   adminGetAllVolunteers: volunteers.adminGetAllVolunteers,

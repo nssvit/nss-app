@@ -3,6 +3,7 @@
 import { AuthProvider } from '@/contexts/auth-context'
 import { ThemeProvider } from '@/contexts/theme-context'
 import { CommandPalette } from '@/components/command-palette'
+import { Toaster } from '@/components/ui/sonner'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         {children}
         <CommandPalette />
+        <Toaster />
       </AuthProvider>
     </ThemeProvider>
   )

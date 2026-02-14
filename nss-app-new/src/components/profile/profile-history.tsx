@@ -42,7 +42,7 @@ export function ProfileHistory({ participations }: ProfileHistoryProps) {
                 {p.eventName ?? p.event?.eventName ?? 'Unknown'}
               </p>
               <p className="text-muted-foreground text-xs">
-                {p.event?.startDate ? new Date(p.event.startDate).toLocaleDateString() : 'N/A'}
+                {p.startDate ? new Date(p.startDate).toLocaleDateString() : 'N/A'}
                 {p.categoryName && ` \u00B7 ${p.categoryName}`}
               </p>
             </div>
