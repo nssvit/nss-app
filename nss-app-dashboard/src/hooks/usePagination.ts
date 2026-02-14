@@ -11,10 +11,7 @@ interface UsePaginationOptions {
   initialPage?: number
 }
 
-export function usePagination<T>(
-  items: T[],
-  options: UsePaginationOptions = {}
-) {
+export function usePagination<T>(items: T[], options: UsePaginationOptions = {}) {
   const { itemsPerPage = 12, initialPage = 1 } = options
   const [currentPage, setCurrentPage] = useState(initialPage)
 
@@ -28,9 +25,12 @@ export function usePagination<T>(
     return items.slice(startIndex, startIndex + itemsPerPage)
   }, [items, currentPage, itemsPerPage])
 
-  const goToPage = useCallback((page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)))
-  }, [totalPages])
+  const goToPage = useCallback(
+    (page: number) => {
+      setCurrentPage(Math.max(1, Math.min(page, totalPages)))
+    },
+    [totalPages]
+  )
 
   const nextPage = useCallback(() => {
     goToPage(currentPage + 1)
@@ -53,6 +53,6 @@ export function usePagination<T>(
     prevPage,
     resetPage,
     hasNext: currentPage < totalPages,
-    hasPrev: currentPage > 1
+    hasPrev: currentPage > 1,
   }
 }

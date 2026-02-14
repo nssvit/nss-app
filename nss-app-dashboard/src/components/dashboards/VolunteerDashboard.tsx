@@ -6,12 +6,11 @@
  */
 
 import { useState } from 'react'
+import { HourRequestModal } from '@/components/hours'
+import { StatsCard, ToastContainer } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { useVolunteerDashboard } from '@/hooks/useVolunteerDashboard'
-import { StatsCard } from '@/components/StatsCard'
-import { HourRequestModal } from '@/components/HourRequestModal'
 import { useToast } from '@/hooks/useToast'
-import { ToastContainer } from '@/components/Toast'
+import { useVolunteerDashboard } from '@/hooks/useVolunteerDashboard'
 
 interface VolunteerDashboardProps {
   onNavigate?: (page: string) => void
@@ -19,7 +18,8 @@ interface VolunteerDashboardProps {
 
 export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
   const { currentUser } = useAuth()
-  const { stats, myParticipation, availableEvents, loading, refetch, registerForEvent } = useVolunteerDashboard()
+  const { stats, myParticipation, availableEvents, loading, refetch, registerForEvent } =
+    useVolunteerDashboard()
   const { toasts, removeToast, success, error: showError, info } = useToast()
 
   const [showHourRequestModal, setShowHourRequestModal] = useState(false)
@@ -53,9 +53,9 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
           <p className="text-gray-400">Loading your dashboard...</p>
         </div>
       </div>
@@ -65,10 +65,10 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <div className="flex-1 overflow-x-hidden overflow-y-auto main-content-bg p-6">
+      <div className="main-content-bg flex-1 overflow-x-hidden overflow-y-auto p-6">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-100 mb-2">
+          <h1 className="mb-2 text-2xl font-bold text-gray-100">
             Welcome back, {currentUser?.first_name}!
           </h1>
           <p className="text-gray-400">
@@ -77,7 +77,7 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Hours"
             value={stats?.totalHours ?? 0}
@@ -104,17 +104,17 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* My Participation */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-gray-100 flex items-center">
-                <i className="fas fa-history text-blue-500 mr-3"></i>
+          <div className="rounded-xl border border-gray-700/30 bg-gray-800/50 p-6 backdrop-blur-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="flex items-center text-lg font-semibold text-gray-100">
+                <i className="fas fa-history mr-3 text-blue-500"></i>
                 My Participation
               </h3>
               <button
                 onClick={() => onNavigate?.('event-registration')}
-                className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+                className="text-sm font-medium text-indigo-400 hover:text-indigo-300"
               >
                 View All →
               </button>
@@ -122,34 +122,45 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
 
             <div className="space-y-4">
               {myParticipation.slice(0, 5).map((participation) => {
-                const status = participation.participation_status === 'present' ? 'approved' :
-                               participation.participation_status === 'absent' ? 'rejected' : 'pending'
+                const status =
+                  participation.participation_status === 'present'
+                    ? 'approved'
+                    : participation.participation_status === 'absent'
+                      ? 'rejected'
+                      : 'pending'
                 return (
                   <div
                     key={`${participation.event_id}-${participation.event_date}`}
-                    className="p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors"
+                    className="rounded-lg bg-gray-700/30 p-4 transition-colors hover:bg-gray-700/50"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-gray-100 truncate pr-2">
+                    <div className="mb-2 flex items-start justify-between">
+                      <h4 className="truncate pr-2 font-medium text-gray-100">
                         {participation.event_name}
                       </h4>
                       <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          status === 'approved'
-                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-medium ${
+                            status === 'approved'
+                              ? 'border border-green-500/30 bg-green-500/20 text-green-400'
+                              : status === 'rejected'
+                                ? 'border border-red-500/30 bg-red-500/20 text-red-400'
+                                : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-400'
+                          }`}
+                        >
+                          {status === 'approved'
+                            ? 'Present'
                             : status === 'rejected'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                        }`}>
-                          {status === 'approved' ? 'Present' :
-                           status === 'rejected' ? 'Absent' : 'Pending'}
+                              ? 'Absent'
+                              : 'Pending'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex justify-between items-center text-sm mb-2">
+                    <div className="mb-2 flex items-center justify-between text-sm">
                       <span className="text-gray-400">
-                        {participation.event_date ? new Date(participation.event_date).toLocaleDateString() : 'TBD'}
+                        {participation.event_date
+                          ? new Date(participation.event_date).toLocaleDateString()
+                          : 'TBD'}
                       </span>
                       <div className="flex items-center gap-2">
                         {participation.hours_attended > 0 && (
@@ -160,15 +171,16 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
                       </div>
                     </div>
 
-                    {status === 'pending' && participation.participation_status !== 'registered' && (
-                      <button
-                        onClick={() => handleRequestHourReview(participation)}
-                        className="text-xs text-blue-400 hover:text-blue-300"
-                      >
-                        <i className="fas fa-clock mr-1"></i>
-                        Request Hour Review →
-                      </button>
-                    )}
+                    {status === 'pending' &&
+                      participation.participation_status !== 'registered' && (
+                        <button
+                          onClick={() => handleRequestHourReview(participation)}
+                          className="text-xs text-blue-400 hover:text-blue-300"
+                        >
+                          <i className="fas fa-clock mr-1"></i>
+                          Request Hour Review →
+                        </button>
+                      )}
 
                     {participation.participation_status === 'registered' && (
                       <span className="text-xs text-gray-500">
@@ -181,9 +193,9 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
               })}
 
               {myParticipation.length === 0 && (
-                <div className="text-center py-8">
-                  <i className="fas fa-calendar-plus text-4xl text-gray-600 mb-4"></i>
-                  <p className="text-gray-400 mb-4">No events participated yet</p>
+                <div className="py-8 text-center">
+                  <i className="fas fa-calendar-plus mb-4 text-4xl text-gray-600"></i>
+                  <p className="mb-4 text-gray-400">No events participated yet</p>
                   <p className="text-sm text-gray-500">Start by registering for events below!</p>
                 </div>
               )}
@@ -191,15 +203,15 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
           </div>
 
           {/* Available Events */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-semibold text-gray-100 flex items-center">
-                <i className="fas fa-calendar-alt text-green-500 mr-3"></i>
+          <div className="rounded-xl border border-gray-700/30 bg-gray-800/50 p-6 backdrop-blur-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="flex items-center text-lg font-semibold text-gray-100">
+                <i className="fas fa-calendar-alt mr-3 text-green-500"></i>
                 Available Events
               </h3>
               <button
                 onClick={() => onNavigate?.('event-registration')}
-                className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+                className="text-sm font-medium text-indigo-400 hover:text-indigo-300"
               >
                 Browse All →
               </button>
@@ -209,29 +221,27 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
               {availableEvents.slice(0, 6).map((event: any) => (
                 <div
                   key={event.id}
-                  className="p-4 bg-gray-700/30 rounded-lg hover:bg-gray-700/50 transition-colors"
+                  className="rounded-lg bg-gray-700/30 p-4 transition-colors hover:bg-gray-700/50"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium text-gray-100 truncate pr-2">
-                      {event.eventName}
-                    </h4>
-                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                  <div className="mb-2 flex items-start justify-between">
+                    <h4 className="truncate pr-2 font-medium text-gray-100">{event.eventName}</h4>
+                    <span className="text-xs whitespace-nowrap text-gray-400">
                       {new Date(event.startDate).toLocaleDateString()}
                     </span>
                   </div>
 
-                  <p className="text-sm text-gray-400 mb-3 line-clamp-2">
-                    {event.description}
-                  </p>
+                  <p className="mb-3 line-clamp-2 text-sm text-gray-400">{event.description}</p>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4 text-sm">
-                      <span className="text-purple-400">{event.category?.categoryName || 'General'}</span>
+                      <span className="text-purple-400">
+                        {event.category?.categoryName || 'General'}
+                      </span>
                       <span className="text-indigo-400">{event.declaredHours}h</span>
                     </div>
                     <button
                       onClick={() => handleRegisterForEvent(event.id)}
-                      className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs rounded-lg transition-colors"
+                      className="rounded-lg bg-indigo-600 px-3 py-1 text-xs text-white transition-colors hover:bg-indigo-700"
                     >
                       Register
                     </button>
@@ -240,10 +250,12 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
               ))}
 
               {availableEvents.length === 0 && (
-                <div className="text-center py-8">
-                  <i className="fas fa-calendar-check text-4xl text-gray-600 mb-4"></i>
+                <div className="py-8 text-center">
+                  <i className="fas fa-calendar-check mb-4 text-4xl text-gray-600"></i>
                   <p className="text-gray-400">No new events available</p>
-                  <p className="text-sm text-gray-500 mt-2">Check back later for new opportunities!</p>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Check back later for new opportunities!
+                  </p>
                 </div>
               )}
             </div>
@@ -251,17 +263,19 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
         </div>
 
         {/* Profile Summary & Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
           {/* Profile Summary */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <i className="fas fa-user text-indigo-500 mr-3"></i>
+          <div className="rounded-xl border border-gray-700/30 bg-gray-800/50 p-6 backdrop-blur-sm">
+            <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-100">
+              <i className="fas fa-user mr-3 text-indigo-500"></i>
               Profile Summary
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-400">Name</span>
-                <span className="text-gray-100">{currentUser?.first_name} {currentUser?.last_name}</span>
+                <span className="text-gray-100">
+                  {currentUser?.first_name} {currentUser?.last_name}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Roll Number</span>
@@ -269,16 +283,18 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Branch</span>
-                <span className="text-gray-100">{currentUser?.branch} - {currentUser?.year}</span>
+                <span className="text-gray-100">
+                  {currentUser?.branch} - {currentUser?.year}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Email</span>
-                <span className="text-gray-100 truncate">{currentUser?.email}</span>
+                <span className="truncate text-gray-100">{currentUser?.email}</span>
               </div>
             </div>
             <button
               onClick={() => onNavigate?.('profile')}
-              className="w-full mt-4 p-2 bg-gray-700/50 hover:bg-gray-700/70 rounded-lg text-gray-300 hover:text-gray-100 transition-colors"
+              className="mt-4 w-full rounded-lg bg-gray-700/50 p-2 text-gray-300 transition-colors hover:bg-gray-700/70 hover:text-gray-100"
             >
               <i className="fas fa-edit mr-2"></i>
               Edit Profile
@@ -286,29 +302,29 @@ export function VolunteerDashboard({ onNavigate }: VolunteerDashboardProps) {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/30 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4 flex items-center">
-              <i className="fas fa-bolt text-yellow-500 mr-3"></i>
+          <div className="rounded-xl border border-gray-700/30 bg-gray-800/50 p-6 backdrop-blur-sm">
+            <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-100">
+              <i className="fas fa-bolt mr-3 text-yellow-500"></i>
               Quick Actions
             </h3>
             <div className="space-y-3">
               <button
                 onClick={() => onNavigate?.('event-registration')}
-                className="w-full p-3 bg-gradient-to-r from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-lg hover:from-blue-600/30 hover:to-blue-800/30 transition-colors text-left"
+                className="w-full rounded-lg border border-blue-500/30 bg-gradient-to-r from-blue-600/20 to-blue-800/20 p-3 text-left transition-colors hover:from-blue-600/30 hover:to-blue-800/30"
               >
                 <i className="fas fa-calendar-plus mr-3 text-blue-400"></i>
                 <span className="text-gray-100">Browse Events</span>
               </button>
               <button
                 onClick={() => onNavigate?.('reports')}
-                className="w-full p-3 bg-gradient-to-r from-green-600/20 to-green-800/20 border border-green-500/30 rounded-lg hover:from-green-600/30 hover:to-green-800/30 transition-colors text-left"
+                className="w-full rounded-lg border border-green-500/30 bg-gradient-to-r from-green-600/20 to-green-800/20 p-3 text-left transition-colors hover:from-green-600/30 hover:to-green-800/30"
               >
                 <i className="fas fa-file-alt mr-3 text-green-400"></i>
                 <span className="text-gray-100">View My Reports</span>
               </button>
               <button
                 onClick={() => onNavigate?.('profile')}
-                className="w-full p-3 bg-gradient-to-r from-purple-600/20 to-purple-800/20 border border-purple-500/30 rounded-lg hover:from-purple-600/30 hover:to-purple-800/30 transition-colors text-left"
+                className="w-full rounded-lg border border-purple-500/30 bg-gradient-to-r from-purple-600/20 to-purple-800/20 p-3 text-left transition-colors hover:from-purple-600/30 hover:to-purple-800/30"
               >
                 <i className="fas fa-user mr-3 text-purple-400"></i>
                 <span className="text-gray-100">My Profile</span>

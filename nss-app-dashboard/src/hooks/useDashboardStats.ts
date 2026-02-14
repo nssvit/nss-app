@@ -11,12 +11,17 @@ import { useState, useEffect, useCallback } from 'react'
 import { getDashboardStats, getMonthlyTrends } from '@/app/actions/dashboard'
 import { getUpcomingEvents } from '@/app/actions/events'
 
-// Types inferred from server actions
+// Types inferred from server actions (with snake_case aliases for compatibility)
 export interface DashboardStats {
   totalEvents: number
   activeVolunteers: number
   totalHours: number
   ongoingProjects: number
+  // Snake_case aliases
+  total_events?: number
+  active_volunteers?: number
+  total_hours?: number
+  ongoing_projects?: number
 }
 
 export interface ActivityTrend {
@@ -24,6 +29,10 @@ export interface ActivityTrend {
   eventsCount: number
   volunteersCount: number
   hoursSum: number
+  // Snake_case aliases
+  events_count?: number
+  volunteers_count?: number
+  hours_sum?: number
 }
 
 export interface RecentEvent {
@@ -62,9 +71,28 @@ export function useDashboardStats(): UseDashboardStatsReturn {
         getUpcomingEvents(3),
       ])
 
-      setStats(statsData)
-      setActivityData(trendsData)
-      setRecentEvents(eventsData)
+      // Transform stats with snake_case aliases
+      const statsWithAliases = statsData
+        ? {
+            ...statsData,
+            total_events: statsData.totalEvents,
+            active_volunteers: statsData.activeVolunteers,
+            total_hours: statsData.totalHours,
+            ongoing_projects: statsData.ongoingProjects,
+          }
+        : null
+
+      // Transform trends with snake_case aliases
+      const trendsWithAliases = (trendsData || []).map((t: any) => ({
+        ...t,
+        events_count: t.eventsCount,
+        volunteers_count: t.volunteersCount,
+        hours_sum: t.hoursSum,
+      }))
+
+      setStats(statsWithAliases)
+      setActivityData(trendsWithAliases)
+      setRecentEvents(eventsData || [])
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch dashboard data'
       console.error('[useDashboardStats] Error:', message)

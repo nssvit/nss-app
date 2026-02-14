@@ -19,23 +19,25 @@ import * as schema from './schema'
 if (!process.env.DATABASE_URL) {
   throw new Error(
     'DATABASE_URL environment variable is not set. ' +
-    'Please add it to your .env.local file. ' +
-    'You can find this in your Supabase project settings under Database > Connection string.'
+      'Please add it to your .env.local file. ' +
+      'You can find this in your Supabase project settings under Database > Connection string.'
   )
 }
 
 /**
  * PostgreSQL client for Drizzle ORM
  *
- * Configuration:
- * - max: 1 connection for serverless environments (prevents connection exhaustion)
+ * Configuration optimized for Vercel/serverless:
+ * - max: 5 connections (allows parallel queries without exhausting pool)
  * - idle_timeout: 20 seconds before closing idle connections
  * - connect_timeout: 10 seconds connection timeout
+ * - prepare: false (required for connection poolers like Supavisor)
  */
 const client = postgres(process.env.DATABASE_URL, {
-  max: 1, // Single connection for serverless
+  max: 5, // Allow parallel queries
   idle_timeout: 20,
   connect_timeout: 10,
+  prepare: false, // Required for Supabase connection pooler
 })
 
 /**

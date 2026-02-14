@@ -5,15 +5,7 @@
  * Activity chart and statistics summary
  */
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { MonthlyActivity, ProfileStats } from './types'
 
 interface ProfileActivityProps {
@@ -25,8 +17,8 @@ export function ProfileActivity({ monthlyActivity, stats }: ProfileActivityProps
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Activity Chart - Last 6 Months</h3>
-        <div className="h-64 bg-gray-800/30 rounded-lg p-4">
+        <h3 className="mb-4 text-lg font-semibold text-gray-100">Activity Chart - Last 6 Months</h3>
+        <div className="h-64 rounded-lg bg-gray-800/30 p-4">
           {monthlyActivity.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyActivity} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -46,9 +38,9 @@ export function ProfileActivity({ monthlyActivity, stats }: ProfileActivityProps
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">
+            <div className="flex h-full items-center justify-center text-gray-400">
               <div className="text-center">
-                <i className="fas fa-chart-bar text-4xl mb-3"></i>
+                <i className="fas fa-chart-bar mb-3 text-4xl"></i>
                 <p>No activity data available</p>
               </div>
             </div>
@@ -57,23 +49,26 @@ export function ProfileActivity({ monthlyActivity, stats }: ProfileActivityProps
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-gray-100 mb-4">Statistics Summary</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gray-800/30 rounded-lg p-4">
+        <h3 className="mb-4 text-lg font-semibold text-gray-100">Statistics Summary</h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="rounded-lg bg-gray-800/30 p-4">
             <div className="text-2xl font-bold text-indigo-400">{stats.eventsParticipated}</div>
             <div className="text-sm text-gray-400">Total Events</div>
           </div>
-          <div className="bg-gray-800/30 rounded-lg p-4">
+          <div className="rounded-lg bg-gray-800/30 p-4">
             <div className="text-2xl font-bold text-green-400">{stats.totalHours}</div>
             <div className="text-sm text-gray-400">Total Hours</div>
           </div>
-          <div className="bg-gray-800/30 rounded-lg p-4">
+          <div className="rounded-lg bg-gray-800/30 p-4">
             <div className="text-2xl font-bold text-purple-400">{stats.approvedHours}</div>
             <div className="text-sm text-gray-400">Approved Hours</div>
           </div>
-          <div className="bg-gray-800/30 rounded-lg p-4">
+          <div className="rounded-lg bg-gray-800/30 p-4">
             <div className="text-2xl font-bold text-yellow-400">
-              {stats.totalHours > 0 ? Math.round((stats.approvedHours / stats.totalHours) * 100) : 0}%
+              {stats.totalHours > 0
+                ? Math.round((stats.approvedHours / stats.totalHours) * 100)
+                : 0}
+              %
             </div>
             <div className="text-sm text-gray-400">Approval Rate</div>
           </div>

@@ -44,12 +44,16 @@ export const insertVolunteerSchema = createInsertSchema(volunteers, {
   lastName: z.string().min(1, 'Last name is required').max(100),
   rollNumber: z.string().min(1, 'Roll number is required').max(20),
   branch: z.enum(['EXCS', 'CMPN', 'IT', 'BIO-MED', 'EXTC'], {
-    errorMap: () => ({ message: 'Invalid branch' }),
+    message: 'Invalid branch',
   }),
   year: z.enum(['FE', 'SE', 'TE'], {
-    errorMap: () => ({ message: 'Invalid year' }),
+    message: 'Invalid year',
   }),
-  phoneNo: z.string().regex(/^[0-9]{10}$/, 'Phone number must be 10 digits').optional().nullable(),
+  phoneNo: z
+    .string()
+    .regex(/^[0-9]{10}$/, 'Phone number must be 10 digits')
+    .optional()
+    .nullable(),
   gender: z.enum(['M', 'F', 'Prefer not to say']).optional().nullable(),
 })
 
@@ -79,7 +83,14 @@ export const insertEventSchema = createInsertSchema(events, {
   declaredHours: z.number().int().min(0).max(100),
   minParticipants: z.number().int().min(0).optional().nullable(),
   maxParticipants: z.number().int().min(1).optional().nullable(),
-  eventStatus: z.enum(['planned', 'registration_open', 'registration_closed', 'ongoing', 'completed', 'cancelled']),
+  eventStatus: z.enum([
+    'planned',
+    'registration_open',
+    'registration_closed',
+    'ongoing',
+    'completed',
+    'cancelled',
+  ]),
   location: z.string().max(500).optional().nullable(),
 })
 
@@ -103,7 +114,9 @@ export const selectEventSchema = createSelectSchema(events)
 export const insertEventParticipationSchema = createInsertSchema(eventParticipation, {
   hoursAttended: z.number().int().min(0).max(24).default(0),
   declaredHours: z.number().int().min(0).max(24).optional().nullable(),
-  participationStatus: z.enum(['registered', 'present', 'absent', 'partially_present', 'excused']).default('registered'),
+  participationStatus: z
+    .enum(['registered', 'present', 'absent', 'partially_present', 'excused'])
+    .default('registered'),
   approvalStatus: z.enum(['pending', 'approved', 'rejected']).default('pending'),
   notes: z.string().max(1000).optional().nullable(),
   feedback: z.string().max(2000).optional().nullable(),
@@ -130,7 +143,11 @@ export const insertEventCategorySchema = createInsertSchema(eventCategories, {
   categoryName: z.string().min(1, 'Category name is required').max(100),
   code: z.string().min(1, 'Code is required').max(20),
   description: z.string().max(500).optional().nullable(),
-  colorHex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a valid hex code').optional().nullable(),
+  colorHex: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, 'Color must be a valid hex code')
+    .optional()
+    .nullable(),
 })
 
 /**
@@ -151,10 +168,14 @@ export const selectEventCategorySchema = createSelectSchema(eventCategories)
  * Schema for inserting a new role definition
  */
 export const insertRoleDefinitionSchema = createInsertSchema(roleDefinitions, {
-  roleName: z.string().min(1, 'Role name is required').max(50).regex(/^[a-z_]+$/, 'Role name must be lowercase with underscores'),
+  roleName: z
+    .string()
+    .min(1, 'Role name is required')
+    .max(50)
+    .regex(/^[a-z_]+$/, 'Role name must be lowercase with underscores'),
   displayName: z.string().min(1, 'Display name is required').max(100),
   description: z.string().max(500).optional().nullable(),
-  permissions: z.record(z.any()).default({}),
+  permissions: z.record(z.string(), z.any()).default({}),
   hierarchyLevel: z.number().int().min(0).max(100).default(0),
 })
 
@@ -244,7 +265,7 @@ export const paginationSchema = z.object({
  */
 export const searchSchema = z.object({
   query: z.string().max(200).optional(),
-  filters: z.record(z.any()).optional(),
+  filters: z.record(z.string(), z.any()).optional(),
 })
 
 // ============================================================================

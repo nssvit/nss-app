@@ -1,7 +1,7 @@
 'use client'
 
-import { Toast } from './types'
 import { ToastItem } from './ToastItem'
+import { Toast } from './types'
 
 interface ToastContainerProps {
   toasts: Toast[]
@@ -13,7 +13,7 @@ export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none"
+      className="pointer-events-none fixed top-4 right-4 z-50 flex flex-col gap-3"
       style={{ maxHeight: 'calc(100vh - 2rem)' }}
     >
       {toasts.map((toast) => (

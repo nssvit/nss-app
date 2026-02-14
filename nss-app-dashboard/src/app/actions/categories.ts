@@ -1,16 +1,19 @@
 'use server'
 
+import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { eventCategories } from '@/db/schema'
 import { createClient } from '@/utils/supabase/server'
-import { eq } from 'drizzle-orm'
 
 /**
  * Auth helper - ensures user is authenticated
  */
 async function requireAuth() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error || !user) {
     throw new Error('Unauthorized: Please sign in')

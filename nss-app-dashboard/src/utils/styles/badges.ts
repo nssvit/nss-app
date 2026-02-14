@@ -47,9 +47,7 @@ export const getCategoryBadgeClass = (category: string): string => {
   }
 
   const lowerCategory = category.toLowerCase()
-  const matchedKey = Object.keys(categoryMap).find(
-    (key) => key.toLowerCase() === lowerCategory
-  )
+  const matchedKey = Object.keys(categoryMap).find((key) => key.toLowerCase() === lowerCategory)
 
   return matchedKey ? categoryMap[matchedKey] : 'category-badge category-default'
 }
@@ -60,7 +58,10 @@ export const getCategoryBadgeClass = (category: string): string => {
 export const getStatsVariant = (
   metricType: string
 ): 'primary' | 'success' | 'warning' | 'info' | 'error' | 'purple' | 'orange' => {
-  const variantMap: Record<string, 'primary' | 'success' | 'warning' | 'info' | 'error' | 'purple' | 'orange'> = {
+  const variantMap: Record<
+    string,
+    'primary' | 'success' | 'warning' | 'info' | 'error' | 'purple' | 'orange'
+  > = {
     volunteers: 'primary',
     events: 'purple',
     hours: 'success',

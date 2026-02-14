@@ -11,7 +11,7 @@ export async function setupDefaultRoles() {
       return
     }
 
-    const existingRoleNames = existingRoles?.map(r => r.role_name) || []
+    const existingRoleNames = existingRoles?.map((r) => r.role_name) || []
 
     const defaultRoles = [
       {
@@ -23,9 +23,9 @@ export async function setupDefaultRoles() {
           events: { create: true, read: true, update: true, delete: true },
           volunteers: { create: true, read: true, update: true, delete: true },
           users: { create: true, read: true, update: true, delete: true },
-          reports: { read: true }
+          reports: { read: true },
         },
-        hierarchy_level: 0
+        hierarchy_level: 0,
       },
       {
         role_name: 'program_officer',
@@ -34,9 +34,9 @@ export async function setupDefaultRoles() {
         permissions: {
           events: { create: true, read: true, update: true, delete: false },
           volunteers: { create: true, read: true, update: true, delete: false },
-          reports: { read: true }
+          reports: { read: true },
         },
-        hierarchy_level: 1
+        hierarchy_level: 1,
       },
       {
         role_name: 'event_lead',
@@ -45,9 +45,9 @@ export async function setupDefaultRoles() {
         permissions: {
           events: { create: true, read: true, update: true, delete: false },
           volunteers: { read: true, update: false },
-          attendance: { create: true, read: true, update: true }
+          attendance: { create: true, read: true, update: true },
         },
-        hierarchy_level: 2
+        hierarchy_level: 2,
       },
       {
         role_name: 'documentation_lead',
@@ -55,9 +55,9 @@ export async function setupDefaultRoles() {
         description: 'Volunteer management and record keeping',
         permissions: {
           volunteers: { create: true, read: true, update: true, delete: false },
-          events: { read: true }
+          events: { read: true },
         },
-        hierarchy_level: 3
+        hierarchy_level: 3,
       },
       {
         role_name: 'viewer',
@@ -66,20 +66,16 @@ export async function setupDefaultRoles() {
         permissions: {
           volunteers: { read: true },
           events: { read: true },
-          reports: { read: true }
+          reports: { read: true },
         },
-        hierarchy_level: 4
-      }
+        hierarchy_level: 4,
+      },
     ]
 
-    const rolesToInsert = defaultRoles.filter(
-      role => !existingRoleNames.includes(role.role_name)
-    )
+    const rolesToInsert = defaultRoles.filter((role) => !existingRoleNames.includes(role.role_name))
 
     if (rolesToInsert.length > 0) {
-      const { error: insertError } = await supabase
-        .from('role_definitions')
-        .insert(rolesToInsert)
+      const { error: insertError } = await supabase.from('role_definitions').insert(rolesToInsert)
 
       if (insertError) {
         console.error('Error inserting default roles:', insertError)
@@ -106,49 +102,49 @@ export async function setupEventCategories() {
       return
     }
 
-    const existingCategoryNames = existingCategories?.map(c => c.category_name) || []
+    const existingCategoryNames = existingCategories?.map((c) => c.category_name) || []
 
     const defaultCategories = [
       {
         category_name: 'area_based_1',
         display_name: 'Area Based - 1',
         description: 'Community development activities',
-        color_hex: '#3B82F6'
+        color_hex: '#3B82F6',
       },
       {
         category_name: 'area_based_2',
         display_name: 'Area Based - 2',
         description: 'Environmental and sustainability activities',
-        color_hex: '#10B981'
+        color_hex: '#10B981',
       },
       {
         category_name: 'college_event',
         display_name: 'College Event',
         description: 'Campus-based NSS activities',
-        color_hex: '#8B5CF6'
+        color_hex: '#8B5CF6',
       },
       {
         category_name: 'camp',
         display_name: 'Camp',
         description: 'Multi-day camps and special programs',
-        color_hex: '#F59E0B'
+        color_hex: '#F59E0B',
       },
       {
         category_name: 'workshop',
         display_name: 'Workshop',
         description: 'Educational workshops and training',
-        color_hex: '#EF4444'
+        color_hex: '#EF4444',
       },
       {
         category_name: 'rally',
         display_name: 'Rally',
         description: 'Awareness rallies and public events',
-        color_hex: '#06B6D4'
-      }
+        color_hex: '#06B6D4',
+      },
     ]
 
     const categoriesToInsert = defaultCategories.filter(
-      category => !existingCategoryNames.includes(category.category_name)
+      (category) => !existingCategoryNames.includes(category.category_name)
     )
 
     if (categoriesToInsert.length > 0) {

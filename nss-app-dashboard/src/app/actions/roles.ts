@@ -1,40 +1,14 @@
 'use server'
 
-import { queries } from '@/db/queries'
-import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-
-/**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
-
-/**
- * Get current user's volunteer ID
- */
-async function getCurrentVolunteerId() {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-  return volunteer.id
-}
+import { queries } from '@/db/queries'
+import { getAuthUser, getCurrentVolunteer, isAdmin as cachedIsAdmin } from '@/lib/auth-cache'
 
 /**
  * Get all available roles
  */
 export async function getRoles() {
-  await requireAuth()
+  await getAuthUser() // Cached auth check
   return queries.getAllRoles()
 }
 
@@ -42,7 +16,7 @@ export async function getRoles() {
  * Get roles for a specific volunteer
  */
 export async function getVolunteerRoles(volunteerId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getVolunteerRoles(volunteerId)
 }
 
@@ -50,15 +24,15 @@ export async function getVolunteerRoles(volunteerId: string) {
  * Get current user's roles
  */
 export async function getCurrentUserRoles() {
-  const volunteerId = await getCurrentVolunteerId()
-  return queries.getVolunteerRoles(volunteerId)
+  const volunteer = await getCurrentVolunteer()
+  return queries.getVolunteerRoles(volunteer.id)
 }
 
 /**
  * Check if a volunteer has a specific role
  */
 export async function hasRole(volunteerId: string, roleName: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.volunteerHasRole(volunteerId, roleName)
 }
 
@@ -66,7 +40,7 @@ export async function hasRole(volunteerId: string, roleName: string) {
  * Check if a volunteer has any of the specified roles
  */
 export async function hasAnyRole(volunteerId: string, roleNames: string[]) {
-  await requireAuth()
+  await getAuthUser()
   return queries.volunteerHasAnyRole(volunteerId, roleNames)
 }
 
@@ -74,35 +48,35 @@ export async function hasAnyRole(volunteerId: string, roleNames: string[]) {
  * Check if a volunteer is an admin
  */
 export async function isAdmin(volunteerId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.isVolunteerAdmin(volunteerId)
 }
 
 /**
- * Check if current user is an admin
+ * Check if current user is an admin (uses cached auth)
  */
 export async function isCurrentUserAdmin() {
-  const volunteerId = await getCurrentVolunteerId()
-  return queries.isVolunteerAdmin(volunteerId)
+  return cachedIsAdmin()
 }
 
 /**
  * Assign a role to a volunteer (admin only)
  */
-export async function assignRole(
-  volunteerId: string,
-  roleDefinitionId: string,
-  expiresAt?: Date
-) {
-  const assignedBy = await getCurrentVolunteerId()
+export async function assignRole(volunteerId: string, roleDefinitionId: string, expiresAt?: Date) {
+  const volunteer = await getCurrentVolunteer()
 
-  // Check if current user is admin
-  const adminCheck = await queries.isVolunteerAdmin(assignedBy)
+  // Check if current user is admin (cached)
+  const adminCheck = await cachedIsAdmin()
   if (!adminCheck) {
     throw new Error('Unauthorized: Admin access required')
   }
 
-  const result = await queries.adminAssignRole(volunteerId, roleDefinitionId, assignedBy, expiresAt)
+  const result = await queries.adminAssignRole(
+    volunteerId,
+    roleDefinitionId,
+    volunteer.id,
+    expiresAt
+  )
   revalidatePath('/roles')
   revalidatePath('/volunteers')
   return result
@@ -112,10 +86,8 @@ export async function assignRole(
  * Revoke a role from a volunteer (admin only)
  */
 export async function revokeRole(volunteerId: string, roleDefinitionId: string) {
-  const currentUserId = await getCurrentVolunteerId()
-
-  // Check if current user is admin
-  const adminCheck = await queries.isVolunteerAdmin(currentUserId)
+  // Check if current user is admin (cached)
+  const adminCheck = await cachedIsAdmin()
   if (!adminCheck) {
     throw new Error('Unauthorized: Admin access required')
   }

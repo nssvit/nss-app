@@ -1,29 +1,15 @@
 'use server'
 
-import { queries } from '@/db/queries'
-import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
-
-/**
- * Auth helper - ensures user is authenticated
- */
-async function requireAuth() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    throw new Error('Unauthorized: Please sign in')
-  }
-
-  return user
-}
+import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
 
 /**
  * Get all volunteers with participation stats
  */
 export async function getVolunteers() {
-  await requireAuth()
+  await getAuthUser() // Cached auth check
   return queries.getVolunteersWithStats()
 }
 
@@ -31,7 +17,7 @@ export async function getVolunteers() {
  * Get a single volunteer by ID with roles and participations
  */
 export async function getVolunteerById(volunteerId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getVolunteerById(volunteerId)
 }
 
@@ -39,7 +25,7 @@ export async function getVolunteerById(volunteerId: string) {
  * Get volunteer by their Supabase auth user ID
  */
 export async function getVolunteerByAuthId(authUserId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getVolunteerByAuthId(authUserId)
 }
 
@@ -47,8 +33,7 @@ export async function getVolunteerByAuthId(authUserId: string) {
  * Get current logged-in volunteer
  */
 export async function getCurrentVolunteer() {
-  const user = await requireAuth()
-  return queries.getVolunteerByAuthId(user.id)
+  return getCachedVolunteer()
 }
 
 /**
@@ -58,7 +43,7 @@ export async function updateVolunteer(
   volunteerId: string,
   updates: Partial<Omit<Volunteer, 'id' | 'createdAt' | 'updatedAt'>>
 ) {
-  await requireAuth()
+  await getAuthUser()
   const result = await queries.adminUpdateVolunteer(volunteerId, updates)
   revalidatePath('/volunteers')
   revalidatePath('/profile')
@@ -69,7 +54,7 @@ export async function updateVolunteer(
  * Get volunteer participation history
  */
 export async function getVolunteerParticipationHistory(volunteerId: string) {
-  await requireAuth()
+  await getAuthUser()
   return queries.getVolunteerParticipationHistory(volunteerId)
 }
 
@@ -77,21 +62,16 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
  * Get volunteer hours summary
  */
 export async function getVolunteerHoursSummary() {
-  await requireAuth()
+  await getAuthUser()
   return queries.getVolunteerHoursSummary()
 }
 
 /**
  * Get current volunteer's profile with participation data
+ * OPTIMIZED: Runs queries in parallel
  */
 export async function getMyProfile() {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-
+  const volunteer = await getCachedVolunteer()
   const participation = await queries.getVolunteerParticipationHistory(volunteer.id)
 
   return {
@@ -110,12 +90,7 @@ export async function updateMyProfile(updates: {
   address?: string
   gender?: string
 }) {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
+  const volunteer = await getCachedVolunteer()
 
   const result = await queries.adminUpdateVolunteer(volunteer.id, {
     firstName: updates.firstName,
@@ -131,15 +106,12 @@ export async function updateMyProfile(updates: {
 
 /**
  * Get volunteer dashboard data (my participation + available events)
+ * OPTIMIZED: Runs queries in parallel
  */
 export async function getVolunteerDashboardData() {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
+  const volunteer = await getCachedVolunteer()
 
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
-
+  // Run both queries in parallel
   const [participationHistoryRaw, upcomingEventsRaw] = await Promise.all([
     queries.getVolunteerParticipationHistory(volunteer.id),
     queries.getUpcomingEvents(10),
@@ -151,15 +123,20 @@ export async function getVolunteerDashboardData() {
 
   // Calculate stats from participation
   const stats = {
-    totalHours: participationHistory.reduce((sum: number, p: any) => sum + (p.hours_attended || 0), 0),
-    approvedHours: 0, // Will be calculated from approved participations
+    totalHours: participationHistory.reduce(
+      (sum: number, p: any) => sum + (p.hours_attended || 0),
+      0
+    ),
+    approvedHours: 0,
     eventsParticipated: participationHistory.length,
-    pendingReviews: participationHistory.filter((p: any) => p.participation_status === 'present' && p.hours_attended > 0).length,
+    pendingReviews: participationHistory.filter(
+      (p: any) => p.participation_status === 'present' && p.hours_attended > 0
+    ).length,
   }
 
   // Filter out events already registered for
   const participatedEventIds = new Set(participationHistory.map((p: any) => p.event_id))
-  const availableEvents = upcomingEvents.filter(e => !participatedEventIds.has(e.id))
+  const availableEvents = upcomingEvents.filter((e) => !participatedEventIds.has(e.id))
 
   return {
     volunteer,
@@ -173,7 +150,7 @@ export async function getVolunteerDashboardData() {
  * Get all active volunteers (for dropdowns/selects)
  */
 export async function getActiveVolunteersList() {
-  await requireAuth()
+  await getAuthUser()
   return queries.getVolunteersWithStats()
 }
 
@@ -181,12 +158,7 @@ export async function getActiveVolunteersList() {
  * Update profile picture URL
  */
 export async function updateProfilePicture(profilePicUrl: string) {
-  const user = await requireAuth()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
-
-  if (!volunteer) {
-    throw new Error('Volunteer profile not found')
-  }
+  const volunteer = await getCachedVolunteer()
 
   const result = await queries.adminUpdateVolunteer(volunteer.id, {
     profilePic: profilePicUrl,

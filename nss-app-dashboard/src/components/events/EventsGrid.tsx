@@ -5,9 +5,8 @@
  * Grid display of event cards
  */
 
-import { EventCard } from '../EventCard'
-import { Skeleton } from '../Skeleton'
-import { EmptyState } from '../EmptyState'
+import { Skeleton, EmptyState } from '@/components/ui'
+import { EventCard } from './EventCard'
 import type { Event } from './types'
 
 interface EventsGridProps {
@@ -20,17 +19,33 @@ interface EventsGridProps {
   onRegister: (eventId: string) => void
 }
 
-export function EventsGrid({ events, loading, isMobile, canManage, onEdit, onViewParticipants, onRegister }: EventsGridProps) {
+export function EventsGrid({
+  events,
+  loading,
+  isMobile,
+  canManage,
+  onEdit,
+  onViewParticipants,
+  onRegister,
+}: EventsGridProps) {
   if (loading) {
     return (
       <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3'} gap-4`}>
-        {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-64 rounded-xl" />
+        ))}
       </div>
     )
   }
 
   if (events.length === 0) {
-    return <EmptyState title="No events found" description="Try adjusting your filters or create a new event" icon="fas fa-calendar-times" />
+    return (
+      <EmptyState
+        title="No events found"
+        description="Try adjusting your filters or create a new event"
+        icon="fas fa-calendar-times"
+      />
+    )
   }
 
   return (
@@ -38,22 +53,20 @@ export function EventsGrid({ events, loading, isMobile, canManage, onEdit, onVie
       {events.map((event) => (
         <EventCard
           key={event.id}
-          event={{
-            id: event.id,
-            event_name: event.eventName,
-            event_description: event.eventDescription,
-            event_date: event.eventDate,
-            declared_hours: event.declaredHours,
-            category_name: event.categoryName,
-            created_by_name: event.createdByName,
-            participant_count: event.participantCount,
-            is_active: event.isActive,
-            created_at: event.createdAt,
-            participant_avatars: event.participantAvatars,
-          }}
+          title={event.eventName || 'Untitled Event'}
+          date={event.eventDate || 'TBD'}
+          description={event.eventDescription || ''}
+          category={event.categoryName || 'General'}
+          hours={String(event.declaredHours || 0)}
+          participants={(event.participantAvatars || []).map((p: any) => ({
+            avatar: p.avatar || p.profile_pic || '',
+            alt: p.name || p.alt || 'Participant',
+          }))}
+          participantCount={event.participantCount || 0}
           onEdit={canManage ? () => onEdit(event) : undefined}
           onViewParticipants={() => onViewParticipants(event)}
-          onRegister={() => onRegister(event.id)}
+          createdBy={event.createdByName}
+          canEdit={canManage}
         />
       ))}
     </div>

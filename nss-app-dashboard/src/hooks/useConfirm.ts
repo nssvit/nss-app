@@ -50,6 +50,6 @@ export function useConfirm() {
     isOpen,
     options,
     handleConfirm,
-    handleCancel
+    handleCancel,
   }
 }

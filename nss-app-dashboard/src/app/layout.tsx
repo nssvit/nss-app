@@ -1,36 +1,36 @@
-import type { Metadata, Viewport } from "next";
-import "./globals.css";
-import { PWAManager } from "@/components/PWAManager";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { DashboardCacheProvider } from "@/contexts/DashboardCacheContext";
-import { CommandPalette } from "@/components/CommandPalette";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from 'next/font/google'
+import { CommandPalette } from '@/components/CommandPalette'
+import { PWAManager } from '@/components/PWAManager'
+import { AuthProvider } from '@/contexts/AuthContext'
+import { DashboardCacheProvider } from '@/contexts/DashboardCacheContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
+import type { Viewport } from 'next'
+import './globals.css'
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
+  subsets: ['latin'],
+  variable: '--font-mono',
+})
 
 export const viewport: Viewport = {
-  width: "device-width",
+  width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-  viewportFit: "cover", // For devices with notches
+  viewportFit: 'cover', // For devices with notches
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0B0C15" },
+    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B0C15' },
   ],
-};
+}
 
 // ... (metadata remains the same)
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" className="h-full">
@@ -53,7 +53,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased h-full overflow-x-hidden`}
+        className={`${inter.variable} ${jetbrainsMono.variable} h-full overflow-x-hidden antialiased`}
       >
         <AuthProvider>
           <ThemeProvider>
@@ -66,5 +66,5 @@ export default function RootLayout({
         </AuthProvider>
       </body>
     </html>
-  );
+  )
 }

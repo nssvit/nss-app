@@ -1,0 +1,30 @@
+{
+  "name": "nss-app-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit -p nss-app-dashboard/tsconfig.json",
+    "format": "prettier --write \"nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "check": "npm run typecheck && npm run format:check",
+    "fix": "npm run format",
+    "lint": "cd nss-app-dashboard && npm run lint",
+    "lint:fix": "cd nss-app-dashboard && npm run lint:fix"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "typescript": "^5"
+  },
+  "lint-staged": {
+    "nss-app-dashboard/src/**/*.{ts,tsx,js,jsx,json,css,md}": "prettier --write"
+  }
+}

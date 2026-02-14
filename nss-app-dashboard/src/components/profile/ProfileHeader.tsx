@@ -45,7 +45,7 @@ export function ProfileHeader({
   }
 
   return (
-    <div className="card-glass rounded-xl p-6 mb-6">
+    <div className="card-glass mb-6 rounded-xl p-6">
       <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} items-center gap-6`}>
         <div className="relative">
           {profileData.profilePic ? (
@@ -54,11 +54,11 @@ export function ProfileHeader({
               alt="Profile Picture"
               width={isMobile ? 96 : 128}
               height={isMobile ? 96 : 128}
-              className={`${isMobile ? 'w-24 h-24' : 'w-32 h-32'} rounded-full border-4 border-gray-700/50 object-cover`}
+              className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} rounded-full border-4 border-gray-700/50 object-cover`}
             />
           ) : (
             <div
-              className={`${isMobile ? 'w-24 h-24' : 'w-32 h-32'} rounded-full border-4 border-gray-700/50 bg-indigo-600 flex items-center justify-center`}
+              className={`${isMobile ? 'h-24 w-24' : 'h-32 w-32'} flex items-center justify-center rounded-full border-4 border-gray-700/50 bg-indigo-600`}
             >
               <span className="text-3xl font-bold text-white">
                 {profileData.firstName?.charAt(0)}
@@ -76,7 +76,7 @@ export function ProfileHeader({
           <button
             onClick={handleAvatarClick}
             disabled={uploading}
-            className="absolute bottom-0 right-0 pwa-button bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg focus-visible disabled:opacity-50"
+            className="pwa-button focus-visible absolute right-0 bottom-0 rounded-full bg-indigo-600 p-2 text-white shadow-lg hover:bg-indigo-700 disabled:opacity-50"
           >
             {uploading ? (
               <i className="fas fa-spinner fa-spin text-sm"></i>
@@ -87,15 +87,15 @@ export function ProfileHeader({
         </div>
 
         <div className={`flex-1 ${isMobile ? 'text-center' : 'text-left'}`}>
-          <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-gray-100 mb-2`}>
+          <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} mb-2 font-bold text-gray-100`}>
             {profileData.firstName} {profileData.lastName}
           </h1>
-          <p className="text-lg text-gray-300 mb-2">{getRoleDisplay()}</p>
-          <p className="text-sm text-gray-400 mb-4">
+          <p className="mb-2 text-lg text-gray-300">{getRoleDisplay()}</p>
+          <p className="mb-4 text-sm text-gray-400">
             {profileData.branch} - Year {profileData.year} | {profileData.rollNumber}
           </p>
-          <div className="flex items-center gap-4 text-sm text-gray-500 flex-wrap justify-center md:justify-start">
-            {profileData.nssJoinYear > 0 && (
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500 md:justify-start">
+            {Number(profileData.nssJoinYear || 0) > 0 && (
               <span>
                 <i className="fas fa-calendar mr-1"></i> NSS since {profileData.nssJoinYear}
               </span>

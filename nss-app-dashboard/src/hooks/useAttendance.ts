@@ -58,7 +58,7 @@ export interface EventParticipantRaw {
   notes: string | null
 }
 
-// Camel case format
+// Camel case format with snake_case aliases
 export interface EventParticipant {
   participantId: string
   volunteerId: string
@@ -78,6 +78,8 @@ export interface EventParticipant {
   roll_number: string
   participation_status: string
   hours_attended: number
+  attendance_date?: Date | null
+  registration_date?: Date | null
 }
 
 export interface EventForAttendance {
@@ -88,7 +90,12 @@ export interface EventForAttendance {
   location: string | null
 }
 
-export type ParticipationStatus = 'registered' | 'present' | 'absent' | 'partially_present' | 'excused'
+export type ParticipationStatus =
+  | 'registered'
+  | 'present'
+  | 'absent'
+  | 'partially_present'
+  | 'excused'
 
 export interface UseAttendanceReturn {
   attendanceRecords: AttendanceRecordRaw[]
@@ -96,7 +103,11 @@ export interface UseAttendanceReturn {
   error: string | null
   refetch: () => Promise<void>
   getEventParticipants: (eventId: string) => Promise<EventParticipant[]>
-  markAttendance: (eventId: string, volunteerIds: string[], hours?: number) => Promise<{ error: string | null }>
+  markAttendance: (
+    eventId: string,
+    volunteerIds: string[],
+    hours?: number
+  ) => Promise<{ error: string | null }>
   syncAttendance: (eventId: string, volunteerIds: string[]) => Promise<{ error: string | null }>
   updateParticipationStatus: (params: {
     participantId: string
@@ -136,36 +147,41 @@ export function useAttendance(): UseAttendanceReturn {
     }
   }, [])
 
-  const handleGetParticipants = useCallback(async (eventId: string): Promise<EventParticipant[]> => {
-    try {
-      const data = await fetchParticipants(eventId)
-      // Transform to include both formats for backward compatibility
-      return (data as any[]).map((p) => ({
-        // Camel case
-        participantId: p.participant_id || p.participantId || p.id,
-        volunteerId: p.volunteer_id || p.volunteerId,
-        volunteerName: p.volunteer_name || p.volunteerName,
-        rollNumber: p.roll_number || p.rollNumber,
-        branch: p.branch,
-        year: p.year,
-        participationStatus: p.participation_status || p.participationStatus,
-        hoursAttended: p.hours_attended ?? p.hoursAttended ?? 0,
-        attendanceDate: p.attendance_date || p.attendanceDate,
-        registrationDate: p.registration_date || p.registrationDate,
-        notes: p.notes,
-        // Snake case (backward compatibility)
-        participant_id: p.participant_id || p.participantId || p.id,
-        volunteer_id: p.volunteer_id || p.volunteerId,
-        volunteer_name: p.volunteer_name || p.volunteerName,
-        roll_number: p.roll_number || p.rollNumber,
-        participation_status: p.participation_status || p.participationStatus,
-        hours_attended: p.hours_attended ?? p.hoursAttended ?? 0,
-      }))
-    } catch (err) {
-      console.error('[useAttendance] Error fetching participants:', err)
-      return []
-    }
-  }, [])
+  const handleGetParticipants = useCallback(
+    async (eventId: string): Promise<EventParticipant[]> => {
+      try {
+        const data = await fetchParticipants(eventId)
+        // Transform to include both formats for backward compatibility
+        return (data as any[]).map((p) => ({
+          // Camel case
+          participantId: p.participant_id || p.participantId || p.id,
+          volunteerId: p.volunteer_id || p.volunteerId,
+          volunteerName: p.volunteer_name || p.volunteerName,
+          rollNumber: p.roll_number || p.rollNumber,
+          branch: p.branch,
+          year: p.year,
+          participationStatus: p.participation_status || p.participationStatus,
+          hoursAttended: p.hours_attended ?? p.hoursAttended ?? 0,
+          attendanceDate: p.attendance_date || p.attendanceDate,
+          registrationDate: p.registration_date || p.registrationDate,
+          notes: p.notes,
+          // Snake case (backward compatibility)
+          participant_id: p.participant_id || p.participantId || p.id,
+          volunteer_id: p.volunteer_id || p.volunteerId,
+          volunteer_name: p.volunteer_name || p.volunteerName,
+          roll_number: p.roll_number || p.rollNumber,
+          participation_status: p.participation_status || p.participationStatus,
+          hours_attended: p.hours_attended ?? p.hoursAttended ?? 0,
+          attendance_date: p.attendance_date || p.attendanceDate,
+          registration_date: p.registration_date || p.registrationDate,
+        }))
+      } catch (err) {
+        console.error('[useAttendance] Error fetching participants:', err)
+        return []
+      }
+    },
+    []
+  )
 
   const handleMarkAttendance = useCallback(
     async (eventId: string, volunteerIds: string[], hours?: number) => {
@@ -194,19 +210,37 @@ export function useAttendance(): UseAttendanceReturn {
   )
 
   const handleUpdateParticipationStatus = useCallback(
-    async (params: { participantId: string; status: string; hoursAttended?: number; notes?: string }) => {
+    async (params: {
+      participantId: string
+      status: string
+      hoursAttended?: number
+      notes?: string
+    }) => {
       try {
-        await updateParticipationAction(params.participantId, params.status, params.hoursAttended, params.notes)
+        await updateParticipationAction(
+          params.participantId,
+          params.status,
+          params.hoursAttended,
+          params.notes
+        )
         return { error: null }
       } catch (err) {
-        return { error: err instanceof Error ? err.message : 'Failed to update participation status' }
+        return {
+          error: err instanceof Error ? err.message : 'Failed to update participation status',
+        }
       }
     },
     []
   )
 
   const handleBulkMarkAttendance = useCallback(
-    async (params: { eventId: string; volunteerIds: string[]; status: string; hoursAttended?: number; notes?: string }) => {
+    async (params: {
+      eventId: string
+      volunteerIds: string[]
+      status: string
+      hoursAttended?: number
+      notes?: string
+    }) => {
       try {
         const result = await bulkMarkAttendanceAction(params)
         await fetchAttendanceData()

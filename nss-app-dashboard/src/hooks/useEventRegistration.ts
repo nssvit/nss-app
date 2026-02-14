@@ -7,7 +7,10 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { getEvents as fetchEventsAction, registerForEvent as registerAction } from '@/app/actions/events'
+import {
+  getEvents as fetchEventsAction,
+  registerForEvent as registerAction,
+} from '@/app/actions/events'
 import { getVolunteerParticipationHistory } from '@/app/actions/volunteers'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -108,14 +111,11 @@ export function useEventRegistration(): UseEventRegistrationReturn {
     [fetchData]
   )
 
-  const handleUnregister = useCallback(
-    async (_eventId: string) => {
-      // Note: Unregistration would need a separate server action
-      // For now, return error
-      return { error: 'Unregistration not implemented via Server Actions yet' }
-    },
-    []
-  )
+  const handleUnregister = useCallback(async (_eventId: string) => {
+    // Note: Unregistration would need a separate server action
+    // For now, return error
+    return { error: 'Unregistration not implemented via Server Actions yet' }
+  }, [])
 
   // Initial fetch on mount
   useEffect(() => {

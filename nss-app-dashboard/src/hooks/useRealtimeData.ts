@@ -8,26 +8,26 @@
  * - Debounced updates to prevent excessive re-renders
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { RealtimeChannel } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 interface UseRealtimeDataOptions<T> {
-  table: string;
-  select?: string;
-  filter?: Record<string, any>;
-  orderBy?: { column: string; ascending?: boolean };
-  enabled?: boolean;
-  cacheDuration?: number; // milliseconds
-  realtimeEnabled?: boolean;
+  table: string
+  select?: string
+  filter?: Record<string, any>
+  orderBy?: { column: string; ascending?: boolean }
+  enabled?: boolean
+  cacheDuration?: number // milliseconds
+  realtimeEnabled?: boolean
 }
 
 interface UseRealtimeDataReturn<T> {
-  data: T | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-  lastFetched: Date | null;
+  data: T | null
+  loading: boolean
+  error: string | null
+  refetch: () => Promise<void>
+  lastFetched: Date | null
 }
 
 /**
@@ -44,66 +44,66 @@ export function useRealtimeData<T = any>(
     enabled = true,
     cacheDuration = 5 * 60 * 1000, // 5 minutes default
     realtimeEnabled = true,
-  } = options;
+  } = options
 
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [data, setData] = useState<T | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  const isMountedRef = useRef(true);
+  const channelRef = useRef<RealtimeChannel | null>(null)
+  const isMountedRef = useRef(true)
 
   const fetchData = useCallback(async () => {
-    if (!enabled) return;
+    if (!enabled) return
 
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
-      let query = supabase.from(table).select(select);
+      let query = supabase.from(table).select(select)
 
       // Apply filters
       Object.entries(filter).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          query = query.eq(key, value);
+          query = query.eq(key, value)
         }
-      });
+      })
 
       // Apply ordering
       if (orderBy) {
-        query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+        query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
       }
 
-      const { data: fetchedData, error: fetchError } = await query;
+      const { data: fetchedData, error: fetchError } = await query
 
-      if (!isMountedRef.current) return;
+      if (!isMountedRef.current) return
 
       if (fetchError) {
-        throw new Error(fetchError.message);
+        throw new Error(fetchError.message)
       }
 
-      setData(fetchedData as T);
-      setLastFetched(new Date());
+      setData(fetchedData as T)
+      setLastFetched(new Date())
     } catch (err: any) {
-      if (!isMountedRef.current) return;
-      setError(err?.message || 'Failed to fetch data');
-      console.error(`Error fetching from ${table}:`, err);
+      if (!isMountedRef.current) return
+      setError(err?.message || 'Failed to fetch data')
+      console.error(`Error fetching from ${table}:`, err)
     } finally {
       if (isMountedRef.current) {
-        setLoading(false);
+        setLoading(false)
       }
     }
-  }, [table, select, JSON.stringify(filter), orderBy, enabled]);
+  }, [table, select, JSON.stringify(filter), orderBy, enabled])
 
   // Initial fetch
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData()
+  }, [fetchData])
 
   // Setup real-time subscription
   useEffect(() => {
-    if (!enabled || !realtimeEnabled) return;
+    if (!enabled || !realtimeEnabled) return
 
     const channel = supabase
       .channel(`realtime:${table}`)
@@ -115,43 +115,43 @@ export function useRealtimeData<T = any>(
           table: table,
         },
         (payload) => {
-          console.log(`Real-time update for ${table}:`, payload);
+          console.log(`Real-time update for ${table}:`, payload)
           // Refetch data when changes occur
-          fetchData();
+          fetchData()
         }
       )
-      .subscribe();
+      .subscribe()
 
-    channelRef.current = channel;
+    channelRef.current = channel
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
       }
-    };
-  }, [table, enabled, realtimeEnabled, fetchData]);
+    }
+  }, [table, enabled, realtimeEnabled, fetchData])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+      isMountedRef.current = false
+    }
+  }, [])
 
   // Check cache freshness
   const isCacheStale = useCallback(() => {
-    if (!lastFetched) return true;
-    const now = new Date();
-    return now.getTime() - lastFetched.getTime() > cacheDuration;
-  }, [lastFetched, cacheDuration]);
+    if (!lastFetched) return true
+    const now = new Date()
+    return now.getTime() - lastFetched.getTime() > cacheDuration
+  }, [lastFetched, cacheDuration])
 
   // Smart refetch - only if cache is stale
   const refetch = useCallback(async () => {
     if (isCacheStale()) {
-      await fetchData();
+      await fetchData()
     }
-  }, [isCacheStale, fetchData]);
+  }, [isCacheStale, fetchData])
 
   return {
     data,
@@ -159,63 +159,67 @@ export function useRealtimeData<T = any>(
     error,
     refetch,
     lastFetched,
-  };
+  }
 }
 
 /**
  * Hook specifically for dashboard stats with aggressive caching
  */
 export function useCachedDashboardStats() {
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [stats, setStats] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastFetched, setLastFetched] = useState<Date | null>(null)
 
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null)
 
   const fetchStats = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
 
-      const { data, error: statsError } = await supabase.rpc('get_dashboard_stats');
+      const { data, error: statsError } = await supabase.rpc('get_dashboard_stats')
 
       if (statsError) {
-        throw new Error(statsError.message);
+        throw new Error(statsError.message)
       }
 
-      setStats(data);
-      setLastFetched(new Date());
+      setStats(data)
+      setLastFetched(new Date())
     } catch (err: any) {
-      setError(err?.message || 'Failed to fetch dashboard stats');
-      console.error('Error fetching dashboard stats:', err);
+      setError(err?.message || 'Failed to fetch dashboard stats')
+      console.error('Error fetching dashboard stats:', err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   // Initial fetch
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    fetchStats()
+  }, [fetchStats])
 
   // Real-time updates - subscribe to relevant tables
   useEffect(() => {
     const channel = supabase
       .channel('dashboard-updates')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_participation' }, fetchStats)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'event_participation' },
+        fetchStats
+      )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'volunteers' }, fetchStats)
-      .subscribe();
+      .subscribe()
 
-    channelRef.current = channel;
+    channelRef.current = channel
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        supabase.removeChannel(channelRef.current)
       }
-    };
-  }, [fetchStats]);
+    }
+  }, [fetchStats])
 
   return {
     stats,
@@ -223,13 +227,17 @@ export function useCachedDashboardStats() {
     error,
     refetch: fetchStats,
     lastFetched,
-  };
+  }
 }
 
 /**
  * Hook for events with caching and real-time
  */
-export function useCachedEvents(filters?: { category?: string; search?: string; session?: string }) {
+export function useCachedEvents(filters?: {
+  category?: string
+  search?: string
+  session?: string
+}) {
   return useRealtimeData({
     table: 'events',
     select: `
@@ -246,7 +254,7 @@ export function useCachedEvents(filters?: { category?: string; search?: string; 
     orderBy: { column: 'event_date', ascending: false },
     cacheDuration: 2 * 60 * 1000, // 2 minutes - events change frequently
     realtimeEnabled: true,
-  });
+  })
 }
 
 /**
@@ -262,5 +270,5 @@ export function useCachedVolunteers() {
     orderBy: { column: 'first_name', ascending: true },
     cacheDuration: 10 * 60 * 1000, // 10 minutes - volunteers don't change often
     realtimeEnabled: true,
-  });
+  })
 }

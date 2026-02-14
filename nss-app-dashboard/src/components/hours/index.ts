@@ -4,6 +4,7 @@
  */
 
 export { HoursApprovalPage } from './HoursApprovalPage'
+export { HourRequestModal } from './HourRequestModal'
 export { ApprovalModal } from './ApprovalModal'
 export { HoursTable } from './HoursTable'
 export type * from './types'

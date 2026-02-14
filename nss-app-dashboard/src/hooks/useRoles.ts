@@ -17,6 +17,13 @@ import {
 } from '@/app/actions/roles'
 import type { RoleDefinition, UserRole } from '@/db/schema'
 
+// Type for cached volunteer role with role name
+export interface CachedVolunteerRole {
+  id: string
+  roleName?: string
+  roleDefinitionId?: string
+}
+
 export interface UseRolesReturn {
   roles: RoleDefinition[]
   loading: boolean
@@ -24,6 +31,8 @@ export interface UseRolesReturn {
   isAdmin: boolean
   refetch: () => Promise<void>
   getVolunteerRoles: (volunteerId: string) => Promise<UserRole[]>
+  volunteerRolesCache: Record<string, CachedVolunteerRole[]>
+  loadVolunteerRoles: (volunteerIds: string[]) => Promise<void>
   assignRole: (volunteerId: string, roleId: string) => Promise<{ error: string | null }>
   revokeRole: (volunteerId: string, roleId: string) => Promise<{ error: string | null }>
 }
@@ -33,6 +42,9 @@ export function useRoles(): UseRolesReturn {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [volunteerRolesCache, setVolunteerRolesCache] = useState<
+    Record<string, CachedVolunteerRole[]>
+  >({})
 
   const fetchRoles = useCallback(async () => {
     try {
@@ -58,36 +70,60 @@ export function useRoles(): UseRolesReturn {
 
   const getVolunteerRoles = useCallback(async (volunteerId: string) => {
     try {
-      return await fetchVolunteerRolesAction(volunteerId)
+      const result = await fetchVolunteerRolesAction(volunteerId)
+      // Update cache
+      setVolunteerRolesCache((prev) => ({
+        ...prev,
+        [volunteerId]: result.map((r: any) => ({
+          id: r.id,
+          roleName: r.roleName || r.role_name,
+          roleDefinitionId: r.roleDefinitionId || r.role_definition_id,
+        })),
+      }))
+      return result
     } catch (err) {
       console.error('[useRoles] Error fetching volunteer roles:', err)
       return []
     }
   }, [])
 
-  const handleAssignRole = useCallback(
-    async (volunteerId: string, roleId: string) => {
-      try {
-        await assignRoleAction(volunteerId, roleId)
-        return { error: null }
-      } catch (err) {
-        return { error: err instanceof Error ? err.message : 'Failed to assign role' }
-      }
-    },
-    []
-  )
+  // Load roles for multiple volunteers at once
+  const loadVolunteerRoles = useCallback(async (volunteerIds: string[]) => {
+    try {
+      const results = await Promise.all(
+        volunteerIds.map((id) => fetchVolunteerRolesAction(id).catch(() => []))
+      )
+      const newCache: Record<string, CachedVolunteerRole[]> = {}
+      volunteerIds.forEach((id, index) => {
+        newCache[id] = (results[index] || []).map((r: any) => ({
+          id: r.id,
+          roleName: r.roleName || r.role_name,
+          roleDefinitionId: r.roleDefinitionId || r.role_definition_id,
+        }))
+      })
+      setVolunteerRolesCache((prev) => ({ ...prev, ...newCache }))
+    } catch (err) {
+      console.error('[useRoles] Error loading volunteer roles:', err)
+    }
+  }, [])
 
-  const handleRevokeRole = useCallback(
-    async (volunteerId: string, roleId: string) => {
-      try {
-        await revokeRoleAction(volunteerId, roleId)
-        return { error: null }
-      } catch (err) {
-        return { error: err instanceof Error ? err.message : 'Failed to revoke role' }
-      }
-    },
-    []
-  )
+  const handleAssignRole = useCallback(async (volunteerId: string, roleId: string) => {
+    try {
+      await assignRoleAction(volunteerId, roleId)
+      return { error: null }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Failed to assign role' }
+    }
+  }, [])
+
+  const handleRevokeRole = useCallback(async (volunteerId: string, roleId: string) => {
+    try {
+      await revokeRoleAction(volunteerId, roleId)
+      return { error: null }
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : 'Failed to revoke role' }
+    }
+  }, [])
 
   useEffect(() => {
     fetchRoles()
@@ -100,6 +136,8 @@ export function useRoles(): UseRolesReturn {
     isAdmin,
     refetch: fetchRoles,
     getVolunteerRoles,
+    volunteerRolesCache,
+    loadVolunteerRoles,
     assignRole: handleAssignRole,
     revokeRole: handleRevokeRole,
   }

@@ -36,8 +36,16 @@ export interface UseCategoriesReturn {
   fetchCategories: () => Promise<void>
   getActiveCategories: () => CategoryWithStats[]
   getCategoryById: (id: number) => CategoryWithStats | undefined
-  createCategory: (data: { categoryName: string; code?: string; description?: string; colorHex?: string }) => Promise<{ data?: CategoryWithStats; error: string | null }>
-  updateCategory: (categoryId: number, data: { categoryName?: string; code?: string; description?: string; colorHex?: string }) => Promise<{ data?: CategoryWithStats; error: string | null }>
+  createCategory: (data: {
+    categoryName: string
+    code?: string
+    description?: string
+    colorHex?: string
+  }) => Promise<{ data?: CategoryWithStats; error: string | null }>
+  updateCategory: (
+    categoryId: number,
+    data: { categoryName?: string; code?: string; description?: string; colorHex?: string }
+  ) => Promise<{ data?: CategoryWithStats; error: string | null }>
   deactivateCategory: (categoryId: number) => Promise<{ error: string | null }>
   reactivateCategory: (categoryId: number) => Promise<{ error: string | null }>
   deleteCategory: (categoryId: number) => Promise<{ error: string | null }>
@@ -84,7 +92,12 @@ export function useCategories(): UseCategoriesReturn {
   )
 
   const handleCreateCategory = useCallback(
-    async (data: { categoryName: string; code?: string; description?: string; colorHex?: string }) => {
+    async (data: {
+      categoryName: string
+      code?: string
+      description?: string
+      colorHex?: string
+    }) => {
       try {
         const result = await createCategoryAction(data)
         await fetchCategories()
@@ -97,7 +110,10 @@ export function useCategories(): UseCategoriesReturn {
   )
 
   const handleUpdateCategory = useCallback(
-    async (categoryId: number, data: { categoryName?: string; code?: string; description?: string; colorHex?: string }) => {
+    async (
+      categoryId: number,
+      data: { categoryName?: string; code?: string; description?: string; colorHex?: string }
+    ) => {
       try {
         const result = await updateCategoryAction(categoryId, data)
         await fetchCategories()
