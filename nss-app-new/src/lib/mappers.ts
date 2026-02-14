@@ -96,6 +96,7 @@ export function mapParticipationRow(r: any, volunteerId: string): EventParticipa
     notes: r.notes ?? null,
     approvalNotes: r.approval_notes ?? null,
     attendanceDate: r.attendance_date ?? null,
+    recordedByVolunteerId: r.recorded_by_volunteer_id ?? null,
     createdAt: r.created_at ?? undefined,
     registeredAt: r.registration_date ?? r.attendance_date ?? new Date(),
     updatedAt: r.attendance_date ?? new Date(),

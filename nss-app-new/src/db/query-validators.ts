@@ -50,7 +50,7 @@ export const eventWithStatsRowSchema = z.object({
   min_participants: z.number().nullable(),
   registration_deadline: z.any().nullable(),
   event_status: z.string(),
-  category_id: z.number().nullable(),
+  category_id: z.number(),
   created_by_volunteer_id: z.string().nullable(),
   is_active: z.any(),
   created_at: z.any(),
@@ -149,6 +149,7 @@ export const participationHistoryRowSchema = z.object({
   approved_at: z.any().nullable(),
   approval_notes: z.string().nullable(),
   created_at: z.any(),
+  recorded_by_volunteer_id: z.string().nullable(),
 }).passthrough()
 
 // --- Volunteers ---
