@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { sql } from 'drizzle-orm'
+import { db } from '@/db'
 import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer, requireAdmin } from '@/lib/auth-cache'
@@ -196,6 +198,51 @@ export async function getVolunteerDashboardData() {
 export async function getActiveVolunteersList() {
   await getAuthUser()
   return queries.getVolunteersWithStats()
+}
+
+/**
+ * Get unlinked volunteers (CSV-imported, no auth account)
+ * Admin only — used for the merge UI
+ */
+export async function getUnlinkedVolunteers() {
+  await requireAdmin()
+  const rows = await db.execute(sql`
+    SELECT id, first_name, last_name, email, roll_number, branch, year,
+           is_active, created_at
+    FROM volunteers
+    WHERE auth_user_id IS NULL
+    ORDER BY first_name, last_name
+  `)
+  return Array.isArray(rows) ? rows : []
+}
+
+/**
+ * Merge an unlinked CSV volunteer into an authenticated volunteer.
+ * Transfers all participation history, roles, and event ownership.
+ * Admin only.
+ */
+export async function mergeVolunteers(keepId: string, removeId: string) {
+  await requireAdmin()
+
+  // Validate UUIDs
+  const uuidSchema = z.string().uuid()
+  uuidSchema.parse(keepId)
+  uuidSchema.parse(removeId)
+
+  if (keepId === removeId) {
+    throw new Error('Cannot merge a volunteer into itself')
+  }
+
+  const result = await db.execute(
+    sql`SELECT merge_volunteers(${keepId}::uuid, ${removeId}::uuid) as result`
+  )
+
+  revalidatePath('/volunteers')
+  revalidatePath('/user-management')
+  revalidatePath('/profile')
+
+  const row = Array.isArray(result) ? result[0] : null
+  return row?.result ?? { success: true }
 }
 
 /**

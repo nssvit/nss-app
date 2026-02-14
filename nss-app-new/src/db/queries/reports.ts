@@ -77,15 +77,15 @@ export async function getAttendanceSummary() {
       e.event_name,
       e.start_date,
       ec.category_name,
-      COUNT(ep.id) as total_registered,
-      COUNT(CASE WHEN ep.participation_status IN ('present', 'partially_present') THEN 1 END) as total_present,
-      COUNT(CASE WHEN ep.participation_status = 'absent' THEN 1 END) as total_absent,
+      COUNT(ep.id)::int as total_registered,
+      COUNT(CASE WHEN ep.participation_status IN ('present', 'partially_present') THEN 1 END)::int as total_present,
+      COUNT(CASE WHEN ep.participation_status = 'absent' THEN 1 END)::int as total_absent,
       CASE
         WHEN COUNT(ep.id) > 0 THEN
-          ROUND((COUNT(CASE WHEN ep.participation_status IN ('present', 'partially_present') THEN 1 END)::numeric / COUNT(ep.id)::numeric) * 100, 2)
+          ROUND((COUNT(CASE WHEN ep.participation_status IN ('present', 'partially_present') THEN 1 END)::numeric / COUNT(ep.id)::numeric) * 100, 2)::float
         ELSE 0
       END as attendance_rate,
-      COALESCE(SUM(ep.hours_attended), 0) as total_hours
+      COALESCE(SUM(ep.hours_attended), 0)::int as total_hours
     FROM events e
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     LEFT JOIN event_participation ep ON e.id = ep.event_id

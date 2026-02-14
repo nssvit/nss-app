@@ -19,7 +19,8 @@
     "db:migrate:status": "npx tsx src/db/migrate.ts --status",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "csv:seed": "npx tsx src/db/seed-csv.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
