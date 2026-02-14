@@ -483,14 +483,8 @@ ON CONFLICT (role_name) DO NOTHING;
 
 INSERT INTO event_categories (category_name, code, description, color_hex, is_active)
 VALUES
-  ('Community Service', 'community-service', 'Community outreach and service activities', '#10B981', true),
-  ('Blood Donation', 'blood-donation', 'Blood donation camps and drives', '#EF4444', true),
-  ('Environmental', 'environmental', 'Environmental awareness and conservation activities', '#22C55E', true),
-  ('Health Camp', 'health-camp', 'Health awareness and medical camps', '#3B82F6', true),
-  ('Education', 'education', 'Educational programs and literacy drives', '#8B5CF6', true),
-  ('Cleanliness Drive', 'cleanliness-drive', 'Swachh Bharat and cleanliness activities', '#06B6D4', true),
-  ('Workshop', 'workshop', 'Skill development workshops and training sessions', '#F59E0B', true),
-  ('Cultural', 'cultural', 'Cultural events and celebrations', '#EC4899', true),
-  ('Sports', 'sports', 'Sports events and physical activities', '#F97316', true),
-  ('Awareness Campaign', 'awareness-campaign', 'Public awareness campaigns on social issues', '#6366F1', true)
+  ('Area Based - 1', 'area-based-1', 'Area-based community service activities (Group 1)', '#22C55E', true),
+  ('Area Based - 2', 'area-based-2', 'Area-based community service activities (Group 2)', '#16A34A', true),
+  ('University Based', 'university-based', 'University-level NSS events and programs', '#8B5CF6', true),
+  ('College Based', 'college-based', 'College-level NSS events and activities', '#CA8A04', true)
 ON CONFLICT (code) DO NOTHING;

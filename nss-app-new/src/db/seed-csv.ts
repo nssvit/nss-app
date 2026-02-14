@@ -73,22 +73,12 @@ function makeEmail(first: string, last: string): string {
   return `${f}.${l}@${EMAIL_DOMAIN}`
 }
 
-// ─── Category Mapping ────────────────────────────────────────────
-function guessCategory(name: string): string {
-  const n = name.toLowerCase()
-  // Specific multi-word patterns first (before generic keywords)
-  if (/wall\s*paint|school\s*wall/.test(n)) return 'community-service'
-  if (/book\s*donation/.test(n)) return 'community-service'
-  if (/animal\s*shelter/.test(n)) return 'community-service'
-  if (/clean\s?up|visarjan/.test(n)) return 'cleanliness-drive'
-  if (/plantation|restoration|earth care/.test(n)) return 'environmental'
-  if (/blood donation/.test(n)) return 'blood-donation'
-  if (/teaching|orientation|lecture/.test(n)) return 'education'
-  if (/workshop|diya|artshala|bls|painting/.test(n)) return 'workshop'
-  if (/rally|awareness|safety|hiv|cyber|security|red run/.test(n)) return 'awareness-campaign'
-  if (/independence|marathi|bhakticha|skit|performance/.test(n)) return 'cultural'
-  if (/pack-a-meal|circular|vikas|speak india/.test(n)) return 'community-service'
-  return 'community-service'
+// ─── Section → Category Code Mapping ─────────────────────────────
+const SECTION_TO_CATEGORY: Record<string, string> = {
+  'Area Based - 1': 'area-based-1',
+  'Area Based - 2': 'area-based-2',
+  'University Based': 'university-based',
+  'College Based': 'college-based',
 }
 
 // ─── Main ────────────────────────────────────────────────────────
@@ -317,10 +307,14 @@ async function main() {
       continue
     }
 
-    const catCode = guessCategory(evt.name)
+    const catCode = SECTION_TO_CATEGORY[evt.section]
+    if (!catCode) {
+      console.warn(`  Unknown section "${evt.section}" for "${evt.name}"`)
+      continue
+    }
     const catId = catByCode.get(catCode)
     if (!catId) {
-      console.warn(`  No category for "${evt.name}" [${catCode}]`)
+      console.warn(`  No category for section "${evt.section}" [${catCode}]`)
       continue
     }
 
@@ -344,7 +338,7 @@ async function main() {
       rowToEventId.set(evt.row, row.id as string)
       evtByKey.set(key, row.id as string)
       evtNew++
-      console.log(`  + ${evt.name} (${evt.date.toLocaleDateString()}) [${catCode}]`)
+      console.log(`  + ${evt.name} (${evt.date.toLocaleDateString()}) [${evt.section}]`)
     } catch (e) {
       console.warn(`  Failed: ${evt.name} — ${(e as Error).message}`)
     }
