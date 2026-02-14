@@ -116,11 +116,11 @@ export const attendanceSummaryRowSchema = z.object({
   event_name: z.string(),
   start_date: z.any().nullable(),
   category_name: z.string().nullable(),
-  total_registered: z.any(),
-  total_present: z.any(),
-  total_absent: z.any(),
-  attendance_rate: z.any(),
-  total_hours: z.any(),
+  total_registered: z.number(),
+  total_present: z.number(),
+  total_absent: z.number(),
+  attendance_rate: z.number(),
+  total_hours: z.number(),
 }).passthrough()
 
 export const volunteerHoursSummaryRowSchema = z.object({

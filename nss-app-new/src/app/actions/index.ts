@@ -31,6 +31,8 @@ export {
   updateProfilePicture,
   getVolunteerDashboardData,
   getActiveVolunteersList,
+  getUnlinkedVolunteers,
+  mergeVolunteers,
 } from './volunteers'
 
 // Event actions
