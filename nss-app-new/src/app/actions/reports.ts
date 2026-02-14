@@ -2,6 +2,12 @@
 
 import { queries } from '@/db/queries'
 import { createClient } from '@/lib/supabase/server'
+import {
+  mapCategoryDistributionRow,
+  mapTopEventRow,
+  mapAttendanceSummaryRow,
+  mapVolunteerHoursSummaryRow,
+} from '@/lib/mappers'
 
 /**
  * Auth helper - ensures user is authenticated
@@ -26,7 +32,8 @@ async function requireAuth() {
  */
 export async function getCategoryDistribution() {
   await requireAuth()
-  return queries.getCategoryDistribution()
+  const rows = await queries.getCategoryDistribution()
+  return rows.map(mapCategoryDistributionRow)
 }
 
 /**
@@ -35,7 +42,8 @@ export async function getCategoryDistribution() {
  */
 export async function getTopEventsByImpact(limit?: number) {
   await requireAuth()
-  return queries.getTopEventsByImpact(limit)
+  const rows = await queries.getTopEventsByImpact(limit)
+  return rows.map(mapTopEventRow)
 }
 
 /**
@@ -44,7 +52,8 @@ export async function getTopEventsByImpact(limit?: number) {
  */
 export async function getAttendanceSummary() {
   await requireAuth()
-  return queries.getAttendanceSummary()
+  const rows = await queries.getAttendanceSummary()
+  return rows.map(mapAttendanceSummaryRow)
 }
 
 /**
@@ -53,7 +62,8 @@ export async function getAttendanceSummary() {
  */
 export async function getVolunteerHoursSummary() {
   await requireAuth()
-  return queries.getVolunteerHoursSummary()
+  const rows = await queries.getVolunteerHoursSummary()
+  return rows.map(mapVolunteerHoursSummaryRow)
 }
 
 /**

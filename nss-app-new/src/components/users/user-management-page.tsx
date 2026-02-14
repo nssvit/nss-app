@@ -27,6 +27,7 @@ import {
 import { ViewUserModal } from './view-user-modal'
 import { EditUserModal } from './edit-user-modal'
 import { cn } from '@/lib/utils'
+import { BRANCH_DISPLAY_NAMES } from '@/lib/constants'
 
 function TableSkeleton() {
   return (
@@ -116,7 +117,7 @@ export function UserManagementPage() {
                   </TableCell>
                   <TableCell>{volunteer.email}</TableCell>
                   <TableCell>{volunteer.rollNumber}</TableCell>
-                  <TableCell>{volunteer.branch}</TableCell>
+                  <TableCell>{BRANCH_DISPLAY_NAMES[volunteer.branch] ?? volunteer.branch}</TableCell>
                   <TableCell>
                     <Badge
                       variant="secondary"

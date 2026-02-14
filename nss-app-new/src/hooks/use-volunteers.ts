@@ -14,6 +14,7 @@ export function useVolunteers(initialData?: VolunteerWithStats[]) {
       const data = await getVolunteers()
       setVolunteers(data)
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to load volunteers:', err)
     } finally {
       setLoading(false)
@@ -22,8 +23,21 @@ export function useVolunteers(initialData?: VolunteerWithStats[]) {
 
   useEffect(() => {
     if (initialData) return
-    refresh()
-  }, [initialData, refresh])
+    let ignore = false
+    ;(async () => {
+      try {
+        setLoading(true)
+        const data = await getVolunteers()
+        if (!ignore) setVolunteers(data)
+      } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
+        console.error('Failed to load volunteers:', err)
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [initialData])
 
   return { volunteers, loading, refresh }
 }

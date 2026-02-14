@@ -19,6 +19,7 @@ export async function getEventsWithStats() {
       e.description,
       e.start_date,
       e.end_date,
+      e.declared_hours,
       e.location,
       e.max_participants,
       e.min_participants,
@@ -47,6 +48,7 @@ export async function getEventsWithStats() {
     description: string | null
     start_date: string
     end_date: string
+    declared_hours: number
     location: string | null
     max_participants: number | null
     min_participants: number | null

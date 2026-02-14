@@ -10,17 +10,20 @@ export function useAttendance() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let ignore = false
     async function load() {
       try {
         const data = await getEvents()
-        setEvents(data)
+        if (!ignore) setEvents(data)
       } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
         console.error('Failed to load events:', err)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
     load()
+    return () => { ignore = true }
   }, [])
 
   return { events, loading }
@@ -33,20 +36,24 @@ export function useAttendanceManager(eventId: string | null) {
   const [attendanceMap, setAttendanceMap] = useState<Record<string, 'present' | 'absent'>>({})
 
   useEffect(() => {
+    let ignore = false
     async function loadEvents() {
       try {
         const data = await getEvents()
-        setEvents(data)
+        if (!ignore) setEvents(data)
       } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
         console.error('Failed to load events:', err)
       } finally {
-        if (!eventId) setLoading(false)
+        if (!ignore && !eventId) setLoading(false)
       }
     }
     loadEvents()
+    return () => { ignore = true }
   }, [eventId])
 
   useEffect(() => {
+    let ignore = false
     async function loadParticipants() {
       if (!eventId) {
         setParticipants([])
@@ -56,6 +63,7 @@ export function useAttendanceManager(eventId: string | null) {
       setLoading(true)
       try {
         const data = await getEventParticipants(eventId)
+        if (ignore) return
         setParticipants(data)
         const initial: Record<string, 'present' | 'absent'> = {}
         data.forEach((p) => {
@@ -63,12 +71,14 @@ export function useAttendanceManager(eventId: string | null) {
         })
         setAttendanceMap(initial)
       } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
         console.error('Failed to load participants:', err)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
     loadParticipants()
+    return () => { ignore = true }
   }, [eventId])
 
   const toggleAttendance = (participationId: string) => {

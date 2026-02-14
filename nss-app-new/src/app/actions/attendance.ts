@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { createClient } from '@/lib/supabase/server'
+import { mapAttendanceSummaryRow } from '@/lib/mappers'
 
 /**
  * Auth helper - ensures user is authenticated
@@ -99,7 +100,8 @@ export async function getEventParticipants(eventId: string) {
  */
 export async function getAttendanceSummary() {
   await requireAuth()
-  return queries.getAttendanceSummary()
+  const rows = await queries.getAttendanceSummary()
+  return rows.map(mapAttendanceSummaryRow)
 }
 
 /**

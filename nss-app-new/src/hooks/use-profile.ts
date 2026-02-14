@@ -22,6 +22,7 @@ export function useProfile(initialParticipations?: EventParticipationWithEvent[]
       const p = await getVolunteerParticipationHistory(currentUser.volunteerId)
       setParticipations(p)
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to load profile data:', err)
     } finally {
       setLoading(false)
@@ -30,8 +31,22 @@ export function useProfile(initialParticipations?: EventParticipationWithEvent[]
 
   useEffect(() => {
     if (initialParticipations) return
-    refresh()
-  }, [initialParticipations, refresh])
+    if (!currentUser) return
+    let ignore = false
+    ;(async () => {
+      try {
+        setLoading(true)
+        const p = await getVolunteerParticipationHistory(currentUser.volunteerId)
+        if (!ignore) setParticipations(p)
+      } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
+        console.error('Failed to load profile data:', err)
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [initialParticipations, currentUser])
 
   return { user: currentUser, participations, loading, refresh }
 }

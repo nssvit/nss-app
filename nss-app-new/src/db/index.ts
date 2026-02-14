@@ -34,7 +34,7 @@ if (!process.env.DATABASE_URL) {
  * - prepare: false (required for connection poolers like Supavisor)
  */
 const client = postgres(process.env.DATABASE_URL, {
-  max: 5, // Allow parallel queries
+  max: 10, // Enough for dashboard's 10 parallel queries
   idle_timeout: 20,
   connect_timeout: 10,
   prepare: false, // Required for Supabase connection pooler

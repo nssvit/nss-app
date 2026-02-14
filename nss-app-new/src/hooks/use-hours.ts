@@ -17,6 +17,7 @@ export function useHours() {
       const data = await getPendingApprovals()
       setPendingApprovals(data)
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to load pending approvals:', err)
     } finally {
       setLoading(false)
@@ -24,14 +25,27 @@ export function useHours() {
   }, [])
 
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    let ignore = false
+    ;(async () => {
+      try {
+        const data = await getPendingApprovals()
+        if (!ignore) setPendingApprovals(data)
+      } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
+        console.error('Failed to load pending approvals:', err)
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [])
 
   const approveHours = async (id: string) => {
     try {
       await approveHoursAction(id)
       setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to approve hours:', err)
     }
   }
@@ -41,6 +55,7 @@ export function useHours() {
       await rejectHoursAction(id)
       setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to reject hours:', err)
     }
   }

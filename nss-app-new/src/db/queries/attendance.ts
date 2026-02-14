@@ -24,7 +24,11 @@ export async function getEventParticipants(eventId: string) {
       ep.hours_attended,
       ep.attendance_date,
       ep.registration_date,
-      ep.notes
+      ep.notes,
+      ep.approval_status,
+      ep.approved_hours,
+      ep.approved_by,
+      ep.approved_at
     FROM event_participation ep
     JOIN volunteers v ON ep.volunteer_id = v.id
     WHERE ep.event_id = ${eventId}
@@ -43,6 +47,10 @@ export async function getEventParticipants(eventId: string) {
     attendance_date: Date | null
     registration_date: Date
     notes: string | null
+    approval_status: string | null
+    approved_hours: number | null
+    approved_by: string | null
+    approved_at: Date | null
   }[]
 }
 

@@ -183,6 +183,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Skip INITIAL_SESSION — already handled by getSession() above.
       if (event === 'INITIAL_SESSION') return
 
+      // Password recovery — set session so updateUser() works on /reset-password
+      if (event === 'PASSWORD_RECOVERY') {
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+        finishLoading()
+        return
+      }
+
       // Session lost
       if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !newSession)) {
         setSession(null)

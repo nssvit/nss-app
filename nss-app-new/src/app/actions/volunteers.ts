@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
-import { mapVolunteerRow, mapParticipationRow } from '@/lib/mappers'
+import { mapVolunteerRow, mapParticipationRow, mapVolunteerHoursSummaryRow } from '@/lib/mappers'
 
 /**
  * Get all volunteers with participation stats
@@ -67,7 +67,8 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
  */
 export async function getVolunteerHoursSummary() {
   await getAuthUser()
-  return queries.getVolunteerHoursSummary()
+  const rows = await queries.getVolunteerHoursSummary()
+  return rows.map(mapVolunteerHoursSummaryRow)
 }
 
 /**
@@ -132,7 +133,9 @@ export async function getVolunteerDashboardData() {
       (sum: number, p: any) => sum + (p.hours_attended || 0),
       0
     ),
-    approvedHours: 0,
+    approvedHours: participationHistory
+      .filter((p: any) => p.approval_status === 'approved')
+      .reduce((sum: number, p: any) => sum + (p.approved_hours || p.hours_attended || 0), 0),
     eventsParticipated: participationHistory.length,
     pendingReviews: participationHistory.filter(
       (p: any) => p.participation_status === 'present' && p.hours_attended > 0

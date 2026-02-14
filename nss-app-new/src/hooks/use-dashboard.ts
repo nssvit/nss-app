@@ -16,18 +16,23 @@ export function useDashboard(initialData?: DashboardInitialData) {
 
   useEffect(() => {
     if (initialData) return
+    let ignore = false
     async function load() {
       try {
         const [s, t] = await Promise.all([getDashboardStats(), getMonthlyTrends()])
-        setStats(s)
-        setTrends(t)
+        if (!ignore) {
+          setStats(s)
+          setTrends(t)
+        }
       } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
         console.error('Failed to load dashboard data:', err)
       } finally {
-        setLoading(false)
+        if (!ignore) setLoading(false)
       }
     }
     load()
+    return () => { ignore = true }
   }, [initialData])
 
   return { stats, trends, loading }

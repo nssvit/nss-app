@@ -6,7 +6,16 @@
  * to avoid duplicating mapping logic.
  */
 
-import type { VolunteerWithStats, ActivityTrend, EventWithStats, EventParticipationWithEvent } from '@/types'
+import type {
+  VolunteerWithStats,
+  ActivityTrend,
+  EventWithStats,
+  EventParticipationWithEvent,
+  CategoryDistribution,
+  TopEvent,
+  AttendanceSummary,
+  VolunteerHoursSummary,
+} from '@/types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
 export function mapVolunteerRow(r: any): VolunteerWithStats {
@@ -79,10 +88,62 @@ export function mapParticipationRow(r: any, volunteerId: string): EventParticipa
     approvalStatus: r.approval_status ?? 'pending',
     approvedBy: r.approved_by ?? null,
     approvedAt: r.approved_at ?? null,
-    feedback: null,
+    feedback: r.notes ?? null,
     registeredAt: r.attendance_date ?? new Date(),
     updatedAt: r.attendance_date ?? new Date(),
     eventName: r.event_name,
     categoryName: r.category_name ?? undefined,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
+export function mapCategoryDistributionRow(r: any): CategoryDistribution {
+  return {
+    categoryId: r.category_id,
+    categoryName: r.category_name,
+    eventCount: r.event_count,
+    colorHex: r.color_hex,
+    participantCount: r.participant_count,
+    totalHours: r.total_hours,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
+export function mapTopEventRow(r: any): TopEvent {
+  return {
+    eventId: r.event_id,
+    eventName: r.event_name,
+    startDate: r.start_date,
+    categoryName: r.category_name,
+    participantCount: r.participant_count,
+    totalHours: r.total_hours,
+    impactScore: r.impact_score,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
+export function mapAttendanceSummaryRow(r: any): AttendanceSummary {
+  return {
+    eventId: r.event_id,
+    eventName: r.event_name,
+    startDate: r.start_date,
+    categoryName: r.category_name,
+    totalRegistered: r.total_registered,
+    totalPresent: r.total_present,
+    totalAbsent: r.total_absent,
+    attendanceRate: r.attendance_rate,
+    totalHours: r.total_hours,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
+export function mapVolunteerHoursSummaryRow(r: any): VolunteerHoursSummary {
+  return {
+    volunteerId: r.volunteer_id,
+    volunteerName: r.volunteer_name,
+    totalHours: r.total_hours,
+    approvedHours: r.approved_hours,
+    eventsCount: r.events_count,
+    lastActivity: r.last_activity,
   }
 }

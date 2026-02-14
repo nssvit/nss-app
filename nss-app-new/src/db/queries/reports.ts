@@ -160,6 +160,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
       ep.hours_attended,
       ep.attendance_date,
       ep.approval_status,
+      ep.approved_hours,
       ep.approved_by,
       ep.approved_at
     FROM event_participation ep
@@ -178,6 +179,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     hours_attended: number
     attendance_date: Date | null
     approval_status: string | null
+    approved_hours: number | null
     approved_by: string | null
     approved_at: Date | null
   }[]
@@ -212,9 +214,9 @@ export async function getUserStats() {
     )
 
   return {
-    total_users: totalUsers?.count ?? 0,
-    active_users: activeUsers?.count ?? 0,
-    pending_users: pendingUsers?.count ?? 0,
-    admin_count: adminCount?.count ?? 0,
+    totalUsers: totalUsers?.count ?? 0,
+    activeUsers: activeUsers?.count ?? 0,
+    pendingUsers: pendingUsers?.count ?? 0,
+    adminCount: adminCount?.count ?? 0,
   }
 }

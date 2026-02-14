@@ -15,6 +15,7 @@ export function useRoles() {
       setRoleDefinitions(rd)
       setUserRoles(ur)
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to load roles:', err)
     } finally {
       setLoading(false)
@@ -22,8 +23,23 @@ export function useRoles() {
   }, [])
 
   useEffect(() => {
-    refresh()
-  }, [refresh])
+    let ignore = false
+    ;(async () => {
+      try {
+        const [rd, ur] = await Promise.all([getRoles(), getCurrentUserRoles()])
+        if (!ignore) {
+          setRoleDefinitions(rd)
+          setUserRoles(ur)
+        }
+      } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
+        console.error('Failed to load roles:', err)
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [])
 
   return { roleDefinitions, userRoles, loading, refresh }
 }

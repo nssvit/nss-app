@@ -22,6 +22,7 @@ export function useEvents(initialData?: EventsInitialData) {
       setEvents(e)
       setCategories(c)
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return
       console.error('Failed to load events:', err)
     } finally {
       setLoading(false)
@@ -30,8 +31,24 @@ export function useEvents(initialData?: EventsInitialData) {
 
   useEffect(() => {
     if (initialData) return
-    refresh()
-  }, [initialData, refresh])
+    let ignore = false
+    ;(async () => {
+      try {
+        setLoading(true)
+        const [e, c] = await Promise.all([getEvents(), getCategories()])
+        if (!ignore) {
+          setEvents(e)
+          setCategories(c)
+        }
+      } catch (err) {
+        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
+        console.error('Failed to load events:', err)
+      } finally {
+        if (!ignore) setLoading(false)
+      }
+    })()
+    return () => { ignore = true }
+  }, [initialData])
 
   return { events, categories, loading, refresh }
 }
