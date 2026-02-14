@@ -4,6 +4,7 @@
  */
 
 import { eq, and, sql, gte, count } from 'drizzle-orm'
+import { parseRows, eventWithStatsRowSchema } from '../query-validators'
 import { db } from '../index'
 import { events, eventParticipation, type Event } from '../schema'
 
@@ -42,28 +43,7 @@ export async function getEventsWithStats() {
     ORDER BY e.created_at DESC
   `)
 
-  return result as unknown[] as {
-    id: string
-    event_name: string
-    description: string | null
-    start_date: string
-    end_date: string
-    declared_hours: number
-    location: string | null
-    max_participants: number | null
-    min_participants: number | null
-    registration_deadline: string | null
-    event_status: string
-    category_id: number | null
-    created_by_volunteer_id: string | null
-    is_active: boolean
-    created_at: string
-    updated_at: string
-    participant_count: number
-    total_hours: number
-    category_name: string | null
-    category_color: string | null
-  }[]
+  return parseRows(result, eventWithStatsRowSchema)
 }
 
 /**

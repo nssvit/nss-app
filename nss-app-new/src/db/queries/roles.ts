@@ -105,7 +105,7 @@ export async function createRoleDefinition(data: {
     .insert(roleDefinitions)
     .values({
       roleName: data.roleName,
-      displayName: data.roleName.charAt(0).toUpperCase() + data.roleName.slice(1),
+      displayName: data.roleName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
       description: data.description,
       hierarchyLevel: data.hierarchyLevel,
       isActive: data.isActive ?? true,

@@ -4,6 +4,7 @@
  */
 
 import { eq, and, sql, count, inArray } from 'drizzle-orm'
+import { parseRows, eventParticipantRowSchema, eventsForAttendanceRowSchema } from '../query-validators'
 import { db } from '../index'
 import { events, eventParticipation } from '../schema'
 
@@ -35,23 +36,7 @@ export async function getEventParticipants(eventId: string) {
     ORDER BY v.first_name, v.last_name
   `)
 
-  return result as unknown[] as {
-    participant_id: string
-    volunteer_id: string
-    volunteer_name: string
-    roll_number: string
-    branch: string
-    year: string
-    participation_status: string
-    hours_attended: number
-    attendance_date: Date | null
-    registration_date: Date
-    notes: string | null
-    approval_status: string | null
-    approved_hours: number | null
-    approved_by: string | null
-    approved_at: Date | null
-  }[]
+  return parseRows(result, eventParticipantRowSchema)
 }
 
 /**
@@ -384,11 +369,5 @@ export async function getEventsForAttendance(limit: number = 50) {
     LIMIT ${limit}
   `)
 
-  return result as unknown[] as {
-    id: string
-    event_name: string
-    start_date: string
-    declared_hours: number
-    location: string | null
-  }[]
+  return parseRows(result, eventsForAttendanceRowSchema)
 }

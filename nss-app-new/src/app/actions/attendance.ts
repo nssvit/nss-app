@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
-import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
+import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
 import { mapAttendanceSummaryRow } from '@/lib/mappers'
 
 /**
@@ -13,7 +13,7 @@ export async function markAttendance(
   volunteerIds: string[],
   declaredHours?: number
 ) {
-  const volunteer = await getCurrentVolunteer()
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.markEventAttendance(eventId, volunteerIds, declaredHours, volunteer.id)
   revalidatePath('/attendance')
   revalidatePath(`/events/${eventId}`)
@@ -24,7 +24,7 @@ export async function markAttendance(
  * Update attendance list (add new, keep existing)
  */
 export async function updateAttendance(eventId: string, volunteerIds: string[]) {
-  const volunteer = await getCurrentVolunteer()
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.updateEventAttendance(eventId, volunteerIds, volunteer.id)
   revalidatePath('/attendance')
   revalidatePath(`/events/${eventId}`)
@@ -35,7 +35,7 @@ export async function updateAttendance(eventId: string, volunteerIds: string[]) 
  * Sync attendance - replace all participants with selected volunteers
  */
 export async function syncAttendance(eventId: string, selectedVolunteerIds: string[]) {
-  await getAuthUser()
+  await requireAnyRole('admin', 'head')
   const result = await queries.syncEventAttendance(eventId, selectedVolunteerIds)
   revalidatePath('/attendance')
   revalidatePath(`/events/${eventId}`)
@@ -85,7 +85,7 @@ export async function updateParticipationStatus(
   hoursAttended?: number,
   notes?: string
 ) {
-  await getAuthUser()
+  await requireAnyRole('admin', 'head')
   const result = await queries.updateParticipationStatus(participantId, {
     participationStatus: status,
     hoursAttended,
@@ -105,7 +105,7 @@ export async function bulkMarkAttendance(params: {
   hoursAttended?: number
   notes?: string
 }) {
-  const volunteer = await getCurrentVolunteer()
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.bulkMarkAttendance({
     eventId: params.eventId,
     volunteerIds: params.volunteerIds,

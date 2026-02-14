@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
-import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
+import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
 
 /**
  * Get all pending hour approvals
@@ -39,7 +39,7 @@ export async function approveHours(
   approvedHours?: number,
   notes?: string
 ) {
-  const volunteer = await getCurrentVolunteer()
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.approveHoursTransaction(
     participationId,
     volunteer.id,
@@ -55,7 +55,7 @@ export async function approveHours(
  * Reject hours for a participation
  */
 export async function rejectHours(participationId: string, notes?: string) {
-  const volunteer = await getCurrentVolunteer()
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.rejectHoursTransaction(participationId, volunteer.id, notes)
   revalidatePath('/hours-approval')
   return result
@@ -65,7 +65,7 @@ export async function rejectHours(participationId: string, notes?: string) {
  * Bulk approve multiple participations
  */
 export async function bulkApproveHours(participationIds: string[], notes?: string) {
-  const volunteer = await getCurrentVolunteer()
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, notes)
   revalidatePath('/hours-approval')
   revalidatePath('/reports')
@@ -76,7 +76,7 @@ export async function bulkApproveHours(participationIds: string[], notes?: strin
  * Reset approval status back to pending
  */
 export async function resetApproval(participationId: string) {
-  await getAuthUser()
+  await requireAnyRole('admin', 'head')
   const result = await queries.resetApprovalTransaction(participationId)
   revalidatePath('/hours-approval')
   return result

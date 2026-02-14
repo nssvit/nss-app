@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { Loader2 } from 'lucide-react'
 
 export function RedirectIfAuthenticated({ children }: { children: React.ReactNode }) {
   const { currentUser, loading } = useAuth()
@@ -14,8 +15,16 @@ export function RedirectIfAuthenticated({ children }: { children: React.ReactNod
     }
   }, [currentUser, loading, router])
 
-  if (loading) return null
-  if (currentUser) return null
+  // Show a spinner while auth state is being determined.
+  // Once resolved, always render children — the useEffect above
+  // handles the redirect so the page never goes blank.
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
   return <>{children}</>
 }

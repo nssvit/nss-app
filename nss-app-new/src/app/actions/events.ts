@@ -2,8 +2,18 @@
 
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
-import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
+import { getAuthUser, getCurrentVolunteer, requireAnyRole } from '@/lib/auth-cache'
 import { mapEventRow } from '@/lib/mappers'
+
+/** Valid event status transitions */
+const STATUS_TRANSITIONS: Record<string, string[]> = {
+  planned: ['registration_open', 'cancelled'],
+  registration_open: ['registration_closed', 'ongoing', 'cancelled'],
+  registration_closed: ['ongoing', 'cancelled'],
+  ongoing: ['completed', 'cancelled'],
+  completed: [],
+  cancelled: [],
+}
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -65,7 +75,7 @@ export async function getUpcomingEvents(limit?: number) {
  * Create a new event
  */
 export async function createEvent(data: CreateEventInput) {
-  const volunteer = await getCurrentVolunteer() // Gets cached volunteer
+  const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.createEvent(
     {
       ...data,
@@ -82,7 +92,22 @@ export async function createEvent(data: CreateEventInput) {
  * Update an event
  */
 export async function updateEvent(eventId: string, updates: UpdateEventInput) {
-  await getAuthUser()
+  await requireAnyRole('admin', 'head')
+
+  // Validate status transition if status is being changed
+  if (updates.eventStatus) {
+    const event = await queries.getEventById(eventId)
+    if (!event) throw new Error('Event not found')
+
+    const currentStatus = event.eventStatus
+    const allowed = STATUS_TRANSITIONS[currentStatus]
+    if (allowed && !allowed.includes(updates.eventStatus)) {
+      throw new Error(
+        `Invalid status transition: cannot go from "${currentStatus}" to "${updates.eventStatus}". Allowed: [${allowed.join(', ')}]`
+      )
+    }
+  }
+
   const result = await queries.updateEvent(eventId, {
     ...updates,
     startDate: updates.startDate ? new Date(updates.startDate) : undefined,
@@ -97,7 +122,7 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
  * Delete (soft-delete) an event
  */
 export async function deleteEvent(eventId: string) {
-  await getAuthUser()
+  await requireAnyRole('admin', 'head')
   const result = await queries.deleteEvent(eventId)
   revalidatePath('/events')
   return result

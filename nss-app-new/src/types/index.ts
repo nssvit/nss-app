@@ -42,17 +42,17 @@ export interface Event {
   id: string
   eventName: string
   description: string | null
-  startDate: Date | string | null
-  endDate: Date | string | null
+  startDate: Date | string
+  endDate: Date | string
   location: string | null
   minParticipants: number | null
   maxParticipants: number | null
   eventStatus: string
   declaredHours: number
-  categoryId: number | null
+  categoryId: number
   registrationDeadline: Date | string | null
   isActive: boolean
-  createdBy: string | null
+  createdBy: string
   createdAt: Date
   updatedAt: Date
 }
@@ -81,7 +81,9 @@ export interface EventParticipation {
   approvalStatus: string
   approvedBy: string | null
   approvedAt: Date | null
+  approvalNotes?: string | null
   feedback: string | null
+  createdAt?: Date
   registeredAt: Date
   updatedAt: Date
 }
@@ -106,7 +108,7 @@ export interface RoleDefinition {
   displayName: string
   description: string | null
   hierarchyLevel: number
-  permissions: Record<string, string[]> | null
+  permissions: Record<string, string[]>
   isActive: boolean
   createdAt: Date
   updatedAt: Date
@@ -120,6 +122,8 @@ export interface UserRole {
   assignedAt: Date
   expiresAt: Date | null
   isActive: boolean | null
+  createdAt: Date
+  updatedAt: Date
 }
 
 export interface UserRoleWithDefinition extends UserRole {

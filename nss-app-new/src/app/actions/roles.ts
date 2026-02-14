@@ -12,7 +12,7 @@ export async function getRoles() {
   const rows = await queries.getAllRoles()
   return rows.map((r) => ({
     ...r,
-    permissions: r.permissions as Record<string, string[]> | null,
+    permissions: (r.permissions ?? {}) as Record<string, string[]>,
     isActive: r.isActive ?? true,
   }))
 }
@@ -36,7 +36,7 @@ export async function getCurrentUserRoles() {
     isActive: r.isActive ?? true,
     roleDefinition: {
       ...r.roleDefinition,
-      permissions: r.roleDefinition.permissions as Record<string, string[]> | null,
+      permissions: (r.roleDefinition.permissions ?? {}) as Record<string, string[]>,
       isActive: r.roleDefinition.isActive ?? true,
     },
   }))

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { eq } from 'drizzle-orm'
 import { db } from '@/db'
 import { eventCategories } from '@/db/schema'
-import { getAuthUser } from '@/lib/auth-cache'
+import { getAuthUser, requireAdmin } from '@/lib/auth-cache'
 
 /**
  * Get all active event categories
@@ -70,7 +70,7 @@ export async function createCategory(data: {
   description?: string
   colorHex?: string
 }) {
-  await getAuthUser()
+  await requireAdmin()
 
   const [result] = await db
     .insert(eventCategories)
@@ -100,7 +100,7 @@ export async function updateCategory(
     colorHex?: string
   }
 ) {
-  await getAuthUser()
+  await requireAdmin()
 
   const [result] = await db
     .update(eventCategories)
@@ -120,7 +120,7 @@ export async function updateCategory(
  * Deactivate a category
  */
 export async function deactivateCategory(categoryId: number) {
-  await getAuthUser()
+  await requireAdmin()
 
   const [result] = await db
     .update(eventCategories)
@@ -137,7 +137,7 @@ export async function deactivateCategory(categoryId: number) {
  * Reactivate a category
  */
 export async function reactivateCategory(categoryId: number) {
-  await getAuthUser()
+  await requireAdmin()
 
   const [result] = await db
     .update(eventCategories)

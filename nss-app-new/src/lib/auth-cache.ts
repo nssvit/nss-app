@@ -75,6 +75,26 @@ export const isAdmin = cache(async (): Promise<boolean> => {
 })
 
 /**
+ * Require current user to have at least one of the specified roles.
+ * Throws if unauthorized. Returns the cached volunteer.
+ */
+export async function requireAnyRole(...roles: string[]): Promise<CachedVolunteer> {
+  const volunteer = await getCurrentVolunteer()
+  const hasRole = await queries.volunteerHasAnyRole(volunteer.id, roles)
+  if (!hasRole) {
+    throw new Error(`Unauthorized: Requires one of [${roles.join(', ')}]`)
+  }
+  return volunteer
+}
+
+/**
+ * Require current user to be an admin. Throws if not.
+ */
+export async function requireAdmin(): Promise<CachedVolunteer> {
+  return requireAnyRole('admin')
+}
+
+/**
  * Optional auth - returns null if not authenticated
  */
 export const getOptionalAuthUser = cache(async (): Promise<CachedUser | null> => {

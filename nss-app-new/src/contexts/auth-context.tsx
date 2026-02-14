@@ -91,11 +91,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!volunteerData || !isMountedRef.current) return
 
+        const now = new Date().toISOString()
         const { data: rolesData } = await supabase
           .from('user_roles')
-          .select('role_definitions(role_name)')
+          .select('role_definitions(role_name), expires_at')
           .eq('volunteer_id', volunteerData.id)
           .eq('is_active', true)
+          .or(`expires_at.is.null,expires_at.gt.${now}`)
 
         const roles =
           rolesData

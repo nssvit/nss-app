@@ -1,10 +1,38 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
-import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
+import { getAuthUser, getCurrentVolunteer as getCachedVolunteer, requireAdmin } from '@/lib/auth-cache'
 import { mapVolunteerRow, mapParticipationRow, mapVolunteerHoursSummaryRow } from '@/lib/mappers'
+
+/** Validation schema for admin volunteer updates */
+const adminUpdateSchema = z.object({
+  firstName: z.string().min(1).max(100).optional(),
+  lastName: z.string().min(1).max(100).optional(),
+  email: z.string().email().optional(),
+  rollNumber: z.string().min(1).max(20).optional(),
+  branch: z.enum(['EXCS', 'CMPN', 'IT', 'BIO-MED', 'EXTC']).optional(),
+  year: z.enum(['FE', 'SE', 'TE']).optional(),
+  phoneNo: z.string().regex(/^[0-9]{10}$/, 'Phone number must be 10 digits').optional().nullable(),
+  gender: z.enum(['M', 'F', 'Prefer not to say']).optional().nullable(),
+  birthDate: z.string().optional().nullable(),
+  nssJoinYear: z.number().int().min(2000).max(2100).optional().nullable(),
+  address: z.string().max(500).optional().nullable(),
+  profilePic: z.string().url().optional().nullable(),
+  isActive: z.boolean().optional(),
+}).strict()
+
+/** Validation schema for self-profile updates */
+const profileUpdateSchema = z.object({
+  firstName: z.string().min(1).max(100).optional(),
+  lastName: z.string().min(1).max(100).optional(),
+  phoneNo: z.string().regex(/^[0-9]{10}$/, 'Phone number must be 10 digits').optional(),
+  address: z.string().max(500).optional(),
+  gender: z.enum(['M', 'F', 'Prefer not to say']).optional(),
+  birthDate: z.string().optional(),
+}).strict()
 
 /**
  * Get all volunteers with participation stats
@@ -46,8 +74,9 @@ export async function updateVolunteer(
   volunteerId: string,
   updates: Partial<Omit<Volunteer, 'id' | 'createdAt' | 'updatedAt'>>
 ) {
-  await getAuthUser()
-  const result = await queries.adminUpdateVolunteer(volunteerId, updates)
+  await requireAdmin()
+  const validated = adminUpdateSchema.parse(updates)
+  const result = await queries.adminUpdateVolunteer(volunteerId, validated)
   revalidatePath('/volunteers')
   revalidatePath('/profile')
   return result
@@ -97,14 +126,15 @@ export async function updateMyProfile(updates: {
   birthDate?: string
 }) {
   const volunteer = await getCachedVolunteer()
+  const validated = profileUpdateSchema.parse(updates)
 
   const result = await queries.adminUpdateVolunteer(volunteer.id, {
-    firstName: updates.firstName,
-    lastName: updates.lastName,
-    phoneNo: updates.phoneNo,
-    address: updates.address,
-    gender: updates.gender,
-    birthDate: updates.birthDate,
+    firstName: validated.firstName,
+    lastName: validated.lastName,
+    phoneNo: validated.phoneNo,
+    address: validated.address,
+    gender: validated.gender,
+    birthDate: validated.birthDate,
   })
 
   revalidatePath('/profile')

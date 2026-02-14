@@ -4,6 +4,7 @@
  */
 
 import { eq, and, sql, count, sum } from 'drizzle-orm'
+import { parseRows, monthlyTrendRowSchema } from '../query-validators'
 import { db } from '../index'
 import { volunteers, events, eventParticipation } from '../schema'
 
@@ -61,12 +62,5 @@ export async function getMonthlyActivityTrends() {
     ORDER BY DATE_TRUNC('month', e.start_date)
   `)
 
-  return result as unknown[] as {
-    month: string
-    month_number: number
-    year_number: number
-    events_count: number
-    volunteers_count: number
-    hours_sum: number
-  }[]
+  return parseRows(result, monthlyTrendRowSchema)
 }

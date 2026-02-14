@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -28,8 +27,8 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
   const { signInWithEmail } = useAuth()
-  const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [signedIn, setSignedIn] = useState(false)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -42,7 +41,7 @@ export function LoginForm() {
     if (error) {
       setServerError(error.message)
     } else {
-      router.replace('/dashboard')
+      setSignedIn(true)
     }
   }
 
@@ -89,8 +88,8 @@ export function LoginForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
+          <Button type="submit" className="w-full" disabled={form.formState.isSubmitting || signedIn}>
+            {signedIn ? 'Redirecting...' : form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
       </Form>

@@ -1,5 +1,10 @@
 import { SettingsPage } from '@/components/settings'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 
 export default function Page() {
-  return <SettingsPage />
+  return (
+    <ProtectedRoute>
+      <SettingsPage />
+    </ProtectedRoute>
+  )
 }

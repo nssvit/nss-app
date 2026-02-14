@@ -4,6 +4,14 @@
  */
 
 import { eq, and, sql, count } from 'drizzle-orm'
+import {
+  parseRows,
+  categoryDistributionRowSchema,
+  topEventRowSchema,
+  attendanceSummaryRowSchema,
+  volunteerHoursSummaryRowSchema,
+  participationHistoryRowSchema,
+} from '../query-validators'
 import { db } from '../index'
 import { volunteers, userRoles, roleDefinitions } from '../schema'
 
@@ -28,14 +36,7 @@ export async function getCategoryDistribution() {
     ORDER BY event_count DESC
   `)
 
-  return result as unknown[] as {
-    category_id: number
-    category_name: string
-    event_count: number
-    color_hex: string
-    participant_count: number
-    total_hours: number
-  }[]
+  return parseRows(result, categoryDistributionRowSchema)
 }
 
 /**
@@ -62,16 +63,7 @@ export async function getTopEventsByImpact(limitCount: number = 10) {
     LIMIT ${limitCount}
   `)
 
-  return result as unknown[] as {
-    event_id: string
-    event_name: string
-    start_date: string | null
-    category_name: string
-    participant_count: number
-    total_hours: number
-    impact_score: string
-    event_status: string
-  }[]
+  return parseRows(result, topEventRowSchema)
 }
 
 /**
@@ -102,17 +94,7 @@ export async function getAttendanceSummary() {
     ORDER BY e.start_date DESC
   `)
 
-  return result as unknown[] as {
-    event_id: string
-    event_name: string
-    start_date: Date | null
-    category_name: string | null
-    total_registered: number
-    total_present: number
-    total_absent: number
-    attendance_rate: number
-    total_hours: number
-  }[]
+  return parseRows(result, attendanceSummaryRowSchema)
 }
 
 /**
@@ -135,14 +117,7 @@ export async function getVolunteerHoursSummary() {
     ORDER BY total_hours DESC
   `)
 
-  return result as unknown[] as {
-    volunteer_id: string
-    volunteer_name: string
-    total_hours: number
-    approved_hours: number
-    events_count: number
-    last_activity: Date | null
-  }[]
+  return parseRows(result, volunteerHoursSummaryRowSchema)
 }
 
 /**
@@ -173,22 +148,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     ORDER BY e.start_date DESC
   `)
 
-  return result as unknown[] as {
-    participation_id: string
-    event_id: string
-    event_name: string
-    start_date: Date | null
-    category_name: string | null
-    participation_status: string
-    hours_attended: number
-    attendance_date: Date | null
-    registration_date: Date | null
-    notes: string | null
-    approval_status: string | null
-    approved_hours: number | null
-    approved_by: string | null
-    approved_at: Date | null
-  }[]
+  return parseRows(result, participationHistoryRowSchema)
 }
 
 /**

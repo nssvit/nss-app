@@ -4,6 +4,7 @@
  */
 
 import { eq, sql } from 'drizzle-orm'
+import { parseRows, volunteerWithStatsRowSchema } from '../query-validators'
 import { db } from '../index'
 import { volunteers, userRoles, type Volunteer } from '../schema'
 
@@ -44,29 +45,7 @@ export async function getVolunteersWithStats() {
     ORDER BY v.created_at DESC
   `)
 
-  return result as unknown[] as {
-    id: string
-    volunteer_id: string
-    auth_user_id: string | null
-    first_name: string
-    last_name: string
-    roll_number: string
-    email: string
-    branch: string
-    year: string
-    phone_no: string | null
-    birth_date: string | null
-    gender: string | null
-    nss_join_year: number | null
-    address: string | null
-    profile_pic: string | null
-    is_active: boolean
-    created_at: string
-    updated_at: string
-    events_participated: number
-    total_hours: number
-    approved_hours: number
-  }[]
+  return parseRows(result, volunteerWithStatsRowSchema)
 }
 
 /**
