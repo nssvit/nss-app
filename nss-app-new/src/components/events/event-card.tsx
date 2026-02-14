@@ -5,9 +5,10 @@ import type { EventWithStats } from '@/types'
 
 interface EventCardProps {
   event: EventWithStats
+  onClick?: () => void
 }
 
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, onClick }: EventCardProps) {
   const formattedDate = event.startDate
     ? new Date(event.startDate).toLocaleDateString('en-IN', {
         day: 'numeric',
@@ -17,7 +18,10 @@ export function EventCard({ event }: EventCardProps) {
     : 'TBD'
 
   return (
-    <Card className="transition-shadow hover:shadow-md">
+    <Card
+      className={`transition-shadow hover:shadow-md ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="line-clamp-1 text-base">{event.eventName}</CardTitle>

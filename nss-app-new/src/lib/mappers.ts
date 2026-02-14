@@ -40,6 +40,7 @@ export function mapVolunteerRow(r: any): VolunteerWithStats {
     eventsParticipated: r.events_participated ?? 0,
     totalHours: r.total_hours ?? 0,
     approvedHours: r.approved_hours ?? 0,
+    roleName: r.role_name ?? null,
   }
 }
 

@@ -5,9 +5,10 @@ import type { EventWithStats } from '@/types'
 
 interface EventsGridProps {
   events: EventWithStats[]
+  onEventClick?: (event: EventWithStats) => void
 }
 
-export function EventsGrid({ events }: EventsGridProps) {
+export function EventsGrid({ events, onEventClick }: EventsGridProps) {
   if (events.length === 0) {
     return (
       <EmptyState
@@ -21,7 +22,7 @@ export function EventsGrid({ events }: EventsGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {events.map((event) => (
-        <EventCard key={event.id} event={event} />
+        <EventCard key={event.id} event={event} onClick={() => onEventClick?.(event)} />
       ))}
     </div>
   )

@@ -1,4 +1,4 @@
-import { AdminDashboard, VolunteerDashboard } from '@/components/dashboard'
+import { TabbedDashboard, VolunteerDashboard } from '@/components/dashboard'
 import { PageHeader } from '@/components/page-header'
 import { requireAuthServer } from '@/lib/auth-server'
 import { getCurrentVolunteer } from '@/lib/auth-cache'
@@ -20,7 +20,7 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Dashboard" description="Overview of NSS activities and metrics." />
-        <AdminDashboard initialData={{ stats, trends }} />
+        <TabbedDashboard initialData={{ stats, trends }} />
       </div>
     )
   }

@@ -28,7 +28,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
-import { BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
+import {
+  BRANCH_DISPLAY_NAMES,
+  YEAR_DISPLAY_NAMES,
+  ROLE_COLORS,
+  ROLE_DISPLAY_NAMES,
+  type Role,
+} from '@/lib/constants'
 import type { VolunteerWithStats } from '@/types'
 
 function TableSkeleton() {
@@ -111,7 +117,14 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
             </TableHeader>
             <TableBody>
               {filtered.map((volunteer) => (
-                <TableRow key={volunteer.id}>
+                <TableRow
+                  key={volunteer.id}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setViewVolunteer(volunteer)
+                    setViewOpen(true)
+                  }}
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
@@ -121,9 +134,24 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">
-                          {volunteer.firstName} {volunteer.lastName}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-medium">
+                            {volunteer.firstName} {volunteer.lastName}
+                          </p>
+                          {volunteer.roleName &&
+                            volunteer.roleName !== 'volunteer' && (
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  'border-none px-1.5 py-0 text-[10px]',
+                                  ROLE_COLORS[volunteer.roleName as Role]
+                                )}
+                              >
+                                {ROLE_DISPLAY_NAMES[volunteer.roleName as Role] ??
+                                  volunteer.roleName}
+                              </Badge>
+                            )}
+                        </div>
                         <p className="text-muted-foreground text-xs">{volunteer.email}</p>
                       </div>
                     </div>

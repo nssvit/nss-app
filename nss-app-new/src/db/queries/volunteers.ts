@@ -37,11 +37,20 @@ export async function getVolunteersWithStats() {
       v.updated_at,
       COALESCE(COUNT(DISTINCT ep.event_id), 0)::int as events_participated,
       COALESCE(SUM(ep.hours_attended), 0)::int as total_hours,
-      COALESCE(SUM(CASE WHEN ep.approval_status = 'approved' THEN ep.approved_hours ELSE 0 END), 0)::int as approved_hours
+      COALESCE(SUM(CASE WHEN ep.approval_status = 'approved' THEN ep.approved_hours ELSE 0 END), 0)::int as approved_hours,
+      top_role.role_name as role_name
     FROM volunteers v
     LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
+    LEFT JOIN LATERAL (
+      SELECT rd.role_name
+      FROM user_roles ur
+      JOIN role_definitions rd ON ur.role_definition_id = rd.id
+      WHERE ur.volunteer_id = v.id AND ur.is_active = true AND rd.is_active = true
+      ORDER BY rd.hierarchy_level DESC
+      LIMIT 1
+    ) top_role ON true
     WHERE v.is_active = true
-    GROUP BY v.id
+    GROUP BY v.id, top_role.role_name
     ORDER BY v.created_at DESC
   `)
 
