@@ -15,7 +15,6 @@ export {
   getFullAdminDashboard,
   getRecentEvents,
   getHeadsDashboardStats,
-  getVolunteerHoursSummary as getDashboardVolunteerHours,
 } from './dashboard'
 
 // Volunteer actions
@@ -53,7 +52,6 @@ export {
   markAttendance,
   updateAttendance,
   syncAttendance,
-  getEventParticipants as getAttendanceParticipants,
   getAttendanceSummary,
   updateParticipationStatus,
   bulkMarkAttendance,
@@ -67,7 +65,6 @@ export {
   rejectHours,
   bulkApproveHours,
   resetApproval,
-  getPendingCount,
 } from './hours'
 
 // Role actions
@@ -89,11 +86,6 @@ export {
 export {
   getCategoryDistribution,
   getTopEventsByImpact,
-  getAttendanceSummary as getReportAttendanceSummary,
-  getVolunteerHoursSummary as getReportVolunteerHours,
-  getMonthlyTrends as getReportMonthlyTrends,
-  getUserStats as getReportUserStats,
-  getDashboardStats as getReportDashboardStats,
 } from './reports'
 
 // Category actions

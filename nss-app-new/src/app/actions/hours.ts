@@ -20,7 +20,7 @@ export async function getPendingApprovals() {
     approvalStatus: r.approvalStatus,
     approvedBy: r.approvedBy,
     approvedAt: r.approvedAt,
-    feedback: r.feedback,
+    notes: r.notes,
     registeredAt: r.registrationDate ?? r.createdAt,
     updatedAt: r.updatedAt,
     volunteer: r.volunteer,
@@ -82,10 +82,3 @@ export async function resetApproval(participationId: string) {
   return result
 }
 
-/**
- * Get pending approvals count
- */
-export async function getPendingCount() {
-  await getAuthUser()
-  return queries.getPendingApprovalsCount()
-}

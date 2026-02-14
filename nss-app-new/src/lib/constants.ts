@@ -116,18 +116,3 @@ export const YEAR_DISPLAY_NAMES: Record<string, string> = {
   SE: 'Second Year (SE)',
   TE: 'Third Year (TE)',
 }
-
-export function hasHigherOrEqualPrivilege(userRole: Role, requiredRole: Role): boolean {
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole]
-}
-
-export function getHighestRole(roles: Role[]): Role | null {
-  if (roles.length === 0) return null
-  return roles.reduce((highest, current) =>
-    ROLE_HIERARCHY[current] > ROLE_HIERARCHY[highest] ? current : highest
-  )
-}
-
-export function hasAnyRole(userRoles: Role[], requiredRoles: Role[]): boolean {
-  return userRoles.some((role) => requiredRoles.includes(role))
-}

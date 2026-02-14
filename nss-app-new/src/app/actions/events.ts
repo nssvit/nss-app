@@ -147,14 +147,14 @@ export async function getEventParticipants(eventId: string) {
     approvedBy: r.approved_by ?? null,
     approvedAt: r.approved_at ?? null,
     approvedHours: r.approved_hours ?? null,
-    feedback: r.notes,
+    notes: r.notes,
     registeredAt: r.registration_date,
     updatedAt: r.attendance_date ?? r.registration_date,
   }))
 }
 
 /**
- * Register for an event
+ * Register for an event (self-service — any authenticated volunteer)
  */
 export async function registerForEvent(eventId: string) {
   const volunteer = await getCurrentVolunteer()
@@ -165,13 +165,15 @@ export async function registerForEvent(eventId: string) {
 }
 
 /**
- * Check if registration is possible for an event
+ * Check if registration is possible for an event.
+ * Supports unauthenticated callers (returns capacity-only check).
  */
 export async function canRegisterForEvent(eventId: string) {
   try {
     const volunteer = await getCurrentVolunteer()
     return queries.canRegisterForEvent(eventId, volunteer.id)
   } catch {
+    // Unauthenticated: check event availability only
     return queries.canRegisterForEvent(eventId)
   }
 }

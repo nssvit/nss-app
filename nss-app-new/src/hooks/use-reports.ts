@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { DashboardStats, ActivityTrend, EventWithStats } from '@/types'
-import { getDashboardStats, getMonthlyTrends } from '@/app/actions/reports'
+import { getDashboardStats, getMonthlyTrends } from '@/app/actions/dashboard'
 import { getEvents } from '@/app/actions/events'
 
 export function useReports() {

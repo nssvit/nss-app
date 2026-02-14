@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import type { EventWithStats, EventParticipationWithVolunteer } from '@/types'
-import { getEvents } from '@/app/actions/events'
-import { getEventParticipants, syncAttendance } from '@/app/actions/attendance'
+import { getEvents, getEventParticipants } from '@/app/actions/events'
+import { syncAttendance } from '@/app/actions/attendance'
 
 export function useAttendance() {
   const [events, setEvents] = useState<EventWithStats[]>([])

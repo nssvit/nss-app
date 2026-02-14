@@ -5,7 +5,7 @@ import { db } from '@/db'
 import { queries } from '@/db/queries'
 import { volunteers, events, eventParticipation } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
-import { mapTrendRow, mapVolunteerHoursSummaryRow } from '@/lib/mappers'
+import { mapTrendRow } from '@/lib/mappers'
 
 // Use cached auth helpers for better performance
 
@@ -330,13 +330,4 @@ export async function getHeadsDashboardStats() {
     },
     events: myEvents,
   }
-}
-
-/**
- * Get volunteer hours summary (top volunteers by hours)
- */
-export async function getVolunteerHoursSummary(limit: number = 10) {
-  await getAuthUser()
-  const rows = await queries.getVolunteerHoursSummary()
-  return rows.slice(0, limit).map(mapVolunteerHoursSummaryRow)
 }

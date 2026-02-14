@@ -63,18 +63,6 @@ export const getCurrentVolunteer = cache(async (): Promise<CachedVolunteer> => {
 })
 
 /**
- * Check if current user is admin - cached
- */
-export const isAdmin = cache(async (): Promise<boolean> => {
-  try {
-    const volunteer = await getCurrentVolunteer()
-    return queries.isVolunteerAdmin(volunteer.id)
-  } catch {
-    return false
-  }
-})
-
-/**
  * Require current user to have at least one of the specified roles.
  * Throws if unauthorized. Returns the cached volunteer.
  */
@@ -93,14 +81,3 @@ export async function requireAnyRole(...roles: string[]): Promise<CachedVoluntee
 export async function requireAdmin(): Promise<CachedVolunteer> {
   return requireAnyRole('admin')
 }
-
-/**
- * Optional auth - returns null if not authenticated
- */
-export const getOptionalAuthUser = cache(async (): Promise<CachedUser | null> => {
-  try {
-    return await getAuthUser()
-  } catch {
-    return null
-  }
-})

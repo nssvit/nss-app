@@ -28,7 +28,7 @@ if (!process.env.DATABASE_URL) {
  * PostgreSQL client for Drizzle ORM
  *
  * Configuration optimized for Vercel/serverless:
- * - max: 5 connections (allows parallel queries without exhausting pool)
+ * - max: 10 connections (allows parallel queries without exhausting pool)
  * - idle_timeout: 20 seconds before closing idle connections
  * - connect_timeout: 10 seconds connection timeout
  * - prepare: false (required for connection poolers like Supavisor)
@@ -79,6 +79,3 @@ export const db = drizzle(client, { schema })
  * Type exports for use in other modules
  */
 export type DbClient = typeof db
-
-// Re-export schema for convenience
-export * from './schema'

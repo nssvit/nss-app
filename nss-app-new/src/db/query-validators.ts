@@ -95,7 +95,7 @@ export const categoryDistributionRowSchema = z.object({
   category_id: z.number(),
   category_name: z.string(),
   event_count: z.number(),
-  color_hex: z.string(),
+  color_hex: z.string().nullable(),
   participant_count: z.number(),
   total_hours: z.number(),
 }).passthrough()
@@ -147,6 +147,8 @@ export const participationHistoryRowSchema = z.object({
   approved_hours: z.number().nullable(),
   approved_by: z.string().nullable(),
   approved_at: z.any().nullable(),
+  approval_notes: z.string().nullable(),
+  created_at: z.any(),
 }).passthrough()
 
 // --- Volunteers ---

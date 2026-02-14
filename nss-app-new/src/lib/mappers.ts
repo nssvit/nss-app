@@ -93,7 +93,10 @@ export function mapParticipationRow(r: any, volunteerId: string): EventParticipa
     approvedBy: r.approved_by ?? null,
     approvedAt: r.approved_at ?? null,
     approvedHours: r.approved_hours ?? null,
-    feedback: r.notes ?? null,
+    notes: r.notes ?? null,
+    approvalNotes: r.approval_notes ?? null,
+    attendanceDate: r.attendance_date ?? null,
+    createdAt: r.created_at ?? undefined,
     registeredAt: r.registration_date ?? r.attendance_date ?? new Date(),
     updatedAt: r.attendance_date ?? new Date(),
     eventName: r.event_name,
@@ -124,6 +127,7 @@ export function mapTopEventRow(r: any): TopEvent {
     participantCount: r.participant_count,
     totalHours: r.total_hours,
     impactScore: r.impact_score,
+    eventStatus: r.event_status,
   }
 }
 

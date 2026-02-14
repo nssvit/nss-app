@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
-import { getAuthUser, getCurrentVolunteer, isAdmin as cachedIsAdmin } from '@/lib/auth-cache'
+import { getAuthUser, getCurrentVolunteer, requireAdmin } from '@/lib/auth-cache'
 
 /**
  * Get all available roles
@@ -70,7 +70,12 @@ export async function isAdmin(volunteerId: string) {
  * Check if current user is an admin (uses cached auth)
  */
 export async function isCurrentUserAdmin() {
-  return cachedIsAdmin()
+  try {
+    await requireAdmin()
+    return true
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -82,11 +87,7 @@ export async function createRoleDefinition(data: {
   hierarchyLevel: number
   isActive?: boolean
 }) {
-  const adminCheck = await cachedIsAdmin()
-  if (!adminCheck) {
-    throw new Error('Unauthorized: Admin access required')
-  }
-
+  await requireAdmin()
   const result = await queries.createRoleDefinition(data)
   revalidatePath('/role-management')
   return result
@@ -104,11 +105,7 @@ export async function updateRoleDefinition(
     isActive?: boolean
   }
 ) {
-  const adminCheck = await cachedIsAdmin()
-  if (!adminCheck) {
-    throw new Error('Unauthorized: Admin access required')
-  }
-
+  await requireAdmin()
   const result = await queries.updateRoleDefinition(roleId, data)
   revalidatePath('/role-management')
   return result
@@ -118,18 +115,11 @@ export async function updateRoleDefinition(
  * Assign a role to a volunteer (admin only)
  */
 export async function assignRole(volunteerId: string, roleDefinitionId: string, expiresAt?: Date) {
-  const volunteer = await getCurrentVolunteer()
-
-  // Check if current user is admin (cached)
-  const adminCheck = await cachedIsAdmin()
-  if (!adminCheck) {
-    throw new Error('Unauthorized: Admin access required')
-  }
-
+  const admin = await requireAdmin()
   const result = await queries.adminAssignRole(
     volunteerId,
     roleDefinitionId,
-    volunteer.id,
+    admin.id,
     expiresAt
   )
   revalidatePath('/roles')
@@ -141,12 +131,7 @@ export async function assignRole(volunteerId: string, roleDefinitionId: string, 
  * Revoke a role from a volunteer (admin only)
  */
 export async function revokeRole(volunteerId: string, roleDefinitionId: string) {
-  // Check if current user is admin (cached)
-  const adminCheck = await cachedIsAdmin()
-  if (!adminCheck) {
-    throw new Error('Unauthorized: Admin access required')
-  }
-
+  await requireAdmin()
   const result = await queries.adminRevokeRole(volunteerId, roleDefinitionId)
   revalidatePath('/roles')
   revalidatePath('/volunteers')

@@ -140,7 +140,9 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
       ep.approval_status,
       ep.approved_hours,
       ep.approved_by,
-      ep.approved_at
+      ep.approved_at,
+      ep.approval_notes,
+      ep.created_at
     FROM event_participation ep
     JOIN events e ON ep.event_id = e.id
     LEFT JOIN event_categories ec ON e.category_id = ec.id
