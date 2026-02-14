@@ -45,7 +45,8 @@ export const navItems: NavItem[] = [
     label: 'Volunteers',
     href: '/volunteers',
     icon: Users,
-    section: 'main',
+    section: 'admin',
+    roles: ['admin'],
   },
   {
     label: 'Attendance',
