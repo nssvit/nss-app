@@ -1,12 +1,15 @@
 'use client'
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Plus } from 'lucide-react'
+import { Plus, Users, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -30,17 +33,25 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { EVENT_STATUS, EVENT_STATUS_DISPLAY } from '@/lib/constants'
+import { useVolunteers } from '@/hooks/use-volunteers'
+import { useAuth } from '@/contexts/auth-context'
 import type { EventCategory } from '@/types'
+import { createEvent } from '@/app/actions/events'
 
 const schema = z.object({
   eventName: z.string().min(1, 'Event name is required').max(100),
   description: z.string().max(500).optional(),
-  eventDate: z.string().min(1, 'Date is required'),
-  startTime: z.string().min(1, 'Start time is required'),
-  endTime: z.string().min(1, 'End time is required'),
+  startDate: z.string().min(1, 'Start date/time is required'),
+  endDate: z.string().min(1, 'End date/time is required'),
   location: z.string().min(1, 'Location is required').max(200),
-  maxParticipants: z.coerce.number().min(1, 'Must be at least 1'),
-  hoursCredits: z.coerce.number().min(0.5, 'Must be at least 0.5'),
+  maxParticipants: z
+    .string()
+    .min(1, 'Required')
+    .refine((v) => Number(v) >= 1, { message: 'Must be at least 1' }),
+  declaredHours: z
+    .string()
+    .min(1, 'Required')
+    .refine((v) => Number(v) >= 1 && Number(v) <= 240, { message: 'Must be between 1 and 240' }),
   categoryId: z.string().min(1, 'Category is required'),
   eventStatus: z.string().min(1, 'Status is required'),
 })
@@ -61,6 +72,7 @@ function TextField({
   placeholder?: string
   type?: string
   min?: number
+  max?: number
   step?: number
 }) {
   return (
@@ -78,6 +90,7 @@ function TextField({
                 type={type}
                 placeholder={placeholder}
                 min={rest.min}
+                max={rest.max}
                 step={rest.step}
                 {...field}
               />
@@ -133,20 +146,30 @@ function SelectField({
 
 interface EventFormModalProps {
   categories: EventCategory[]
+  onSuccess?: () => void
 }
 
-export function EventFormModal({ categories }: EventFormModalProps) {
+export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
+  const [open, setOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [selectedVolunteers, setSelectedVolunteers] = useState<string[]>([])
+  const [volunteerSearch, setVolunteerSearch] = useState('')
+  const [showVolunteerPicker, setShowVolunteerPicker] = useState(false)
+
+  const { hasAnyRole } = useAuth()
+  const canPickVolunteers = hasAnyRole(['admin', 'head'])
+  const { volunteers } = useVolunteers()
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       eventName: '',
       description: '',
-      eventDate: '',
-      startTime: '',
-      endTime: '',
+      startDate: '',
+      endDate: '',
       location: '',
-      maxParticipants: 50,
-      hoursCredits: 4,
+      maxParticipants: '50',
+      declaredHours: '4',
       categoryId: '',
       eventStatus: EVENT_STATUS.PLANNED,
     },
@@ -158,13 +181,51 @@ export function EventFormModal({ categories }: EventFormModalProps) {
     label: EVENT_STATUS_DISPLAY[s],
   }))
 
-  function onSubmit(values: FormValues) {
-    console.log('Event form submitted:', values)
-    form.reset()
+  const filteredVolunteers = volunteers.filter((v) => {
+    if (!volunteerSearch) return true
+    const q = volunteerSearch.toLowerCase()
+    return (
+      v.firstName.toLowerCase().includes(q) ||
+      v.lastName.toLowerCase().includes(q) ||
+      v.rollNumber.toLowerCase().includes(q)
+    )
+  })
+
+  function toggleVolunteer(id: string) {
+    setSelectedVolunteers((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
+    )
+  }
+
+  async function onSubmit(values: FormValues) {
+    setSubmitting(true)
+    try {
+      await createEvent({
+        eventName: values.eventName,
+        description: values.description,
+        startDate: values.startDate,
+        endDate: values.endDate,
+        declaredHours: Number(values.declaredHours),
+        categoryId: Number(values.categoryId),
+        maxParticipants: Number(values.maxParticipants),
+        eventStatus: values.eventStatus,
+        location: values.location,
+      })
+      form.reset()
+      setSelectedVolunteers([])
+      setVolunteerSearch('')
+      setShowVolunteerPicker(false)
+      setOpen(false)
+      onSuccess?.()
+    } catch (err) {
+      console.error('Failed to create event:', err)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Plus className="h-4 w-4" />
@@ -190,10 +251,19 @@ export function EventFormModal({ categories }: EventFormModalProps) {
               placeholder="Describe the event..."
               type="textarea"
             />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <TextField control={form.control} name="eventDate" label="Date" type="date" />
-              <TextField control={form.control} name="startTime" label="Start Time" type="time" />
-              <TextField control={form.control} name="endTime" label="End Time" type="time" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField
+                control={form.control}
+                name="startDate"
+                label="Start Date & Time"
+                type="datetime-local"
+              />
+              <TextField
+                control={form.control}
+                name="endDate"
+                label="End Date & Time"
+                type="datetime-local"
+              />
             </div>
             <TextField
               control={form.control}
@@ -211,11 +281,12 @@ export function EventFormModal({ categories }: EventFormModalProps) {
               />
               <TextField
                 control={form.control}
-                name="hoursCredits"
-                label="Hours Credits"
+                name="declaredHours"
+                label="Declared Hours"
                 type="number"
-                min={0.5}
-                step={0.5}
+                min={1}
+                max={240}
+                step={1}
               />
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -234,8 +305,69 @@ export function EventFormModal({ categories }: EventFormModalProps) {
                 options={statusOptions}
               />
             </div>
-            <Button type="submit" className="mt-2 w-full">
-              Create Event
+
+            {canPickVolunteers && (
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => setShowVolunteerPicker(!showVolunteerPicker)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Pre-select Volunteers
+                    {selectedVolunteers.length > 0 && (
+                      <Badge variant="secondary">{selectedVolunteers.length} selected</Badge>
+                    )}
+                  </span>
+                  {showVolunteerPicker ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+
+                {showVolunteerPicker && (
+                  <div className="space-y-3 rounded-md border p-3">
+                    <Input
+                      placeholder="Search volunteers..."
+                      value={volunteerSearch}
+                      onChange={(e) => setVolunteerSearch(e.target.value)}
+                      className="h-8"
+                    />
+                    <div className="max-h-48 space-y-1 overflow-y-auto">
+                      {filteredVolunteers.length === 0 ? (
+                        <p className="text-muted-foreground py-3 text-center text-sm">
+                          No volunteers found
+                        </p>
+                      ) : (
+                        filteredVolunteers.map((v) => (
+                          <label
+                            key={v.id}
+                            className="hover:bg-accent flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 text-sm"
+                          >
+                            <Checkbox
+                              checked={selectedVolunteers.includes(v.id)}
+                              onCheckedChange={() => toggleVolunteer(v.id)}
+                            />
+                            <span>
+                              {v.firstName} {v.lastName}
+                            </span>
+                            <span className="text-muted-foreground ml-auto text-xs">
+                              {v.rollNumber}
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Button type="submit" className="mt-2 w-full" disabled={submitting}>
+              {submitting ? 'Creating...' : 'Create Event'}
             </Button>
           </form>
         </Form>

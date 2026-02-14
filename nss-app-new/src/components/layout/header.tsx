@@ -11,8 +11,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
 import { useTheme } from '@/contexts/theme-context'
 import { useAuth } from '@/contexts/auth-context'
+import { usePageTitle } from '@/contexts/page-title-context'
 
 interface HeaderProps {
   onMobileMenuOpen: () => void
@@ -21,6 +23,7 @@ interface HeaderProps {
 export function Header({ onMobileMenuOpen }: HeaderProps) {
   const { toggleTheme } = useTheme()
   const { currentUser, signOut } = useAuth()
+  const { title } = usePageTitle()
 
   const initials = currentUser ? `${currentUser.firstName[0]}${currentUser.lastName[0]}` : 'U'
 
@@ -30,6 +33,13 @@ export function Header({ onMobileMenuOpen }: HeaderProps) {
         <Button variant="ghost" size="icon" className="md:hidden" onClick={onMobileMenuOpen}>
           <Menu className="h-5 w-5" />
         </Button>
+
+        <span className="text-sm font-semibold md:hidden">{title || 'NSS App'}</span>
+
+        <div className="hidden items-center gap-3 md:flex">
+          <Separator orientation="vertical" className="h-6" />
+          <h1 className="text-sm font-semibold">{title}</h1>
+        </div>
 
         <div className="flex-1" />
 

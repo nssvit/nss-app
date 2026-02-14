@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import type { EventWithStats, EventParticipationWithVolunteer } from '@/types'
-import { getEvents, getEventParticipants } from '@/lib/mock-api'
+import { getEvents } from '@/app/actions/events'
+import { getEventParticipants, syncAttendance } from '@/app/actions/attendance'
 
 export function useAttendance() {
   const [events, setEvents] = useState<EventWithStats[]>([])
@@ -10,9 +11,14 @@ export function useAttendance() {
 
   useEffect(() => {
     async function load() {
-      const data = await getEvents()
-      setEvents(data)
-      setLoading(false)
+      try {
+        const data = await getEvents()
+        setEvents(data)
+      } catch (err) {
+        console.error('Failed to load events:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
@@ -28,9 +34,14 @@ export function useAttendanceManager(eventId: string | null) {
 
   useEffect(() => {
     async function loadEvents() {
-      const data = await getEvents()
-      setEvents(data)
-      if (!eventId) setLoading(false)
+      try {
+        const data = await getEvents()
+        setEvents(data)
+      } catch (err) {
+        console.error('Failed to load events:', err)
+      } finally {
+        if (!eventId) setLoading(false)
+      }
     }
     loadEvents()
   }, [eventId])
@@ -43,14 +54,19 @@ export function useAttendanceManager(eventId: string | null) {
         return
       }
       setLoading(true)
-      const data = await getEventParticipants(eventId)
-      setParticipants(data)
-      const initial: Record<string, 'present' | 'absent'> = {}
-      data.forEach((p) => {
-        initial[p.id] = p.participationStatus === 'absent' ? 'absent' : 'present'
-      })
-      setAttendanceMap(initial)
-      setLoading(false)
+      try {
+        const data = await getEventParticipants(eventId)
+        setParticipants(data)
+        const initial: Record<string, 'present' | 'absent'> = {}
+        data.forEach((p) => {
+          initial[p.id] = p.participationStatus === 'absent' ? 'absent' : 'present'
+        })
+        setAttendanceMap(initial)
+      } catch (err) {
+        console.error('Failed to load participants:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     loadParticipants()
   }, [eventId])
@@ -79,9 +95,16 @@ export function useAttendanceManager(eventId: string | null) {
   }
 
   const submitAttendance = async () => {
-    // In production, this would call an API to save attendance
-    // For now, just simulate success
-    await new Promise((r) => setTimeout(r, 300))
+    if (!eventId) return
+    const presentIds = Object.entries(attendanceMap)
+      .filter(([, status]) => status === 'present')
+      .map(([id]) => {
+        const participant = participants.find((p) => p.id === id)
+        return participant?.volunteerId
+      })
+      .filter(Boolean) as string[]
+
+    await syncAttendance(eventId, presentIds)
   }
 
   return {

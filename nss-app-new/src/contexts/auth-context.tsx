@@ -12,7 +12,7 @@ interface SignupUserData {
   lastName: string
   rollNumber: string
   branch: string
-  year: number
+  year: string
 }
 
 interface AuthContextType {
@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authError, setAuthError] = useState<string | null>(null)
   const isMountedRef = useRef(true)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const lastFetchedUserIdRef = useRef<string | null>(null)
 
   const clearTimeouts = useCallback(() => {
     if (timeoutRef.current) {
@@ -60,75 +61,80 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const retryAuth = useCallback(() => {
     setAuthError(null)
     setLoading(true)
+    lastFetchedUserIdRef.current = null
     window.location.reload()
   }, [])
 
-  const fetchCurrentUser = useCallback(async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user || !isMountedRef.current) return
+  // Takes authUserId directly — avoids redundant getUser() network call
+  // and prevents deadlock when called from onAuthStateChange.
+  const fetchCurrentUser = useCallback(
+    async (authUserId: string) => {
+      try {
+        if (!isMountedRef.current) return
 
-      const { data: volunteerData, error: volunteerError } = await supabase
-        .from('volunteers')
-        .select('*')
-        .eq('auth_user_id', user.id)
-        .eq('is_active', true)
-        .single()
+        const { data: volunteerData, error: volunteerError } = await supabase
+          .from('volunteers')
+          .select('*')
+          .eq('auth_user_id', authUserId)
+          .eq('is_active', true)
+          .single()
 
-      if (volunteerError) {
-        if (volunteerError.code === 'PGRST116') {
-          setAuthError('Your volunteer profile is being set up. Please wait and try again.')
-        } else {
+        if (volunteerError) {
+          if (!isMountedRef.current) return
+          if (volunteerError.code === 'PGRST116') {
+            setAuthError('Your volunteer profile is being set up. Please wait and try again.')
+          } else {
+            setAuthError('Failed to load user data. Please try again.')
+          }
+          return
+        }
+
+        if (!volunteerData || !isMountedRef.current) return
+
+        const { data: rolesData } = await supabase
+          .from('user_roles')
+          .select('role_definitions(role_name)')
+          .eq('volunteer_id', volunteerData.id)
+          .eq('is_active', true)
+
+        const roles =
+          rolesData
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join query returns untyped
+            ?.map((ur: any) => ur.role_definitions?.role_name)
+            .filter(Boolean) || ['volunteer']
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase returns untyped rows
+        const vol = volunteerData as Record<string, any>
+        if (isMountedRef.current) {
+          setCurrentUser({
+            volunteerId: vol.id,
+            firstName: vol.first_name,
+            lastName: vol.last_name,
+            rollNumber: vol.roll_number,
+            email: vol.email,
+            branch: vol.branch,
+            year: vol.year,
+            phoneNo: vol.phone_no,
+            birthDate: vol.birth_date,
+            gender: vol.gender,
+            nssJoinYear: vol.nss_join_year,
+            address: vol.address,
+            profilePic: vol.profile_pic,
+            isActive: vol.is_active,
+            roles: roles.length > 0 ? roles : ['volunteer'],
+          })
+          setAuthError(null)
+        }
+      } catch {
+        if (isMountedRef.current) {
           setAuthError('Failed to load user data. Please try again.')
         }
-        return
+      } finally {
+        finishLoading()
       }
-
-      if (!volunteerData || !isMountedRef.current) return
-
-      const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('role_definitions(role_name)')
-        .eq('volunteer_id', volunteerData.id)
-        .eq('is_active', true)
-
-      const roles = rolesData
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase join query returns untyped
-        ?.map((ur: any) => ur.role_definitions?.role_name)
-        .filter(Boolean) || ['volunteer']
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase returns untyped rows
-      const vol = volunteerData as Record<string, any>
-      if (isMountedRef.current) {
-        setCurrentUser({
-          volunteerId: vol.id,
-          firstName: vol.first_name,
-          lastName: vol.last_name,
-          rollNumber: vol.roll_number,
-          email: vol.email,
-          branch: vol.branch,
-          year: vol.year,
-          phoneNo: vol.phone_no,
-          birthDate: vol.birth_date,
-          gender: vol.gender,
-          nssJoinYear: vol.nss_join_year,
-          address: vol.address,
-          profilePic: vol.profile_pic,
-          isActive: vol.is_active,
-          roles: roles.length > 0 ? roles : ['volunteer'],
-        })
-        setAuthError(null)
-      }
-    } catch {
-      if (isMountedRef.current) {
-        setAuthError('Failed to load user data. Please try again.')
-      }
-    } finally {
-      finishLoading()
-    }
-  }, [supabase, finishLoading])
+    },
+    [supabase, finishLoading]
+  )
 
   useEffect(() => {
     isMountedRef.current = true
@@ -140,9 +146,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }, AUTH_TIMEOUT_MS)
 
+    // Use getSession() for the initial session check.
     supabase.auth
       .getSession()
-      .then(({ data: { session }, error }) => {
+      .then(({ data: { session: initialSession }, error }) => {
         if (!isMountedRef.current) return
         if (error) {
           setSession(null)
@@ -150,10 +157,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           finishLoading()
           return
         }
-        setSession(session)
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          fetchCurrentUser()
+        setSession(initialSession)
+        setUser(initialSession?.user ?? null)
+        if (initialSession?.user) {
+          lastFetchedUserIdRef.current = initialSession.user.id
+          fetchCurrentUser(initialSession.user.id)
         } else {
           finishLoading()
         }
@@ -164,21 +172,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         finishLoading()
       })
 
+    // Listen for subsequent auth events (sign-in, sign-out, token refresh).
+    // IMPORTANT: Do NOT await Supabase methods inside this callback —
+    // it can deadlock the auth state machine (per Supabase docs).
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!isMountedRef.current) return
-      if (event === 'TOKEN_REFRESHED' && !session) {
+
+      // Skip INITIAL_SESSION — already handled by getSession() above.
+      if (event === 'INITIAL_SESSION') return
+
+      // Session lost
+      if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !newSession)) {
         setSession(null)
         setUser(null)
         setCurrentUser(null)
+        lastFetchedUserIdRef.current = null
         finishLoading()
         return
       }
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchCurrentUser()
+
+      setSession(newSession)
+      setUser(newSession?.user ?? null)
+
+      if (newSession?.user) {
+        const userId = newSession.user.id
+        // Only fetch profile when user changes (skip on TOKEN_REFRESHED, tab refocus, etc.)
+        if (userId !== lastFetchedUserIdRef.current) {
+          lastFetchedUserIdRef.current = userId
+          // Dispatch via setTimeout to avoid deadlock —
+          // Supabase docs: "Do not use other Supabase functions in the callback function"
+          setTimeout(() => {
+            fetchCurrentUser(userId)
+          }, 0)
+        }
       } else {
         setCurrentUser(null)
         finishLoading()

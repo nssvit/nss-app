@@ -64,7 +64,7 @@ export function TopEventsTable({ events, loading }: TopEventsTableProps) {
             {topEvents.map((event) => (
               <TableRow key={event.id}>
                 <TableCell className="font-medium">{event.eventName}</TableCell>
-                <TableCell>{event.eventDate ?? 'TBD'}</TableCell>
+                <TableCell>{event.startDate ? new Date(event.startDate).toLocaleDateString() : 'TBD'}</TableCell>
                 <TableCell>{event.categoryName ?? 'N/A'}</TableCell>
                 <TableCell className="text-right">{event.participantCount ?? 0}</TableCell>
                 <TableCell className="text-right">{event.totalHours ?? 0}</TableCell>

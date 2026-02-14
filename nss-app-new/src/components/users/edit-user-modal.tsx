@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { VolunteerWithStats } from '@/types'
-import { BRANCHES, YEARS } from '@/lib/constants'
+import { BRANCHES, YEARS, BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { updateVolunteer } from '@/app/actions/volunteers'
 
 const editUserSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -38,7 +39,7 @@ const editUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   rollNumber: z.string().min(1, 'Roll number is required'),
   branch: z.string().min(1, 'Branch is required'),
-  year: z.coerce.number().min(1).max(4),
+  year: z.string().min(1, 'Year is required'),
   phoneNo: z.string().optional(),
   isActive: z.boolean(),
 })
@@ -49,9 +50,12 @@ interface EditUserModalProps {
   volunteer: VolunteerWithStats | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalProps) {
+export function EditUserModal({ volunteer, open, onOpenChange, onSuccess }: EditUserModalProps) {
+  const [submitting, setSubmitting] = useState(false)
+
   const form = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
@@ -60,7 +64,7 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
       email: '',
       rollNumber: '',
       branch: '',
-      year: 1,
+      year: 'FE',
       phoneNo: '',
       isActive: true,
     },
@@ -81,9 +85,25 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
     }
   }, [volunteer, form])
 
-  function onSubmit(values: EditUserFormValues) {
-    console.log('Updated user:', values)
-    onOpenChange(false)
+  async function onSubmit(values: EditUserFormValues) {
+    if (!volunteer) return
+    setSubmitting(true)
+    try {
+      await updateVolunteer(volunteer.id, {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        branch: values.branch,
+        year: values.year,
+        phoneNo: values.phoneNo || null,
+        isActive: values.isActive,
+      })
+      onOpenChange(false)
+      onSuccess?.()
+    } catch (err) {
+      console.error('Failed to update user:', err)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (!volunteer) return null
@@ -136,7 +156,7 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="user@example.com" {...field} />
+                    <Input type="email" placeholder="user@example.com" {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,7 +170,7 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
                 <FormItem>
                   <FormLabel>Roll Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="CS2101" {...field} />
+                    <Input placeholder="CS2101" {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,7 +193,7 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
                       <SelectContent>
                         {BRANCHES.map((branch) => (
                           <SelectItem key={branch} value={branch}>
-                            {branch}
+                            {BRANCH_DISPLAY_NAMES[branch] ?? branch}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -188,10 +208,7 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Year</FormLabel>
-                    <Select
-                      onValueChange={(val) => field.onChange(Number(val))}
-                      value={String(field.value)}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select year" />
@@ -199,8 +216,8 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
                       </FormControl>
                       <SelectContent>
                         {YEARS.map((year) => (
-                          <SelectItem key={year} value={String(year)}>
-                            Year {year}
+                          <SelectItem key={year} value={year}>
+                            {YEAR_DISPLAY_NAMES[year] ?? year}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -248,7 +265,9 @@ export function EditUserModal({ volunteer, open, onOpenChange }: EditUserModalPr
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Saving...' : 'Save Changes'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

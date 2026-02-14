@@ -1,21 +1,9 @@
-import { type NextRequest, NextResponse } from 'next/server'
+import { type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-const PUBLIC_ROUTES = ['/login', '/signup', '/auth/callback', '/offline']
-
-function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some((route) => pathname.startsWith(route))
-}
-
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // Skip auth for public routes
-  if (isPublicRoute(pathname)) {
-    return NextResponse.next()
-  }
-
-  // Refresh session and check auth
+  // Always run updateSession — it refreshes auth cookies on ALL routes
+  // (including /login, /signup) and only redirects on protected routes.
   return updateSession(request)
 }
 

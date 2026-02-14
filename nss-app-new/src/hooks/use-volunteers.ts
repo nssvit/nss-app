@@ -1,21 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { VolunteerWithStats } from '@/types'
-import { getVolunteers } from '@/lib/mock-api'
+import { getVolunteers } from '@/app/actions/volunteers'
 
-export function useVolunteers() {
-  const [volunteers, setVolunteers] = useState<VolunteerWithStats[]>([])
-  const [loading, setLoading] = useState(true)
+export function useVolunteers(initialData?: VolunteerWithStats[]) {
+  const [volunteers, setVolunteers] = useState<VolunteerWithStats[]>(initialData ?? [])
+  const [loading, setLoading] = useState(!initialData)
 
-  useEffect(() => {
-    async function load() {
+  const refresh = useCallback(async () => {
+    try {
+      setLoading(true)
       const data = await getVolunteers()
       setVolunteers(data)
+    } catch (err) {
+      console.error('Failed to load volunteers:', err)
+    } finally {
       setLoading(false)
     }
-    load()
   }, [])
 
-  return { volunteers, loading }
+  useEffect(() => {
+    if (initialData) return
+    refresh()
+  }, [initialData, refresh])
+
+  return { volunteers, loading, refresh }
 }

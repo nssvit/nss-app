@@ -1,23 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { RoleDefinition, UserRoleWithDefinition } from '@/types'
-import { getRoleDefinitions, getUserRoles } from '@/lib/mock-api'
+import { getRoles, getCurrentUserRoles } from '@/app/actions/roles'
 
 export function useRoles() {
   const [roleDefinitions, setRoleDefinitions] = useState<RoleDefinition[]>([])
   const [userRoles, setUserRoles] = useState<UserRoleWithDefinition[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
-      const [rd, ur] = await Promise.all([getRoleDefinitions(), getUserRoles()])
+  const refresh = useCallback(async () => {
+    try {
+      const [rd, ur] = await Promise.all([getRoles(), getCurrentUserRoles()])
       setRoleDefinitions(rd)
       setUserRoles(ur)
+    } catch (err) {
+      console.error('Failed to load roles:', err)
+    } finally {
       setLoading(false)
     }
-    load()
   }, [])
 
-  return { roleDefinitions, userRoles, loading }
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  return { roleDefinitions, userRoles, loading, refresh }
 }

@@ -71,7 +71,7 @@ export function AttendanceManager() {
             {events.map((event) => (
               <SelectItem key={event.id} value={event.id}>
                 {event.eventName}
-                {event.eventDate ? ` (${new Date(event.eventDate).toLocaleDateString()})` : ''}
+                {event.startDate ? ` (${new Date(event.startDate).toLocaleDateString()})` : ''}
               </SelectItem>
             ))}
           </SelectContent>

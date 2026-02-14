@@ -23,7 +23,6 @@ export const eventParticipation = pgTable(
       .notNull()
       .references(() => volunteers.id, { onDelete: 'cascade' }),
     hoursAttended: integer('hours_attended').notNull().default(0),
-    declaredHours: integer('declared_hours').default(0),
     approvedHours: integer('approved_hours'),
     participationStatus: text('participation_status').notNull().default('registered'),
     registrationDate: timestamp('registration_date', { withTimezone: true }).defaultNow(),

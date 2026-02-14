@@ -7,6 +7,7 @@ import { EventFilters } from './event-filters'
 import { EventFormModal } from './event-form-modal'
 import { EventsGrid } from './events-grid'
 import { Skeleton } from '@/components/ui/skeleton'
+import type { EventWithStats, EventCategory } from '@/types'
 
 interface Filters {
   search: string
@@ -14,8 +15,15 @@ interface Filters {
   status: string | null
 }
 
-export function EventsPage() {
-  const { events, categories, loading } = useEvents()
+interface EventsPageProps {
+  initialData?: {
+    events: EventWithStats[]
+    categories: EventCategory[]
+  }
+}
+
+export function EventsPage({ initialData }: EventsPageProps) {
+  const { events, categories, loading } = useEvents(initialData)
   const [filters, setFilters] = useState<Filters>({
     search: '',
     categoryId: null,

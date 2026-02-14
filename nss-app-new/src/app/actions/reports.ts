@@ -62,7 +62,15 @@ export async function getVolunteerHoursSummary() {
  */
 export async function getMonthlyTrends() {
   await requireAuth()
-  return queries.getMonthlyActivityTrends()
+  const rows = await queries.getMonthlyActivityTrends()
+  return rows.map((r) => ({
+    month: r.month,
+    monthNumber: r.month_number,
+    yearNumber: r.year_number,
+    eventsCount: r.events_count,
+    volunteersCount: r.volunteers_count,
+    hoursSum: r.hours_sum,
+  }))
 }
 
 /**

@@ -47,7 +47,7 @@ export async function getTopEventsByImpact(limitCount: number = 10) {
     SELECT
       e.id as event_id,
       e.event_name,
-      e.event_date,
+      e.start_date,
       ec.category_name,
       COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int as participant_count,
       COALESCE(SUM(ep.approved_hours), 0)::int as total_hours,
@@ -57,7 +57,7 @@ export async function getTopEventsByImpact(limitCount: number = 10) {
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     LEFT JOIN event_participation ep ON e.id = ep.event_id
     WHERE e.is_active = true
-    GROUP BY e.id, e.event_name, e.event_date, ec.category_name, e.event_status
+    GROUP BY e.id, e.event_name, e.start_date, ec.category_name, e.event_status
     ORDER BY (COALESCE(COUNT(DISTINCT ep.volunteer_id), 0) * COALESCE(SUM(ep.approved_hours), 0)) DESC
     LIMIT ${limitCount}
   `)
@@ -65,7 +65,7 @@ export async function getTopEventsByImpact(limitCount: number = 10) {
   return result as unknown[] as {
     event_id: string
     event_name: string
-    event_date: string | null
+    start_date: string | null
     category_name: string
     participant_count: number
     total_hours: number
@@ -83,7 +83,7 @@ export async function getAttendanceSummary() {
     SELECT
       e.id as event_id,
       e.event_name,
-      e.event_date,
+      e.start_date,
       ec.category_name,
       COUNT(ep.id) as total_registered,
       COUNT(CASE WHEN ep.participation_status IN ('present', 'partially_present') THEN 1 END) as total_present,
@@ -98,14 +98,14 @@ export async function getAttendanceSummary() {
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     LEFT JOIN event_participation ep ON e.id = ep.event_id
     WHERE e.is_active = true
-    GROUP BY e.id, e.event_name, e.event_date, ec.category_name
-    ORDER BY e.event_date DESC
+    GROUP BY e.id, e.event_name, e.start_date, ec.category_name
+    ORDER BY e.start_date DESC
   `)
 
   return result as unknown[] as {
     event_id: string
     event_name: string
-    event_date: Date | null
+    start_date: Date | null
     category_name: string | null
     total_registered: number
     total_present: number
@@ -154,26 +154,32 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     SELECT
       e.id as event_id,
       e.event_name,
-      e.event_date,
+      e.start_date,
       ec.category_name,
       ep.participation_status,
       ep.hours_attended,
-      ep.attendance_date
+      ep.attendance_date,
+      ep.approval_status,
+      ep.approved_by,
+      ep.approved_at
     FROM event_participation ep
     JOIN events e ON ep.event_id = e.id
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     WHERE ep.volunteer_id = ${volunteerId}
-    ORDER BY e.event_date DESC
+    ORDER BY e.start_date DESC
   `)
 
   return result as unknown[] as {
     event_id: string
     event_name: string
-    event_date: Date | null
+    start_date: Date | null
     category_name: string | null
     participation_status: string
     hours_attended: number
     attendance_date: Date | null
+    approval_status: string | null
+    approved_by: string | null
+    approved_at: Date | null
   }[]
 }
 

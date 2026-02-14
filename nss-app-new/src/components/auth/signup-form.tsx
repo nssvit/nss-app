@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/auth-context'
-import { BRANCHES } from '@/lib/constants'
+import { BRANCHES, YEARS, BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
 
 import {
   Form,
@@ -41,10 +41,7 @@ const signupSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   rollNumber: z.string().min(1, 'Roll number is required'),
   branch: z.enum(BRANCHES, { message: 'Please select a branch' }),
-  year: z.coerce
-    .number()
-    .min(1, 'Year must be between 1 and 4')
-    .max(4, 'Year must be between 1 and 4'),
+  year: z.enum(YEARS, { message: 'Please select a year' }),
 })
 
 type SignupFormValues = z.infer<typeof signupSchema>
@@ -69,7 +66,10 @@ export function SignupForm() {
 
   async function onSubmit(values: SignupFormValues) {
     setServerError(null)
-    const { error } = await signUpWithEmail(values.email, values.password, values)
+    const { error } = await signUpWithEmail(values.email, values.password, {
+      ...values,
+      year: values.year,
+    })
     if (error) {
       setServerError(error.message)
     } else {
@@ -188,7 +188,7 @@ export function SignupForm() {
                       <SelectContent>
                         {BRANCHES.map((branch) => (
                           <SelectItem key={branch} value={branch}>
-                            {branch}
+                            {BRANCH_DISPLAY_NAMES[branch] ?? branch}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -203,16 +203,20 @@ export function SignupForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Year</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={4}
-                        placeholder="1-4"
-                        {...field}
-                        value={field.value ?? ''}
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select year" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {YEARS.map((year) => (
+                          <SelectItem key={year} value={year}>
+                            {YEAR_DISPLAY_NAMES[year] ?? year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

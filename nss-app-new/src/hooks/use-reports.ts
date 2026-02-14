@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import type { DashboardStats, ActivityTrend, EventWithStats } from '@/types'
-import { getDashboardStats, getActivityTrends, getEvents } from '@/lib/mock-api'
+import { getDashboardStats, getMonthlyTrends } from '@/app/actions/reports'
+import { getEvents } from '@/app/actions/events'
 
 export function useReports() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
@@ -12,11 +13,16 @@ export function useReports() {
 
   useEffect(() => {
     async function load() {
-      const [s, t, e] = await Promise.all([getDashboardStats(), getActivityTrends(), getEvents()])
-      setStats(s)
-      setTrends(t)
-      setEvents(e)
-      setLoading(false)
+      try {
+        const [s, t, e] = await Promise.all([getDashboardStats(), getMonthlyTrends(), getEvents()])
+        setStats(s)
+        setTrends(t)
+        setEvents(e)
+      } catch (err) {
+        console.error('Failed to load reports:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])

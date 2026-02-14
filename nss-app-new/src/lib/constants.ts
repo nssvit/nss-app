@@ -1,41 +1,33 @@
 export const ROLES = {
   ADMIN: 'admin',
-  PROGRAM_OFFICER: 'program_officer',
-  EVENT_LEAD: 'event_lead',
-  DOCUMENTATION_LEAD: 'documentation_lead',
+  HEAD: 'head',
   VOLUNTEER: 'volunteer',
 } as const
 
 export type Role = (typeof ROLES)[keyof typeof ROLES]
 
 export const ROLE_HIERARCHY: Record<Role, number> = {
-  [ROLES.ADMIN]: 0,
-  [ROLES.PROGRAM_OFFICER]: 1,
-  [ROLES.EVENT_LEAD]: 2,
-  [ROLES.DOCUMENTATION_LEAD]: 3,
-  [ROLES.VOLUNTEER]: 4,
+  [ROLES.ADMIN]: 100,
+  [ROLES.HEAD]: 50,
+  [ROLES.VOLUNTEER]: 10,
 }
 
 export const ROLE_DISPLAY_NAMES: Record<Role, string> = {
-  [ROLES.ADMIN]: 'Admin',
-  [ROLES.PROGRAM_OFFICER]: 'Program Officer',
-  [ROLES.EVENT_LEAD]: 'Event Lead',
-  [ROLES.DOCUMENTATION_LEAD]: 'Documentation Lead',
+  [ROLES.ADMIN]: 'Administrator',
+  [ROLES.HEAD]: 'NSS Head',
   [ROLES.VOLUNTEER]: 'Volunteer',
 }
 
 export const ROLE_COLORS: Record<Role, string> = {
   [ROLES.ADMIN]: 'bg-red-500/20 text-red-400',
-  [ROLES.PROGRAM_OFFICER]: 'bg-purple-500/20 text-purple-400',
-  [ROLES.EVENT_LEAD]: 'bg-blue-500/20 text-blue-400',
-  [ROLES.DOCUMENTATION_LEAD]: 'bg-cyan-500/20 text-cyan-400',
+  [ROLES.HEAD]: 'bg-purple-500/20 text-purple-400',
   [ROLES.VOLUNTEER]: 'bg-green-500/20 text-green-400',
 }
 
 export const EVENT_STATUS = {
   PLANNED: 'planned',
   REGISTRATION_OPEN: 'registration_open',
-  UPCOMING: 'upcoming',
+  REGISTRATION_CLOSED: 'registration_closed',
   ONGOING: 'ongoing',
   COMPLETED: 'completed',
   CANCELLED: 'cancelled',
@@ -46,7 +38,7 @@ export type EventStatus = (typeof EVENT_STATUS)[keyof typeof EVENT_STATUS]
 export const EVENT_STATUS_DISPLAY: Record<EventStatus, string> = {
   [EVENT_STATUS.PLANNED]: 'Planned',
   [EVENT_STATUS.REGISTRATION_OPEN]: 'Registration Open',
-  [EVENT_STATUS.UPCOMING]: 'Upcoming',
+  [EVENT_STATUS.REGISTRATION_CLOSED]: 'Registration Closed',
   [EVENT_STATUS.ONGOING]: 'Ongoing',
   [EVENT_STATUS.COMPLETED]: 'Completed',
   [EVENT_STATUS.CANCELLED]: 'Cancelled',
@@ -55,7 +47,7 @@ export const EVENT_STATUS_DISPLAY: Record<EventStatus, string> = {
 export const EVENT_STATUS_COLORS: Record<EventStatus, string> = {
   [EVENT_STATUS.PLANNED]: 'bg-gray-500/20 text-gray-400',
   [EVENT_STATUS.REGISTRATION_OPEN]: 'bg-blue-500/20 text-blue-400',
-  [EVENT_STATUS.UPCOMING]: 'bg-yellow-500/20 text-yellow-400',
+  [EVENT_STATUS.REGISTRATION_CLOSED]: 'bg-yellow-500/20 text-yellow-400',
   [EVENT_STATUS.ONGOING]: 'bg-green-500/20 text-green-400',
   [EVENT_STATUS.COMPLETED]: 'bg-purple-500/20 text-purple-400',
   [EVENT_STATUS.CANCELLED]: 'bg-red-500/20 text-red-400',
@@ -86,6 +78,7 @@ export const PARTICIPATION_STATUS = {
   PRESENT: 'present',
   PARTIALLY_PRESENT: 'partially_present',
   ABSENT: 'absent',
+  EXCUSED: 'excused',
 } as const
 
 export type ParticipationStatus = (typeof PARTICIPATION_STATUS)[keyof typeof PARTICIPATION_STATUS]
@@ -95,6 +88,7 @@ export const PARTICIPATION_STATUS_DISPLAY: Record<ParticipationStatus, string> =
   [PARTICIPATION_STATUS.PRESENT]: 'Present',
   [PARTICIPATION_STATUS.PARTIALLY_PRESENT]: 'Partially Present',
   [PARTICIPATION_STATUS.ABSENT]: 'Absent',
+  [PARTICIPATION_STATUS.EXCUSED]: 'Excused',
 }
 
 export const PARTICIPATION_STATUS_COLORS: Record<ParticipationStatus, string> = {
@@ -102,28 +96,35 @@ export const PARTICIPATION_STATUS_COLORS: Record<ParticipationStatus, string> = 
   [PARTICIPATION_STATUS.PRESENT]: 'bg-green-500/20 text-green-400',
   [PARTICIPATION_STATUS.PARTIALLY_PRESENT]: 'bg-yellow-500/20 text-yellow-400',
   [PARTICIPATION_STATUS.ABSENT]: 'bg-red-500/20 text-red-400',
+  [PARTICIPATION_STATUS.EXCUSED]: 'bg-gray-500/20 text-gray-400',
 }
 
-export const BRANCHES = [
-  'Computer Science',
-  'Information Technology',
-  'Electronics',
-  'Mechanical',
-  'Civil',
-  'Electrical',
-  'Chemical',
-] as const
+export const BRANCHES = ['EXCS', 'CMPN', 'IT', 'BIO-MED', 'EXTC'] as const
 
-export const YEARS = [1, 2, 3, 4] as const
+export const BRANCH_DISPLAY_NAMES: Record<string, string> = {
+  EXCS: 'Electronics & Computer Science',
+  CMPN: 'Computer Engineering',
+  IT: 'Information Technology',
+  'BIO-MED': 'Biomedical Engineering',
+  EXTC: 'Electronics & Telecommunication',
+}
+
+export const YEARS = ['FE', 'SE', 'TE'] as const
+
+export const YEAR_DISPLAY_NAMES: Record<string, string> = {
+  FE: 'First Year (FE)',
+  SE: 'Second Year (SE)',
+  TE: 'Third Year (TE)',
+}
 
 export function hasHigherOrEqualPrivilege(userRole: Role, requiredRole: Role): boolean {
-  return ROLE_HIERARCHY[userRole] <= ROLE_HIERARCHY[requiredRole]
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole]
 }
 
 export function getHighestRole(roles: Role[]): Role | null {
   if (roles.length === 0) return null
   return roles.reduce((highest, current) =>
-    ROLE_HIERARCHY[current] < ROLE_HIERARCHY[highest] ? current : highest
+    ROLE_HIERARCHY[current] > ROLE_HIERARCHY[highest] ? current : highest
   )
 }
 

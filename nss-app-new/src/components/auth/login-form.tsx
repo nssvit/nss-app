@@ -50,7 +50,7 @@ export function LoginForm() {
     if (error) {
       setServerError(error.message)
     } else {
-      router.push('/dashboard')
+      router.replace('/dashboard')
     }
   }
 

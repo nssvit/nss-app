@@ -28,10 +28,15 @@ async function requireAuth() {
 export async function getCategories() {
   await requireAuth()
 
-  return db.query.eventCategories.findMany({
+  const rows = await db.query.eventCategories.findMany({
     where: eq(eventCategories.isActive, true),
     orderBy: (categories, { asc }) => [asc(categories.categoryName)],
   })
+  return rows.map((r) => ({
+    ...r,
+    colorHex: r.colorHex ?? '#6366F1',
+    isActive: r.isActive ?? true,
+  }))
 }
 
 /**
@@ -62,9 +67,14 @@ export async function getCategoryByCode(code: string) {
 export async function getAllCategories() {
   await requireAuth()
 
-  return db.query.eventCategories.findMany({
+  const rows = await db.query.eventCategories.findMany({
     orderBy: (categories, { asc }) => [asc(categories.categoryName)],
   })
+  return rows.map((r) => ({
+    ...r,
+    colorHex: r.colorHex ?? '#6366F1',
+    isActive: r.isActive ?? true,
+  }))
 }
 
 /**

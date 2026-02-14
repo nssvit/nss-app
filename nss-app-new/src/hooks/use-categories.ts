@@ -1,21 +1,27 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { EventCategory } from '@/types'
-import { getCategories } from '@/lib/mock-api'
+import { getAllCategories } from '@/app/actions/categories'
 
 export function useCategories() {
   const [categories, setCategories] = useState<EventCategory[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
-      const data = await getCategories()
+  const refresh = useCallback(async () => {
+    try {
+      const data = await getAllCategories()
       setCategories(data)
+    } catch (err) {
+      console.error('Failed to load categories:', err)
+    } finally {
       setLoading(false)
     }
-    load()
   }, [])
 
-  return { categories, loading }
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
+  return { categories, loading, refresh }
 }

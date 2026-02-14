@@ -63,7 +63,7 @@ export function AttendancePage() {
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
             <SelectItem value="ongoing">Ongoing</SelectItem>
-            <SelectItem value="upcoming">Upcoming</SelectItem>
+            <SelectItem value="registration_closed">Registration Closed</SelectItem>
             <SelectItem value="registration_open">Registration Open</SelectItem>
             <SelectItem value="planned">Planned</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -107,7 +107,7 @@ export function AttendancePage() {
                 <TableRow key={event.id}>
                   <TableCell className="font-medium">{event.eventName}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {event.eventDate ? new Date(event.eventDate).toLocaleDateString() : 'TBD'}
+                    {event.startDate ? new Date(event.startDate).toLocaleDateString() : 'TBD'}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{event.location ?? 'N/A'}</TableCell>
                   <TableCell>
@@ -153,7 +153,7 @@ export function AttendancePage() {
                     <span className="text-muted-foreground ml-1 text-xs">hrs</span>
                   </TableCell>
                   <TableCell>
-                    <span className="font-semibold">{event.hoursCredits}</span>
+                    <span className="font-semibold">{event.declaredHours}</span>
                     <span className="text-muted-foreground ml-1 text-xs">hrs</span>
                   </TableCell>
                 </TableRow>

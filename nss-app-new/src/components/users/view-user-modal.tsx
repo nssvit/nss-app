@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
 
 interface ViewUserModalProps {
   volunteer: VolunteerWithStats | null
@@ -69,8 +70,8 @@ export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalPr
 
         <div className="space-y-2">
           <DetailRow label="Roll Number" value={volunteer.rollNumber} />
-          <DetailRow label="Branch" value={volunteer.branch} />
-          <DetailRow label="Year" value={volunteer.year} />
+          <DetailRow label="Branch" value={BRANCH_DISPLAY_NAMES[volunteer.branch] ?? volunteer.branch} />
+          <DetailRow label="Year" value={YEAR_DISPLAY_NAMES[volunteer.year] ?? volunteer.year} />
           <DetailRow label="Phone" value={volunteer.phoneNo} />
           <DetailRow label="Gender" value={volunteer.gender} />
           <DetailRow label="Address" value={volunteer.address} />

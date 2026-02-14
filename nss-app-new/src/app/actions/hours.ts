@@ -38,7 +38,26 @@ async function getCurrentVolunteerId() {
  */
 export async function getPendingApprovals() {
   await requireAuth()
-  return queries.getPendingParticipations()
+  const rows = await queries.getPendingParticipations()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- map Drizzle types to frontend types
+  return rows.map((r: any) => ({
+    id: r.id,
+    eventId: r.eventId,
+    volunteerId: r.volunteerId,
+    participationStatus: r.participationStatus,
+    hoursAttended: r.hoursAttended ?? 0,
+    approvalStatus: r.approvalStatus,
+    approvedBy: r.approvedBy,
+    approvedAt: r.approvedAt,
+    feedback: r.feedback,
+    registeredAt: r.registrationDate ?? r.createdAt,
+    updatedAt: r.updatedAt,
+    volunteer: r.volunteer,
+    volunteerName: r.volunteer ? `${r.volunteer.firstName} ${r.volunteer.lastName}` : undefined,
+    event: r.event,
+    eventName: r.event?.eventName,
+    categoryName: r.event?.category?.categoryName,
+  }))
 }
 
 /**

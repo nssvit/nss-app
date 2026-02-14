@@ -1,26 +1,45 @@
 'use client'
 
 import { useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { User, Bell, Palette } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { useAuth } from '@/contexts/auth-context'
+import { useTheme } from '@/contexts/theme-context'
+import { ROLE_DISPLAY_NAMES, ROLE_COLORS, type Role } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
+const notificationItems = [
+  {
+    key: 'email' as const,
+    label: 'Email Notifications',
+    description: 'Receive email updates about your account',
+  },
+  {
+    key: 'events' as const,
+    label: 'Event Notifications',
+    description: 'Get notified about new events and registrations',
+  },
+  {
+    key: 'approvals' as const,
+    label: 'Approval Notifications',
+    description: 'Get notified when your hours are approved or rejected',
+  },
+]
+
 export function SettingsPage() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const { currentUser } = useAuth()
+  const { theme, toggleTheme } = useTheme()
   const [notifications, setNotifications] = useState({
     email: true,
     events: true,
     approvals: false,
   })
-
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    document.documentElement.classList.toggle('dark', next === 'dark')
-    document.documentElement.classList.toggle('light', next === 'light')
-  }
 
   function toggleNotification(key: keyof typeof notifications) {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -32,76 +51,87 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Account
+          </CardTitle>
+          <CardDescription>Your account information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {currentUser && (
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12">
+                <AvatarFallback>
+                  {currentUser.firstName[0]}
+                  {currentUser.lastName[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-medium">
+                  {currentUser.firstName} {currentUser.lastName}
+                </p>
+                <p className="text-muted-foreground text-sm">{currentUser.email}</p>
+              </div>
+              <div className="flex gap-1">
+                {currentUser.roles.map((role) => (
+                  <Badge key={role} className={cn(ROLE_COLORS[role as Role])}>
+                    {ROLE_DISPLAY_NAMES[role as Role] ?? role}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Appearance
+          </CardTitle>
           <CardDescription>Customize how the application looks</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Theme</p>
-              <p className="text-muted-foreground text-sm">Switch between dark and light mode</p>
+            <div className="space-y-0.5">
+              <Label htmlFor="dark-mode">Dark Mode</Label>
+              <p className="text-muted-foreground text-sm">Toggle between dark and light themes</p>
             </div>
-            <Button variant="outline" size="sm" onClick={toggleTheme}>
-              {theme === 'dark' ? (
-                <Sun className="mr-2 h-4 w-4" />
-              ) : (
-                <Moon className="mr-2 h-4 w-4" />
-              )}
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </Button>
+            <Switch
+              id="dark-mode"
+              checked={theme === 'dark'}
+              onCheckedChange={toggleTheme}
+            />
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Notifications</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications
+          </CardTitle>
           <CardDescription>Manage your notification preferences</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[
-              {
-                key: 'email' as const,
-                label: 'Email Notifications',
-                description: 'Receive email updates about your account',
-              },
-              {
-                key: 'events' as const,
-                label: 'Event Notifications',
-                description: 'Get notified about new events and registrations',
-              },
-              {
-                key: 'approvals' as const,
-                label: 'Approval Notifications',
-                description: 'Get notified when your hours are approved or rejected',
-              },
-            ].map((item) => (
-              <div key={item.key} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{item.label}</p>
+        <CardContent className="space-y-4">
+          {notificationItems.map((item, i) => (
+            <div key={item.key}>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor={item.key}>{item.label}</Label>
                   <p className="text-muted-foreground text-sm">{item.description}</p>
                 </div>
-                <button
-                  type="button"
-                  role="checkbox"
-                  aria-checked={notifications[item.key]}
-                  onClick={() => toggleNotification(item.key)}
-                  className={cn(
-                    'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-                    notifications[item.key] ? 'bg-primary' : 'bg-muted'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform',
-                      notifications[item.key] ? 'translate-x-5' : 'translate-x-0'
-                    )}
-                  />
-                </button>
+                <Switch
+                  id={item.key}
+                  checked={notifications[item.key]}
+                  onCheckedChange={() => toggleNotification(item.key)}
+                />
               </div>
-            ))}
-          </div>
+              {i < notificationItems.length - 1 && <Separator className="mt-4" />}
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

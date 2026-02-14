@@ -9,8 +9,7 @@ import { StatsCard } from '@/components/stats-card'
 import { cn } from '@/lib/utils'
 import { EVENT_STATUS_COLORS, EVENT_STATUS_DISPLAY } from '@/lib/constants'
 import type { EventStatus } from '@/lib/constants'
-import type { VolunteerWithStats, EventWithStats } from '@/types'
-import { getVolunteers, getEvents } from '@/lib/mock-api'
+import { getVolunteerDashboardData } from '@/app/actions/volunteers'
 
 function VolunteerDashboardSkeleton() {
   return (
@@ -26,24 +25,26 @@ function VolunteerDashboardSkeleton() {
 }
 
 export function VolunteerDashboard() {
-  const [volunteer, setVolunteer] = useState<VolunteerWithStats | null>(null)
-  const [upcomingEvents, setUpcomingEvents] = useState<EventWithStats[]>([])
+  const [stats, setStats] = useState<{
+    totalHours: number
+    approvedHours: number
+    eventsParticipated: number
+  } | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server action returns untyped events
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
-      const [volunteers, events] = await Promise.all([getVolunteers(), getEvents()])
-      // Use the first volunteer as the current user for demo
-      setVolunteer(volunteers[0] ?? null)
-      const upcoming = events
-        .filter((e) => ['upcoming', 'registration_open', 'planned'].includes(e.eventStatus))
-        .sort((a, b) => {
-          const dateA = a.eventDate ? new Date(a.eventDate).getTime() : 0
-          const dateB = b.eventDate ? new Date(b.eventDate).getTime() : 0
-          return dateA - dateB
-        })
-      setUpcomingEvents(upcoming)
-      setLoading(false)
+      try {
+        const data = await getVolunteerDashboardData()
+        setStats(data.stats)
+        setUpcomingEvents(data.availableEvents || [])
+      } catch (err) {
+        console.error('Failed to load volunteer dashboard:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
@@ -57,15 +58,11 @@ export function VolunteerDashboard() {
       <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard
           title="Events Participated"
-          value={volunteer?.eventsParticipated ?? 0}
+          value={stats?.eventsParticipated ?? 0}
           icon={Calendar}
         />
-        <StatsCard title="Hours Logged" value={volunteer?.totalHours ?? 0} icon={Clock} />
-        <StatsCard
-          title="Approved Hours"
-          value={volunteer?.approvedHours ?? 0}
-          icon={CheckCircle}
-        />
+        <StatsCard title="Hours Logged" value={stats?.totalHours ?? 0} icon={Clock} />
+        <StatsCard title="Approved Hours" value={stats?.approvedHours ?? 0} icon={CheckCircle} />
       </div>
 
       <Card>
@@ -81,9 +78,12 @@ export function VolunteerDashboard() {
           ) : (
             <div className="space-y-3">
               {upcomingEvents.map((event) => {
-                const statusColors = EVENT_STATUS_COLORS[event.eventStatus as EventStatus] ?? ''
-                const statusLabel =
-                  EVENT_STATUS_DISPLAY[event.eventStatus as EventStatus] ?? event.eventStatus
+                const eventStatus = event.eventStatus || event.event_status || ''
+                const statusColors = EVENT_STATUS_COLORS[eventStatus as EventStatus] ?? ''
+                const statusLabel = EVENT_STATUS_DISPLAY[eventStatus as EventStatus] ?? eventStatus
+                const eventDate = event.startDate || event.start_date
+                const eventName = event.eventName || event.event_name
+                const declaredHours = event.declaredHours || event.declared_hours || 0
 
                 return (
                   <div
@@ -91,18 +91,18 @@ export function VolunteerDashboard() {
                     className="bg-muted/50 flex items-center justify-between rounded-lg p-3"
                   >
                     <div className="min-w-0 flex-1 space-y-1">
-                      <p className="truncate text-sm font-medium">{event.eventName}</p>
+                      <p className="truncate text-sm font-medium">{eventName}</p>
                       <div className="text-muted-foreground flex items-center gap-2 text-xs">
                         <CalendarDays className="h-3 w-3" />
-                        {event.eventDate
-                          ? new Date(event.eventDate).toLocaleDateString('en-IN', {
+                        {eventDate
+                          ? new Date(eventDate).toLocaleDateString('en-IN', {
                               day: 'numeric',
                               month: 'short',
                               year: 'numeric',
                             })
                           : 'TBD'}
                         <span className="text-muted-foreground/50">|</span>
-                        {event.hoursCredits}h credits
+                        {declaredHours}h credits
                       </div>
                     </div>
                     <Badge variant="secondary" className={cn('text-[10px]', statusColors)}>

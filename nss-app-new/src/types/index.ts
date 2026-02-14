@@ -6,7 +6,7 @@ export interface Volunteer {
   email: string
   rollNumber: string
   branch: string
-  year: number
+  year: string
   phoneNo: string | null
   birthDate: string | null
   gender: string | null
@@ -40,13 +40,12 @@ export interface Event {
   id: string
   eventName: string
   description: string | null
-  eventDate: string | null
-  startTime: string | null
-  endTime: string | null
+  startDate: Date | string | null
+  endDate: Date | string | null
   location: string | null
   maxParticipants: number | null
   eventStatus: string
-  hoursCredits: number
+  declaredHours: number
   categoryId: number | null
   createdBy: string | null
   createdAt: Date
@@ -126,7 +125,7 @@ export interface CurrentUser {
   email: string
   rollNumber: string
   branch: string
-  year: string | number
+  year: string
   phoneNo: string | null
   birthDate: string | null
   gender: string | null
@@ -168,7 +167,7 @@ export interface CategoryDistribution {
 export interface TopEvent {
   eventId: string
   eventName: string
-  eventDate: string | null
+  startDate: string | null
   categoryName: string
   participantCount: number
   totalHours: number
@@ -187,7 +186,7 @@ export interface VolunteerHoursSummary {
 export interface AttendanceSummary {
   eventId: string
   eventName: string
-  eventDate: Date | null
+  startDate: Date | null
   categoryName: string | null
   totalRegistered: number
   totalPresent: number

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -28,11 +28,12 @@ import { Button } from '@/components/ui/button'
 const roleDefinitionSchema = z.object({
   roleName: z.string().min(1, 'Role name is required').max(50, 'Role name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
-  hierarchyLevel: z.coerce
-    .number()
-    .int('Must be a whole number')
-    .min(0, 'Hierarchy level must be 0 or greater')
-    .max(100, 'Hierarchy level is too high'),
+  hierarchyLevel: z
+    .string()
+    .min(1, 'Hierarchy level is required')
+    .refine((v) => Number.isInteger(Number(v)), { message: 'Must be a whole number' })
+    .refine((v) => Number(v) >= 0, { message: 'Hierarchy level must be 0 or greater' })
+    .refine((v) => Number(v) <= 100, { message: 'Hierarchy level is too high' }),
   isActive: z.boolean(),
 })
 
@@ -42,17 +43,24 @@ interface RoleDefinitionModalProps {
   role?: RoleDefinition | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function RoleDefinitionModal({ role, open, onOpenChange }: RoleDefinitionModalProps) {
+export function RoleDefinitionModal({
+  role,
+  open,
+  onOpenChange,
+  onSuccess,
+}: RoleDefinitionModalProps) {
   const isEditing = !!role
+  const [submitting, setSubmitting] = useState(false)
 
   const form = useForm<RoleDefinitionFormValues>({
     resolver: zodResolver(roleDefinitionSchema),
     defaultValues: {
       roleName: '',
       description: '',
-      hierarchyLevel: 0,
+      hierarchyLevel: '0',
       isActive: true,
     },
   })
@@ -62,22 +70,33 @@ export function RoleDefinitionModal({ role, open, onOpenChange }: RoleDefinition
       form.reset({
         roleName: role.roleName,
         description: role.description ?? '',
-        hierarchyLevel: role.hierarchyLevel,
+        hierarchyLevel: String(role.hierarchyLevel),
         isActive: role.isActive,
       })
     } else {
       form.reset({
         roleName: '',
         description: '',
-        hierarchyLevel: 0,
+        hierarchyLevel: '0',
         isActive: true,
       })
     }
   }, [role, form])
 
-  function onSubmit(values: RoleDefinitionFormValues) {
-    console.log(isEditing ? 'Updating role:' : 'Creating role:', values)
-    onOpenChange(false)
+  async function onSubmit(values: RoleDefinitionFormValues) {
+    setSubmitting(true)
+    try {
+      // Role definitions are managed via direct DB queries in production
+      // For now, log and close - role CRUD server actions can be added later
+      const payload = { ...values, hierarchyLevel: Number(values.hierarchyLevel) }
+      console.log(isEditing ? 'Updating role:' : 'Creating role:', payload)
+      onOpenChange(false)
+      onSuccess?.()
+    } catch (err) {
+      console.error('Failed to save role:', err)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -100,7 +119,7 @@ export function RoleDefinitionModal({ role, open, onOpenChange }: RoleDefinition
                 <FormItem>
                   <FormLabel>Role Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. event_lead" {...field} />
+                    <Input placeholder="e.g. head" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -154,7 +173,9 @@ export function RoleDefinitionModal({ role, open, onOpenChange }: RoleDefinition
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">{isEditing ? 'Update' : 'Create'}</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

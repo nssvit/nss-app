@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer } from '@/lib/auth-cache'
+import { mapEventRow } from '@/lib/mappers'
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -10,7 +11,6 @@ export interface CreateEventInput {
   description?: string
   startDate: string
   endDate: string
-  eventDate?: Date
   declaredHours: number
   categoryId: number
   minParticipants?: number
@@ -25,7 +25,6 @@ export interface UpdateEventInput {
   description?: string
   startDate?: string
   endDate?: string
-  eventDate?: Date
   declaredHours?: number
   categoryId?: number
   minParticipants?: number
@@ -38,10 +37,12 @@ export interface UpdateEventInput {
 
 /**
  * Get all events with participant stats
+ * Maps snake_case DB rows to camelCase frontend types
  */
 export async function getEvents() {
   await getAuthUser() // Cached auth check
-  return queries.getEventsWithStats()
+  const rows = await queries.getEventsWithStats()
+  return rows.map(mapEventRow)
 }
 
 /**
@@ -65,7 +66,14 @@ export async function getUpcomingEvents(limit?: number) {
  */
 export async function createEvent(data: CreateEventInput) {
   const volunteer = await getCurrentVolunteer() // Gets cached volunteer
-  const result = await queries.createEvent(data, volunteer.id)
+  const result = await queries.createEvent(
+    {
+      ...data,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+    },
+    volunteer.id
+  )
   revalidatePath('/events')
   return result
 }
@@ -75,7 +83,11 @@ export async function createEvent(data: CreateEventInput) {
  */
 export async function updateEvent(eventId: string, updates: UpdateEventInput) {
   await getAuthUser()
-  const result = await queries.updateEvent(eventId, updates)
+  const result = await queries.updateEvent(eventId, {
+    ...updates,
+    startDate: updates.startDate ? new Date(updates.startDate) : undefined,
+    endDate: updates.endDate ? new Date(updates.endDate) : undefined,
+  })
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   return result
@@ -93,18 +105,34 @@ export async function deleteEvent(eventId: string) {
 
 /**
  * Get event participants
+ * Maps snake_case DB rows to camelCase frontend types
  */
 export async function getEventParticipants(eventId: string) {
   await getAuthUser()
-  return queries.getEventParticipants(eventId)
+  const rows = await queries.getEventParticipants(eventId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
+  return rows.map((r: any) => ({
+    id: r.participant_id,
+    eventId,
+    volunteerId: r.volunteer_id,
+    volunteerName: r.volunteer_name,
+    participationStatus: r.participation_status,
+    hoursAttended: r.hours_attended ?? 0,
+    approvalStatus: r.approval_status ?? 'pending',
+    approvedBy: null,
+    approvedAt: null,
+    feedback: r.notes,
+    registeredAt: r.registration_date,
+    updatedAt: r.attendance_date ?? r.registration_date,
+  }))
 }
 
 /**
  * Register for an event
  */
-export async function registerForEvent(eventId: string, declaredHours?: number) {
+export async function registerForEvent(eventId: string) {
   const volunteer = await getCurrentVolunteer()
-  const result = await queries.registerForEvent(eventId, volunteer.id, declaredHours)
+  const result = await queries.registerForEvent(eventId, volunteer.id)
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   return result

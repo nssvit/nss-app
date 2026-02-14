@@ -9,7 +9,12 @@ import { getAuthUser, getCurrentVolunteer, isAdmin as cachedIsAdmin } from '@/li
  */
 export async function getRoles() {
   await getAuthUser() // Cached auth check
-  return queries.getAllRoles()
+  const rows = await queries.getAllRoles()
+  return rows.map((r) => ({
+    ...r,
+    permissions: r.permissions as Record<string, string[]> | null,
+    isActive: r.isActive ?? true,
+  }))
 }
 
 /**
@@ -25,7 +30,16 @@ export async function getVolunteerRoles(volunteerId: string) {
  */
 export async function getCurrentUserRoles() {
   const volunteer = await getCurrentVolunteer()
-  return queries.getVolunteerRoles(volunteer.id)
+  const rows = await queries.getVolunteerRoles(volunteer.id)
+  return rows.map((r) => ({
+    ...r,
+    isActive: r.isActive ?? true,
+    roleDefinition: {
+      ...r.roleDefinition,
+      permissions: r.roleDefinition.permissions as Record<string, string[]> | null,
+      isActive: r.roleDefinition.isActive ?? true,
+    },
+  }))
 }
 
 /**

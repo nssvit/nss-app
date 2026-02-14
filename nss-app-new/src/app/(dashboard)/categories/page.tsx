@@ -3,7 +3,7 @@ import { CategoryManagementPage } from '@/components/categories'
 
 export default function CategoriesRoute() {
   return (
-    <ProtectedRoute allowedRoles={['admin', 'program_officer']}>
+    <ProtectedRoute allowedRoles={['admin', 'head']}>
       <CategoryManagementPage />
     </ProtectedRoute>
   )

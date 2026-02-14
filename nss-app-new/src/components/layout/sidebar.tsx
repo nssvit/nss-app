@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
-import { navItems, type NavItem } from './nav-config'
+import { getFilteredNavItems, type NavItem } from './nav-config'
+import { useAuth } from '@/contexts/auth-context'
 
 interface SidebarProps {
   collapsed: boolean
@@ -46,36 +47,14 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   return link
 }
 
-function NavSection({
-  title,
-  items,
-  collapsed,
-}: {
-  title: string
-  items: NavItem[]
-  collapsed: boolean
-}) {
-  if (items.length === 0) return null
-  return (
-    <div className="space-y-1">
-      {!collapsed && (
-        <p className="text-muted-foreground px-3 py-1 text-xs font-semibold tracking-wider uppercase">
-          {title}
-        </p>
-      )}
-      {collapsed && <Separator className="my-2" />}
-      {items.map((item) => (
-        <NavLink key={item.href} item={item} collapsed={collapsed} />
-      ))}
-    </div>
-  )
-}
-
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
-  // TODO: filter by user roles once auth is wired
-  const mainItems = navItems.filter((i) => i.section === 'main')
-  const managementItems = navItems.filter((i) => i.section === 'management')
-  const adminItems = navItems.filter((i) => i.section === 'admin')
+  const { currentUser } = useAuth()
+  const userRoles = currentUser?.roles ?? []
+  const filtered = getFilteredNavItems(userRoles)
+
+  const mainItems = filtered.filter((i) => i.section === 'main')
+  const managementItems = filtered.filter((i) => i.section === 'management')
+  const adminItems = filtered.filter((i) => i.section === 'admin')
 
   return (
     <aside
@@ -93,10 +72,26 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       <Separator />
 
-      <nav className="flex-1 space-y-4 overflow-y-auto p-3">
-        <NavSection title="Main" items={mainItems} collapsed={collapsed} />
-        <NavSection title="Management" items={managementItems} collapsed={collapsed} />
-        <NavSection title="Admin" items={adminItems} collapsed={collapsed} />
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+        {mainItems.map((item) => (
+          <NavLink key={item.href} item={item} collapsed={collapsed} />
+        ))}
+        {managementItems.length > 0 && (
+          <>
+            <Separator className="my-2" />
+            {managementItems.map((item) => (
+              <NavLink key={item.href} item={item} collapsed={collapsed} />
+            ))}
+          </>
+        )}
+        {adminItems.length > 0 && (
+          <>
+            <Separator className="my-2" />
+            {adminItems.map((item) => (
+              <NavLink key={item.href} item={item} collapsed={collapsed} />
+            ))}
+          </>
+        )}
       </nav>
     </aside>
   )

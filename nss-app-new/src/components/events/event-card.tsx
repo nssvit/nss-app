@@ -8,8 +8,8 @@ interface EventCardProps {
 }
 
 export function EventCard({ event }: EventCardProps) {
-  const formattedDate = event.eventDate
-    ? new Date(event.eventDate).toLocaleDateString('en-IN', {
+  const formattedDate = event.startDate
+    ? new Date(event.startDate).toLocaleDateString('en-IN', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
@@ -51,7 +51,7 @@ export function EventCard({ event }: EventCardProps) {
           </div>
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
             <Clock className="h-4 w-4 shrink-0" />
-            <span>{event.hoursCredits}h credits</span>
+            <span>{event.declaredHours}h credits</span>
           </div>
         </div>
       </CardContent>

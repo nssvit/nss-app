@@ -72,10 +72,26 @@ export async function syncAttendance(eventId: string, selectedVolunteerIds: stri
 
 /**
  * Get participants for an event
+ * Maps snake_case DB rows to camelCase frontend types
  */
 export async function getEventParticipants(eventId: string) {
   await requireAuth()
-  return queries.getEventParticipants(eventId)
+  const rows = await queries.getEventParticipants(eventId)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
+  return rows.map((r: any) => ({
+    id: r.participant_id,
+    eventId,
+    volunteerId: r.volunteer_id,
+    volunteerName: r.volunteer_name,
+    participationStatus: r.participation_status,
+    hoursAttended: r.hours_attended ?? 0,
+    approvalStatus: r.approval_status ?? 'pending',
+    approvedBy: null,
+    approvedAt: null,
+    feedback: r.notes,
+    registeredAt: r.registration_date,
+    updatedAt: r.attendance_date ?? r.registration_date,
+  }))
 }
 
 /**

@@ -5,6 +5,7 @@ import { db } from '@/db'
 import { queries } from '@/db/queries'
 import { volunteers, events, eventParticipation } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
+import { mapTrendRow } from '@/lib/mappers'
 
 // Use cached auth helpers for better performance
 
@@ -23,7 +24,8 @@ export async function getDashboardStats() {
  */
 export async function getMonthlyTrends() {
   await getAuthUser()
-  return queries.getMonthlyActivityTrends()
+  const rows = await queries.getMonthlyActivityTrends()
+  return rows.map(mapTrendRow)
 }
 
 /**
@@ -86,7 +88,7 @@ export async function getAdminDashboardStats() {
     db
       .select({ count: count() })
       .from(events)
-      .where(and(eq(events.isActive, true), gte(events.startDate, now.toISOString()))),
+      .where(and(eq(events.isActive, true), gte(events.startDate, now))),
     // Monthly stats
     db.select({ count: count() }).from(events).where(gte(events.createdAt, startOfMonth)),
     db.select({ count: count() }).from(volunteers).where(gte(volunteers.createdAt, startOfMonth)),
@@ -106,8 +108,8 @@ export async function getAdminDashboardStats() {
       .where(
         and(
           eq(events.isActive, true),
-          gte(events.endDate, now.toISOString()),
-          lte(events.endDate, endOfWeek.toISOString())
+          gte(events.endDate, now),
+          lte(events.endDate, endOfWeek)
         )
       ),
   ])
@@ -175,7 +177,7 @@ export async function getFullAdminDashboard(eventsLimit: number = 6) {
     db
       .select({ count: count() })
       .from(events)
-      .where(and(eq(events.isActive, true), gte(events.startDate, now.toISOString()))),
+      .where(and(eq(events.isActive, true), gte(events.startDate, now))),
     db.select({ count: count() }).from(events).where(gte(events.createdAt, startOfMonth)),
     db.select({ count: count() }).from(volunteers).where(gte(volunteers.createdAt, startOfMonth)),
     db
@@ -193,8 +195,8 @@ export async function getFullAdminDashboard(eventsLimit: number = 6) {
       .where(
         and(
           eq(events.isActive, true),
-          gte(events.endDate, now.toISOString()),
-          lte(events.endDate, endOfWeek.toISOString())
+          gte(events.endDate, now),
+          lte(events.endDate, endOfWeek)
         )
       ),
     // Recent events query
@@ -204,7 +206,7 @@ export async function getFullAdminDashboard(eventsLimit: number = 6) {
         e.event_name,
         e.description as event_description,
         e.start_date,
-        e.event_date,
+        e.end_date,
         e.declared_hours,
         e.is_active,
         e.created_at,
@@ -258,7 +260,7 @@ export async function getRecentEvents(limit: number = 6) {
       e.event_name,
       e.description as event_description,
       e.start_date,
-      e.event_date,
+      e.end_date,
       e.declared_hours,
       e.is_active,
       e.created_at,
@@ -293,7 +295,7 @@ export async function getHeadsDashboardStats() {
       e.event_name,
       e.description as event_description,
       e.start_date,
-      e.event_date,
+      e.end_date,
       e.declared_hours,
       e.is_active,
       e.created_at,
@@ -315,7 +317,7 @@ export async function getHeadsDashboardStats() {
   const totalParticipants = myEvents.reduce((sum, event) => sum + (event.participant_count || 0), 0)
   const hoursManaged = myEvents.reduce((sum, event) => sum + (event.total_hours || 0), 0)
   const activeEvents = myEvents.filter((event) => {
-    const eventDate = new Date(event.event_date || event.start_date)
+    const eventDate = new Date(event.start_date)
     return event.is_active && eventDate >= new Date()
   }).length
 

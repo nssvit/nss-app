@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Calendar, MapPin, Clock } from 'lucide-react'
 import { useEvents } from '@/hooks/use-events'
 import { PageHeader } from '@/components/page-header'
@@ -10,13 +10,26 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { EventStatusBadge } from './event-status-badge'
 import { EVENT_STATUS } from '@/lib/constants'
+import { registerForEvent } from '@/app/actions/events'
 
 export function EventRegistration() {
   const { events, loading } = useEvents()
+  const [registering, setRegistering] = useState<string | null>(null)
 
   const openEvents = useMemo(() => {
     return events.filter((e) => e.eventStatus === EVENT_STATUS.REGISTRATION_OPEN)
   }, [events])
+
+  async function handleRegister(eventId: string) {
+    setRegistering(eventId)
+    try {
+      await registerForEvent(eventId)
+    } catch (err) {
+      console.error('Failed to register:', err)
+    } finally {
+      setRegistering(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -43,8 +56,8 @@ export function EventRegistration() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {openEvents.map((event) => {
-            const formattedDate = event.eventDate
-              ? new Date(event.eventDate).toLocaleDateString('en-IN', {
+            const formattedDate = event.startDate
+              ? new Date(event.startDate).toLocaleDateString('en-IN', {
                   day: 'numeric',
                   month: 'short',
                   year: 'numeric',
@@ -72,13 +85,14 @@ export function EventRegistration() {
                   )}
                   <div className="text-muted-foreground flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 shrink-0" />
-                    <span>{event.hoursCredits}h credits</span>
+                    <span>{event.declaredHours}h credits</span>
                   </div>
                   <Button
                     className="mt-1 w-full"
-                    onClick={() => console.log('Register:', event.id)}
+                    onClick={() => handleRegister(event.id)}
+                    disabled={registering === event.id}
                   >
-                    Register
+                    {registering === event.id ? 'Registering...' : 'Register'}
                   </Button>
                 </CardContent>
               </Card>

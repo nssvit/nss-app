@@ -27,7 +27,7 @@ import {
 } from '@/lib/constants'
 import type { ParticipationStatus, ApprovalStatus } from '@/lib/constants'
 import type { EventParticipationWithVolunteer } from '@/types'
-import { getEventParticipants } from '@/lib/mock-api'
+import { getEventParticipants } from '@/app/actions/events'
 import { cn } from '@/lib/utils'
 
 interface EventParticipantsProps {
@@ -43,10 +43,16 @@ export function EventParticipants({ eventId, eventName }: EventParticipantsProps
   useEffect(() => {
     if (!open) return
     setLoading(true)
-    getEventParticipants(eventId).then((data) => {
-      setParticipants(data)
-      setLoading(false)
-    })
+    getEventParticipants(eventId)
+      .then((data) => {
+        setParticipants(data)
+      })
+      .catch((err) => {
+        console.error('Failed to load participants:', err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [open, eventId])
 
   return (

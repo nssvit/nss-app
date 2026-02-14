@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { EVENT_STATUS_COLORS, EVENT_STATUS_DISPLAY } from '@/lib/constants'
 import type { EventStatus } from '@/lib/constants'
 import type { EventWithStats } from '@/types'
-import { getEvents } from '@/lib/mock-api'
+import { getEvents } from '@/app/actions/events'
 
 function RecentEventsSkeleton() {
   return (
@@ -33,14 +33,19 @@ export function RecentEvents() {
 
   useEffect(() => {
     async function load() {
-      const data = await getEvents()
-      const sorted = [...data].sort((a, b) => {
-        const dateA = a.eventDate ? new Date(a.eventDate).getTime() : 0
-        const dateB = b.eventDate ? new Date(b.eventDate).getTime() : 0
-        return dateB - dateA
-      })
-      setEvents(sorted.slice(0, 5))
-      setLoading(false)
+      try {
+        const data = await getEvents()
+        const sorted = [...data].sort((a, b) => {
+          const dateA = a.startDate ? new Date(a.startDate).getTime() : 0
+          const dateB = b.startDate ? new Date(b.startDate).getTime() : 0
+          return dateB - dateA
+        })
+        setEvents(sorted.slice(0, 5))
+      } catch (err) {
+        console.error('Failed to load recent events:', err)
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [])
@@ -70,10 +75,10 @@ export function RecentEvents() {
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="truncate text-sm font-medium">{event.eventName}</p>
                   <div className="text-muted-foreground flex items-center gap-3 text-xs">
-                    {event.eventDate && (
+                    {event.startDate && (
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {new Date(event.eventDate).toLocaleDateString('en-IN', {
+                        {new Date(event.startDate).toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',

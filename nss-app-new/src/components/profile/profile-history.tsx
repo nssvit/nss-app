@@ -1,15 +1,8 @@
 'use client'
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   PARTICIPATION_STATUS_DISPLAY,
   PARTICIPATION_STATUS_COLORS,
@@ -26,58 +19,53 @@ interface ProfileHistoryProps {
 }
 
 export function ProfileHistory({ participations }: ProfileHistoryProps) {
+  if (participations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-muted-foreground py-12 text-center">
+          No participation history found.
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Activity History</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Event Name</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Hours</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Approval</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {participations.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell className="font-medium">
-                  {p.eventName ?? p.event?.eventName ?? 'Unknown'}
-                </TableCell>
-                <TableCell>{p.event?.eventDate ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">{p.hoursAttended}</TableCell>
-                <TableCell>
-                  <Badge
-                    className={cn(
-                      PARTICIPATION_STATUS_COLORS[p.participationStatus as ParticipationStatus]
-                    )}
-                  >
-                    {PARTICIPATION_STATUS_DISPLAY[p.participationStatus as ParticipationStatus] ??
-                      p.participationStatus}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={cn(APPROVAL_STATUS_COLORS[p.approvalStatus as ApprovalStatus])}>
-                    {APPROVAL_STATUS_DISPLAY[p.approvalStatus as ApprovalStatus] ??
-                      p.approvalStatus}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-            {participations.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-muted-foreground text-center">
-                  No participation history found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-3">
+      {participations.map((p) => (
+        <Card key={p.id}>
+          <CardContent className="flex items-center gap-4 p-4">
+            <div className="bg-primary/10 shrink-0 rounded-lg p-2.5">
+              <Calendar className="text-primary h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">
+                {p.eventName ?? p.event?.eventName ?? 'Unknown'}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {p.event?.startDate ? new Date(p.event.startDate).toLocaleDateString() : 'N/A'}
+                {p.categoryName && ` \u00B7 ${p.categoryName}`}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="text-sm font-medium">{p.hoursAttended}h</span>
+              <Badge
+                className={cn(
+                  PARTICIPATION_STATUS_COLORS[p.participationStatus as ParticipationStatus]
+                )}
+              >
+                {PARTICIPATION_STATUS_DISPLAY[p.participationStatus as ParticipationStatus] ??
+                  p.participationStatus}
+              </Badge>
+              <Badge
+                className={cn(APPROVAL_STATUS_COLORS[p.approvalStatus as ApprovalStatus])}
+              >
+                {APPROVAL_STATUS_DISPLAY[p.approvalStatus as ApprovalStatus] ??
+                  p.approvalStatus}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   )
 }

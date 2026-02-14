@@ -1,13 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Users } from 'lucide-react'
+import { Search, Users, MoreHorizontal, Eye, Pencil } from 'lucide-react'
 import { useVolunteers } from '@/hooks/use-volunteers'
+import { useAuth } from '@/contexts/auth-context'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState } from '@/components/empty-state'
+import { ViewUserModal } from '@/components/users/view-user-modal'
+import { EditUserModal } from '@/components/users/edit-user-modal'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -17,6 +28,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import { BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
+import type { VolunteerWithStats } from '@/types'
 
 function TableSkeleton() {
   return (
@@ -28,9 +41,19 @@ function TableSkeleton() {
   )
 }
 
-export function VolunteersPage() {
-  const { volunteers, loading } = useVolunteers()
+interface VolunteersPageProps {
+  initialData?: VolunteerWithStats[]
+}
+
+export function VolunteersPage({ initialData }: VolunteersPageProps) {
+  const { volunteers, loading, refresh } = useVolunteers(initialData)
+  const { hasRole } = useAuth()
+  const isAdmin = hasRole('admin')
   const [search, setSearch] = useState('')
+  const [viewVolunteer, setViewVolunteer] = useState<VolunteerWithStats | null>(null)
+  const [editVolunteer, setEditVolunteer] = useState<VolunteerWithStats | null>(null)
+  const [viewOpen, setViewOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
 
   const filtered = volunteers.filter((v) => {
     const query = search.toLowerCase()
@@ -83,17 +106,31 @@ export function VolunteersPage() {
                 <TableHead>Events Participated</TableHead>
                 <TableHead>Total Hours</TableHead>
                 <TableHead>Status</TableHead>
+                {isAdmin && <TableHead className="w-[70px]" />}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((volunteer) => (
                 <TableRow key={volunteer.id}>
-                  <TableCell className="font-medium">
-                    {volunteer.firstName} {volunteer.lastName}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs">
+                          {volunteer.firstName[0]}
+                          {volunteer.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">
+                          {volunteer.firstName} {volunteer.lastName}
+                        </p>
+                        <p className="text-muted-foreground text-xs">{volunteer.email}</p>
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell>{volunteer.rollNumber}</TableCell>
-                  <TableCell>{volunteer.branch}</TableCell>
-                  <TableCell>{volunteer.year}</TableCell>
+                  <TableCell>{BRANCH_DISPLAY_NAMES[volunteer.branch] ?? volunteer.branch}</TableCell>
+                  <TableCell>{YEAR_DISPLAY_NAMES[volunteer.year] ?? volunteer.year}</TableCell>
                   <TableCell>{volunteer.eventsParticipated ?? 0}</TableCell>
                   <TableCell>{volunteer.totalHours ?? 0}</TableCell>
                   <TableCell>
@@ -108,12 +145,55 @@ export function VolunteersPage() {
                       {volunteer.isActive ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setViewVolunteer(volunteer)
+                              setViewOpen(true)
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditVolunteer(volunteer)
+                              setEditOpen(true)
+                            }}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit User
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
       )}
+
+      <ViewUserModal
+        volunteer={viewVolunteer}
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+      />
+      <EditUserModal
+        volunteer={editVolunteer}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSuccess={refresh}
+      />
     </div>
   )
 }

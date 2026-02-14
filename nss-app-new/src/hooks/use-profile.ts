@@ -1,24 +1,37 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import type { CurrentUser, EventParticipationWithEvent } from '@/types'
-import { getCurrentUser, getVolunteerParticipations } from '@/lib/mock-api'
+import { useState, useEffect, useCallback } from 'react'
+import type { EventParticipationWithEvent } from '@/types'
+import { useAuth } from '@/contexts/auth-context'
+import { getVolunteerParticipationHistory } from '@/app/actions/volunteers'
 
-export function useProfile() {
-  const [user, setUser] = useState<CurrentUser | null>(null)
-  const [participations, setParticipations] = useState<EventParticipationWithEvent[]>([])
-  const [loading, setLoading] = useState(true)
+export function useProfile(initialParticipations?: EventParticipationWithEvent[]) {
+  const { currentUser } = useAuth()
+  const [participations, setParticipations] = useState<EventParticipationWithEvent[]>(
+    initialParticipations ?? []
+  )
+  const [loading, setLoading] = useState(!initialParticipations)
 
-  useEffect(() => {
-    async function load() {
-      const u = await getCurrentUser()
-      const p = await getVolunteerParticipations(u.volunteerId)
-      setUser(u)
+  const refresh = useCallback(async () => {
+    if (!currentUser) {
+      setLoading(false)
+      return
+    }
+    try {
+      setLoading(true)
+      const p = await getVolunteerParticipationHistory(currentUser.volunteerId)
       setParticipations(p)
+    } catch (err) {
+      console.error('Failed to load profile data:', err)
+    } finally {
       setLoading(false)
     }
-    load()
-  }, [])
+  }, [currentUser])
 
-  return { user, participations, loading }
+  useEffect(() => {
+    if (initialParticipations) return
+    refresh()
+  }, [initialParticipations, refresh])
+
+  return { user: currentUser, participations, loading, refresh }
 }

@@ -1,13 +1,21 @@
 'use client'
 
+import type { DashboardStats, ActivityTrend } from '@/types'
 import { useDashboard } from '@/hooks/use-dashboard'
 import { StatsOverview } from './stats-overview'
 import { ActivityChart } from './activity-chart'
 import { RecentEvents } from './recent-events'
 import { QuickActions } from './quick-actions'
 
-export function AdminDashboard() {
-  const { stats, trends, loading } = useDashboard()
+interface AdminDashboardProps {
+  initialData?: {
+    stats: DashboardStats
+    trends: ActivityTrend[]
+  }
+}
+
+export function AdminDashboard({ initialData }: AdminDashboardProps) {
+  const { stats, trends, loading } = useDashboard(initialData)
 
   return (
     <div className="space-y-6">

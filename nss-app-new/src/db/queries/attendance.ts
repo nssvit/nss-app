@@ -94,7 +94,6 @@ export async function markEventAttendance(
           volunteerId,
           participationStatus: 'present',
           hoursAttended: declaredHours,
-          declaredHours,
           attendanceDate: new Date(),
           recordedByVolunteerId: recordedBy,
         })
@@ -200,8 +199,7 @@ export async function syncEventAttendance(eventId: string, selectedVolunteerIds:
  */
 export async function registerForEvent(
   eventId: string,
-  volunteerId: string,
-  declaredHours: number = 0
+  volunteerId: string
 ) {
   return await db.transaction(async (tx) => {
     // Check if already registered
@@ -242,7 +240,6 @@ export async function registerForEvent(
       eventId,
       volunteerId,
       participationStatus: 'registered',
-      declaredHours,
       registrationDate: new Date(),
     })
 
@@ -319,7 +316,6 @@ export async function bulkMarkAttendance(params: {
         volunteerId,
         participationStatus: status,
         hoursAttended: hoursAttended ?? 0,
-        declaredHours: hoursAttended ?? 0,
         notes,
         registrationDate: new Date(),
         attendanceDate: new Date(),
@@ -340,7 +336,7 @@ export async function getEventsForAttendance(limit: number = 50) {
     SELECT
       e.id,
       e.event_name,
-      e.start_date as event_date,
+      e.start_date,
       e.declared_hours,
       e.location
     FROM events e
@@ -351,7 +347,7 @@ export async function getEventsForAttendance(limit: number = 50) {
   return result as unknown[] as {
     id: string
     event_name: string
-    event_date: string
+    start_date: string
     declared_hours: number
     location: string | null
   }[]

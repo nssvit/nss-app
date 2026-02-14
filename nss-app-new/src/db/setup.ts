@@ -1,16 +1,17 @@
 /**
- * Database Setup Script
+ * Database Setup Script (Fresh DB Only)
  *
- * This is the SINGLE entry point for database initialization.
+ * This is for INITIAL SETUP of a new database.
+ * For incremental updates, use: npm run db:migrate
+ *
  * Run with: npm run db:setup
  *
  * This script:
  * 1. Pushes Drizzle schema (tables, indexes, constraints)
- * 2. Runs SQL migrations in order (auth, RLS, seed data)
- *
- * Migrations are the SOURCE OF TRUTH - all SQL lives in:
- *   /src/db/migrations/0001_auth_and_rls.sql
- *   /src/db/migrations/0002_seed_data.sql
+ * 2. Creates the _migrations tracking table
+ * 3. Runs ALL SQL migrations in order
+ * 4. Records all migrations as applied
+ * 5. Verifies the final state
  */
 
 import 'dotenv/config'
@@ -25,7 +26,7 @@ config({ path: '.env.local' })
 const MIGRATIONS_DIR = join(__dirname, 'migrations')
 
 async function setup() {
-  console.log('🚀 NSS App Database Setup\n')
+  console.log('🚀 NSS App Database Setup (Fresh)\n')
   console.log('='.repeat(60))
 
   if (!process.env.DATABASE_URL) {
@@ -34,9 +35,7 @@ async function setup() {
 
   // Step 1: Push Drizzle schema
   console.log('\n📌 Step 1: Pushing Drizzle schema (tables, indexes, constraints)...')
-  console.log('   (RLS policies will be dropped by Drizzle, then recreated by migrations)')
   try {
-    // Use 'yes' to auto-accept the prompt - RLS policies will be recreated by migrations
     execSync('yes | npx drizzle-kit push --force', {
       stdio: 'inherit',
       shell: '/bin/bash',
@@ -47,13 +46,22 @@ async function setup() {
     throw error
   }
 
-  // Step 2: Run SQL migrations
+  // Step 2: Run SQL migrations with tracking
   console.log('\n📌 Step 2: Running SQL migrations...')
 
   const client = postgres(process.env.DATABASE_URL, { max: 1 })
 
   try {
-    // Get all SQL files (excluding Drizzle's 0000 schema file)
+    // Create migrations tracking table
+    await client`
+      CREATE TABLE IF NOT EXISTS _migrations (
+        id SERIAL PRIMARY KEY,
+        filename TEXT NOT NULL UNIQUE,
+        applied_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+      )
+    `
+
+    // Get all SQL files
     const migrationFiles = readdirSync(MIGRATIONS_DIR)
       .filter((f) => f.endsWith('.sql') && !f.startsWith('0000'))
       .sort()
@@ -63,20 +71,30 @@ async function setup() {
 
     for (const file of migrationFiles) {
       const filePath = join(MIGRATIONS_DIR, file)
-      const sql = readFileSync(filePath, 'utf-8')
+      const sqlContent = readFileSync(filePath, 'utf-8')
 
       console.log(`\n   📄 Running ${file}...`)
 
       try {
-        await client.unsafe(sql)
+        await client.unsafe(sqlContent)
+
+        // Record migration as applied
+        await client`
+          INSERT INTO _migrations (filename) VALUES (${file})
+          ON CONFLICT (filename) DO NOTHING
+        `
+
         console.log(`   ✅ ${file} completed`)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- postgres error type
-      } catch (error: any) {
-        // Handle expected notices (like "trigger does not exist, skipping")
-        if (error.severity === 'NOTICE') {
-          console.log(`   ⚠️  Notice: ${error.message}`)
+      } catch (error: unknown) {
+        const pgError = error as { severity?: string; message?: string }
+        if (pgError.severity === 'NOTICE') {
+          console.log(`   ⚠️  Notice: ${pgError.message}`)
+          await client`
+            INSERT INTO _migrations (filename) VALUES (${file})
+            ON CONFLICT (filename) DO NOTHING
+          `
         } else {
-          console.error(`   ❌ Error in ${file}:`, error.message)
+          console.error(`   ❌ Error in ${file}:`, pgError.message)
           throw error
         }
       }
@@ -109,21 +127,22 @@ async function setup() {
     `
     console.log(`   ✅ RLS policies: ${policies[0].count}`)
 
+    const migrations = await client`SELECT COUNT(*) as count FROM _migrations`
+    console.log(`   ✅ Migrations tracked: ${migrations[0].count}`)
+
     console.log('\n' + '='.repeat(60))
     console.log('✨ Database setup completed successfully!\n')
     console.log('Your database now has:')
-    console.log('  • Tables with indexes and constraints (Drizzle)')
-    console.log('  • Auth triggers (signup → volunteer + role)')
-    console.log('  • Auth delete handling (soft-delete)')
-    console.log('  • RLS policies on all tables')
-    console.log('  • Admin functions for CRUD operations')
-    console.log('  • Auto-update triggers for updated_at')
-    console.log('  • Seed data (roles + categories)')
+    console.log('  - Tables with indexes and constraints (Drizzle)')
+    console.log('  - Auth triggers (signup -> volunteer + role)')
+    console.log('  - Auth delete handling (soft-delete)')
+    console.log('  - RLS policies on all tables')
+    console.log('  - Helper functions (is_admin, has_role)')
+    console.log('  - Auto-update triggers for updated_at')
+    console.log('  - Seed data (roles + categories)')
+    console.log('  - Migration tracking table')
     console.log('')
-    console.log('Next steps:')
-    console.log('  1. Sign up a user in your app')
-    console.log('  2. Run: npx tsx src/db/diagnose.ts')
-    console.log('  3. You should see the new volunteer linked to auth')
+    console.log('For future updates, use: npm run db:migrate')
     console.log('')
   } catch (error) {
     console.error('\n❌ Setup failed:', error)
@@ -133,7 +152,6 @@ async function setup() {
   }
 }
 
-// Run setup
 setup()
   .then(() => process.exit(0))
   .catch((error) => {

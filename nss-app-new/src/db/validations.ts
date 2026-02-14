@@ -34,9 +34,9 @@ export const selectVolunteerSchema = createSelectSchema(volunteers)
 export const insertEventSchema = createInsertSchema(events, {
   eventName: (schema) => schema.min(1, 'Event name is required').max(200),
   description: (schema) => schema.max(2000).optional().nullable(),
-  startDate: () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be YYYY-MM-DD format'),
-  endDate: () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be YYYY-MM-DD format'),
-  declaredHours: () => z.number().int().min(0).max(100),
+  startDate: () => z.coerce.date({ message: 'Valid start date/time is required' }),
+  endDate: () => z.coerce.date({ message: 'Valid end date/time is required' }),
+  declaredHours: () => z.number().int().min(1, 'Must be at least 1 hour').max(240),
   minParticipants: () => z.number().int().min(0).optional().nullable(),
   maxParticipants: () => z.number().int().min(1).optional().nullable(),
   eventStatus: () =>
@@ -58,7 +58,6 @@ export const selectEventSchema = createSelectSchema(events)
 
 export const insertEventParticipationSchema = createInsertSchema(eventParticipation, {
   hoursAttended: () => z.number().int().min(0).max(24).default(0),
-  declaredHours: () => z.number().int().min(0).max(24).optional().nullable(),
   participationStatus: () =>
     z
       .enum(['registered', 'present', 'absent', 'partially_present', 'excused'])

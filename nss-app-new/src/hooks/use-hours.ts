@@ -1,29 +1,49 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { EventParticipationWithVolunteer } from '@/types'
-import { getPendingApprovals } from '@/lib/mock-api'
+import {
+  getPendingApprovals,
+  approveHours as approveHoursAction,
+  rejectHours as rejectHoursAction,
+} from '@/app/actions/hours'
 
 export function useHours() {
   const [pendingApprovals, setPendingApprovals] = useState<EventParticipationWithVolunteer[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
+  const refresh = useCallback(async () => {
+    try {
       const data = await getPendingApprovals()
       setPendingApprovals(data)
+    } catch (err) {
+      console.error('Failed to load pending approvals:', err)
+    } finally {
       setLoading(false)
     }
-    load()
   }, [])
 
+  useEffect(() => {
+    refresh()
+  }, [refresh])
+
   const approveHours = async (id: string) => {
-    setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
+    try {
+      await approveHoursAction(id)
+      setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
+    } catch (err) {
+      console.error('Failed to approve hours:', err)
+    }
   }
 
   const rejectHours = async (id: string) => {
-    setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
+    try {
+      await rejectHoursAction(id)
+      setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
+    } catch (err) {
+      console.error('Failed to reject hours:', err)
+    }
   }
 
-  return { pendingApprovals, loading, approveHours, rejectHours }
+  return { pendingApprovals, loading, approveHours, rejectHours, refresh }
 }

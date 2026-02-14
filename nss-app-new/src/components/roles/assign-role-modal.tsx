@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import type { VolunteerWithStats, RoleDefinition } from '@/types'
-import { getVolunteers, getRoleDefinitions } from '@/lib/mock-api'
+import { getVolunteers } from '@/app/actions/volunteers'
+import { getRoles, assignRole } from '@/app/actions/roles'
 import { ROLE_DISPLAY_NAMES, type Role } from '@/lib/constants'
 import {
   Dialog,
@@ -42,12 +43,14 @@ type AssignRoleFormValues = z.infer<typeof assignRoleSchema>
 interface AssignRoleModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function AssignRoleModal({ open, onOpenChange }: AssignRoleModalProps) {
+export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleModalProps) {
   const [volunteers, setVolunteers] = useState<VolunteerWithStats[]>([])
   const [roleDefinitions, setRoleDefinitions] = useState<RoleDefinition[]>([])
   const [dataLoading, setDataLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   const form = useForm<AssignRoleFormValues>({
     resolver: zodResolver(assignRoleSchema),
@@ -61,19 +64,32 @@ export function AssignRoleModal({ open, onOpenChange }: AssignRoleModalProps) {
     if (open) {
       async function loadData() {
         setDataLoading(true)
-        const [v, rd] = await Promise.all([getVolunteers(), getRoleDefinitions()])
-        setVolunteers(v)
-        setRoleDefinitions(rd)
-        setDataLoading(false)
+        try {
+          const [v, rd] = await Promise.all([getVolunteers(), getRoles()])
+          setVolunteers(v)
+          setRoleDefinitions(rd)
+        } catch (err) {
+          console.error('Failed to load data:', err)
+        } finally {
+          setDataLoading(false)
+        }
       }
       loadData()
       form.reset({ volunteerId: '', roleDefinitionId: '' })
     }
   }, [open, form])
 
-  function onSubmit(values: AssignRoleFormValues) {
-    console.log('Assigning role:', values)
-    onOpenChange(false)
+  async function onSubmit(values: AssignRoleFormValues) {
+    setSubmitting(true)
+    try {
+      await assignRole(values.volunteerId, values.roleDefinitionId)
+      onOpenChange(false)
+      onSuccess?.()
+    } catch (err) {
+      console.error('Failed to assign role:', err)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -139,8 +155,8 @@ export function AssignRoleModal({ open, onOpenChange }: AssignRoleModalProps) {
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={dataLoading}>
-                Assign Role
+              <Button type="submit" disabled={dataLoading || submitting}>
+                {submitting ? 'Assigning...' : 'Assign Role'}
               </Button>
             </DialogFooter>
           </form>

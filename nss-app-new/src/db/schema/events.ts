@@ -5,7 +5,6 @@ import {
   text,
   boolean,
   timestamp,
-  date,
   integer,
   index,
   check,
@@ -19,9 +18,8 @@ export const events = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     eventName: text('event_name').notNull(),
     description: text('description'),
-    startDate: date('start_date').notNull(),
-    endDate: date('end_date').notNull(),
-    eventDate: timestamp('event_date', { withTimezone: true }),
+    startDate: timestamp('start_date', { withTimezone: true }).notNull(),
+    endDate: timestamp('end_date', { withTimezone: true }).notNull(),
     declaredHours: integer('declared_hours').notNull(),
     categoryId: integer('category_id')
       .notNull()

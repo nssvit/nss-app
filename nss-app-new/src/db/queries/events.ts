@@ -19,7 +19,6 @@ export async function getEventsWithStats() {
       e.description,
       e.start_date,
       e.end_date,
-      e.event_date,
       e.location,
       e.max_participants,
       e.min_participants,
@@ -42,7 +41,27 @@ export async function getEventsWithStats() {
     ORDER BY e.created_at DESC
   `)
 
-  return result as unknown[]
+  return result as unknown[] as {
+    id: string
+    event_name: string
+    description: string | null
+    start_date: string
+    end_date: string
+    location: string | null
+    max_participants: number | null
+    min_participants: number | null
+    registration_deadline: string | null
+    event_status: string
+    category_id: number | null
+    created_by_volunteer_id: string | null
+    is_active: boolean
+    created_at: string
+    updated_at: string
+    participant_count: number
+    total_hours: number
+    category_name: string | null
+    category_color: string | null
+  }[]
 }
 
 /**
@@ -70,7 +89,7 @@ export async function getEventById(eventId: string) {
  */
 export async function getUpcomingEvents(limit: number = 10) {
   const result = await db.query.events.findMany({
-    where: and(eq(events.isActive, true), gte(events.startDate, sql`CURRENT_DATE`)),
+    where: and(eq(events.isActive, true), gte(events.startDate, sql`NOW()`)),
     with: {
       category: true,
       createdBy: true,
@@ -90,9 +109,8 @@ export async function createEvent(
   eventData: {
     eventName: string
     description?: string | null
-    eventDate?: Date | null
-    startDate: string
-    endDate: string
+    startDate: Date
+    endDate: Date
     declaredHours: number
     categoryId: number
     location?: string | null
@@ -109,7 +127,6 @@ export async function createEvent(
       .values({
         eventName: eventData.eventName,
         description: eventData.description,
-        eventDate: eventData.eventDate,
         startDate: eventData.startDate,
         endDate: eventData.endDate,
         declaredHours: eventData.declaredHours,

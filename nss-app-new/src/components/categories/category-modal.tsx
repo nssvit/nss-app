@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { createCategory, updateCategory } from '@/app/actions/categories'
 
 const categorySchema = z.object({
   categoryName: z
@@ -41,10 +42,12 @@ interface CategoryModalProps {
   category?: EventCategory | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onSuccess?: () => void
 }
 
-export function CategoryModal({ category, open, onOpenChange }: CategoryModalProps) {
+export function CategoryModal({ category, open, onOpenChange, onSuccess }: CategoryModalProps) {
   const isEditing = !!category
+  const [submitting, setSubmitting] = useState(false)
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
@@ -74,9 +77,29 @@ export function CategoryModal({ category, open, onOpenChange }: CategoryModalPro
     }
   }, [category, form])
 
-  function onSubmit(values: CategoryFormValues) {
-    console.log(isEditing ? 'Updating category:' : 'Creating category:', values)
-    onOpenChange(false)
+  async function onSubmit(values: CategoryFormValues) {
+    setSubmitting(true)
+    try {
+      if (isEditing && category) {
+        await updateCategory(category.id, {
+          categoryName: values.categoryName,
+          description: values.description,
+          colorHex: values.colorHex,
+        })
+      } else {
+        await createCategory({
+          categoryName: values.categoryName,
+          description: values.description,
+          colorHex: values.colorHex,
+        })
+      }
+      onOpenChange(false)
+      onSuccess?.()
+    } catch (err) {
+      console.error('Failed to save category:', err)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -156,7 +179,9 @@ export function CategoryModal({ category, open, onOpenChange }: CategoryModalPro
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit">{isEditing ? 'Update' : 'Create'}</Button>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

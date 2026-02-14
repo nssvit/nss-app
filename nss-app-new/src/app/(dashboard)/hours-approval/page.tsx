@@ -3,7 +3,7 @@ import { HoursPage } from '@/components/hours'
 
 export default function HoursApprovalRoute() {
   return (
-    <ProtectedRoute allowedRoles={['admin', 'program_officer', 'event_lead']}>
+    <ProtectedRoute allowedRoles={['admin', 'head']}>
       <HoursPage />
     </ProtectedRoute>
   )

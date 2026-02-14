@@ -4,13 +4,16 @@ import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
+import { mapVolunteerRow, mapParticipationRow } from '@/lib/mappers'
 
 /**
  * Get all volunteers with participation stats
+ * Maps snake_case DB rows to camelCase frontend types
  */
 export async function getVolunteers() {
   await getAuthUser() // Cached auth check
-  return queries.getVolunteersWithStats()
+  const rows = await queries.getVolunteersWithStats()
+  return rows.map(mapVolunteerRow)
 }
 
 /**
@@ -55,7 +58,8 @@ export async function updateVolunteer(
  */
 export async function getVolunteerParticipationHistory(volunteerId: string) {
   await getAuthUser()
-  return queries.getVolunteerParticipationHistory(volunteerId)
+  const rows = await queries.getVolunteerParticipationHistory(volunteerId)
+  return rows.map((r) => mapParticipationRow(r, volunteerId))
 }
 
 /**

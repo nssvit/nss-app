@@ -18,9 +18,10 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { CategoryModal } from './category-modal'
+import { deleteCategory } from '@/app/actions/categories'
 
 export function CategoryManagementPage() {
-  const { categories, loading } = useCategories()
+  const { categories, loading, refresh } = useCategories()
   const [editingCategory, setEditingCategory] = useState<EventCategory | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
@@ -34,8 +35,14 @@ export function CategoryManagementPage() {
     setModalOpen(true)
   }
 
-  function handleDelete(category: EventCategory) {
-    console.log('Deleting category:', category.id)
+  async function handleDelete(category: EventCategory) {
+    if (!confirm(`Delete category "${category.categoryName}"?`)) return
+    try {
+      await deleteCategory(category.id)
+      refresh()
+    } catch (err) {
+      console.error('Failed to delete category:', err)
+    }
   }
 
   if (loading) {
@@ -113,7 +120,12 @@ export function CategoryManagementPage() {
         </TableBody>
       </Table>
 
-      <CategoryModal category={editingCategory} open={modalOpen} onOpenChange={setModalOpen} />
+      <CategoryModal
+        category={editingCategory}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onSuccess={refresh}
+      />
     </div>
   )
 }
