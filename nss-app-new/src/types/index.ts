@@ -23,6 +23,7 @@ export interface VolunteerWithStats extends Volunteer {
   eventsParticipated?: number
   totalHours?: number
   approvedHours?: number
+  roleName?: string | null
 }
 
 // Event types

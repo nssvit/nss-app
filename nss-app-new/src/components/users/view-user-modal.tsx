@@ -1,6 +1,8 @@
 'use client'
 
-import type { VolunteerWithStats } from '@/types'
+import { useState, useEffect } from 'react'
+import type { VolunteerWithStats, EventParticipationWithEvent } from '@/types'
+import { getVolunteerParticipationHistory } from '@/app/actions/volunteers'
 import {
   Dialog,
   DialogContent,
@@ -11,8 +13,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
+import {
+  BRANCH_DISPLAY_NAMES,
+  YEAR_DISPLAY_NAMES,
+  ROLE_COLORS,
+  ROLE_DISPLAY_NAMES,
+  APPROVAL_STATUS_DISPLAY,
+  APPROVAL_STATUS_COLORS,
+  type Role,
+  type ApprovalStatus,
+} from '@/lib/constants'
 
 interface ViewUserModalProps {
   volunteer: VolunteerWithStats | null
@@ -29,14 +41,44 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   )
 }
 
+// Category colors matching the DB categories
+const CATEGORY_COLORS: Record<string, string> = {
+  'Area Based - 1': '#22C55E',
+  'Area Based - 2': '#16A34A',
+  'University Based': '#8B5CF6',
+  'College Based': '#CA8A04',
+}
+
 export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalProps) {
+  const [participation, setParticipation] = useState<EventParticipationWithEvent[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!open || !volunteer) return
+    setLoading(true)
+    getVolunteerParticipationHistory(volunteer.id)
+      .then(setParticipation)
+      .catch((err) => console.error('Failed to load participation:', err))
+      .finally(() => setLoading(false))
+  }, [open, volunteer?.id])
+
   if (!volunteer) return null
 
   const initials = `${volunteer.firstName[0]}${volunteer.lastName[0]}`.toUpperCase()
 
+  // Compute hours by category
+  const hoursByCategory = participation.reduce(
+    (acc, p) => {
+      const cat = p.categoryName || 'Other'
+      acc[cat] = (acc[cat] || 0) + (p.approvedHours ?? p.hoursAttended ?? 0)
+      return acc
+    },
+    {} as Record<string, number>
+  )
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Volunteer Details</DialogTitle>
           <DialogDescription>
@@ -50,9 +92,22 @@ export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalPr
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-lg font-semibold">
-              {volunteer.firstName} {volunteer.lastName}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-lg font-semibold">
+                {volunteer.firstName} {volunteer.lastName}
+              </p>
+              {volunteer.roleName && volunteer.roleName !== 'volunteer' && (
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    'border-none text-xs',
+                    ROLE_COLORS[volunteer.roleName as Role]
+                  )}
+                >
+                  {ROLE_DISPLAY_NAMES[volunteer.roleName as Role] ?? volunteer.roleName}
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground text-sm">{volunteer.email}</p>
           </div>
           <Badge
@@ -95,6 +150,103 @@ export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalPr
               <p className="text-muted-foreground text-xs">Approved Hours</p>
             </div>
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Hours by Category */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold">Hours by Category</h4>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-md" />
+              ))}
+            </div>
+          ) : Object.keys(hoursByCategory).length === 0 ? (
+            <p className="text-muted-foreground text-sm">No participation data yet.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {Object.entries(hoursByCategory).map(([cat, hours]) => (
+                <div key={cat} className="flex items-center gap-3 rounded-md border p-3">
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full"
+                    style={{ backgroundColor: CATEGORY_COLORS[cat] ?? '#6b7280' }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-medium">{cat}</p>
+                    <p className="text-muted-foreground text-xs">{hours}h completed</p>
+                  </div>
+                  <p className="text-lg font-bold">{hours}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Event History */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold">Event History</h4>
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 rounded-md" />
+              ))}
+            </div>
+          ) : participation.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No events participated yet.</p>
+          ) : (
+            <div className="max-h-60 space-y-2 overflow-y-auto">
+              {participation.map((p) => {
+                const date = p.startDate
+                  ? new Date(p.startDate).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : ''
+
+                return (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 rounded-md border px-3 py-2"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{
+                        backgroundColor:
+                          CATEGORY_COLORS[p.categoryName ?? ''] ?? '#6b7280',
+                      }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{p.eventName}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {date}
+                        {p.categoryName ? ` · ${p.categoryName}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground text-xs">
+                        {p.approvedHours ?? p.hoursAttended}h
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className={cn(
+                          'border-none text-[10px]',
+                          APPROVAL_STATUS_COLORS[p.approvalStatus as ApprovalStatus] ?? ''
+                        )}
+                      >
+                        {APPROVAL_STATUS_DISPLAY[p.approvalStatus as ApprovalStatus] ??
+                          p.approvalStatus}
+                      </Badge>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

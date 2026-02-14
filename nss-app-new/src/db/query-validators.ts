@@ -176,4 +176,5 @@ export const volunteerWithStatsRowSchema = z.object({
   events_participated: z.number(),
   total_hours: z.number(),
   approved_hours: z.number(),
+  role_name: z.string().nullable(),
 }).passthrough()

@@ -92,6 +92,8 @@ export function EditUserModal({ volunteer, open, onOpenChange, onSuccess }: Edit
       await updateVolunteer(volunteer.id, {
         firstName: values.firstName,
         lastName: values.lastName,
+        email: values.email,
+        rollNumber: values.rollNumber,
         branch: values.branch,
         year: values.year,
         phoneNo: values.phoneNo || null,
@@ -156,7 +158,7 @@ export function EditUserModal({ volunteer, open, onOpenChange, onSuccess }: Edit
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="user@example.com" {...field} disabled />
+                    <Input type="email" placeholder="user@example.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -170,7 +172,7 @@ export function EditUserModal({ volunteer, open, onOpenChange, onSuccess }: Edit
                 <FormItem>
                   <FormLabel>Roll Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="CS2101" {...field} disabled />
+                    <Input placeholder="CS2101" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
