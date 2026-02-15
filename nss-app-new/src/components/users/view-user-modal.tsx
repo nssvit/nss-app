@@ -52,15 +52,16 @@ const CATEGORY_COLORS: Record<string, string> = {
 export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalProps) {
   const [participation, setParticipation] = useState<EventParticipationWithEvent[]>([])
   const [loading, setLoading] = useState(false)
+  const volunteerId = volunteer?.id
 
   useEffect(() => {
-    if (!open || !volunteer) return
+    if (!open || !volunteerId) return
     setLoading(true)
-    getVolunteerParticipationHistory(volunteer.id)
+    getVolunteerParticipationHistory(volunteerId)
       .then(setParticipation)
       .catch((err) => console.error('Failed to load participation:', err))
       .finally(() => setLoading(false))
-  }, [open, volunteer?.id])
+  }, [open, volunteerId])
 
   if (!volunteer) return null
 
