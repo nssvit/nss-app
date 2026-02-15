@@ -3,17 +3,18 @@ import { PageHeader } from '@/components/page-header'
 import { requireAuthServer } from '@/lib/auth-server'
 import { getCurrentVolunteer } from '@/lib/auth-cache'
 import { queries } from '@/db/queries'
+import { withRetry } from '@/db'
 import { mapTrendRow } from '@/lib/mappers'
 
 export default async function DashboardPage() {
   await requireAuthServer()
   const volunteer = await getCurrentVolunteer()
-  const isAdminOrHead = await queries.volunteerHasAnyRole(volunteer.id, ['admin', 'head'])
+  const isAdminOrHead = await withRetry(() => queries.volunteerHasAnyRole(volunteer.id, ['admin', 'head']))
 
   if (isAdminOrHead) {
     const [stats, trendRows] = await Promise.all([
-      queries.getDashboardStats(),
-      queries.getMonthlyActivityTrends(),
+      withRetry(() => queries.getDashboardStats()),
+      withRetry(() => queries.getMonthlyActivityTrends()),
     ])
     const trends = trendRows.map(mapTrendRow)
 

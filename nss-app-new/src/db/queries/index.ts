@@ -42,6 +42,7 @@ export {
   updateEvent,
   deleteEvent,
   canRegisterForEvent,
+  resetEventAttendance,
 } from './events'
 
 // Attendance queries
@@ -121,6 +122,7 @@ export const queries = {
   updateEvent: events.updateEvent,
   deleteEvent: events.deleteEvent,
   canRegisterForEvent: events.canRegisterForEvent,
+  resetEventAttendance: events.resetEventAttendance,
   registerForEvent: attendance.registerForEvent,
 
   // Reports

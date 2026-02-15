@@ -6,7 +6,7 @@
 import { eq, sql } from 'drizzle-orm'
 import { parseRows, volunteerWithStatsRowSchema } from '../query-validators'
 import { db } from '../index'
-import { volunteers, userRoles, type Volunteer } from '../schema'
+import { volunteers, type Volunteer } from '../schema'
 
 /**
  * Get all volunteers with participation statistics
@@ -36,11 +36,12 @@ export async function getVolunteersWithStats() {
       v.created_at,
       v.updated_at,
       COALESCE(COUNT(DISTINCT ep.event_id), 0)::int as events_participated,
-      COALESCE(SUM(ep.hours_attended), 0)::int as total_hours,
+      COALESCE(SUM(CASE WHEN ep.approval_status != 'rejected' THEN ep.hours_attended ELSE 0 END), 0)::int as total_hours,
       COALESCE(SUM(CASE WHEN ep.approval_status = 'approved' THEN ep.approved_hours ELSE 0 END), 0)::int as approved_hours,
       top_role.role_name as role_name
     FROM volunteers v
     LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
+      AND ep.event_id IN (SELECT id FROM events WHERE is_active = true)
     LEFT JOIN LATERAL (
       SELECT rd.role_name
       FROM user_roles ur
@@ -86,18 +87,12 @@ export async function getVolunteerById(volunteerId: string) {
 
 /**
  * Get volunteer by auth user ID
+ * Returns basic volunteer fields only (no relations).
+ * Role checks are done separately via volunteerHasAnyRole().
  */
 export async function getVolunteerByAuthId(authUserId: string) {
   const result = await db.query.volunteers.findFirst({
     where: eq(volunteers.authUserId, authUserId),
-    with: {
-      assignedRoles: {
-        where: eq(userRoles.isActive, true),
-        with: {
-          roleDefinition: true,
-        },
-      },
-    },
   })
 
   return result

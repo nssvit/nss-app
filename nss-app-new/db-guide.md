@@ -25,6 +25,7 @@
 16. [Git Workflow for DB Changes](#16-git-workflow-for-db-changes)
 17. [Troubleshooting](#17-troubleshooting)
 18. [Rules & Constraints Quick Reference](#18-rules--constraints-quick-reference)
+19. [Supabase Keep-Alive (Free Tier)](#19-supabase-keep-alive-free-tier)
 
 ---
 
@@ -366,6 +367,9 @@ npm run db:migrate:status   # Show which migrations are applied vs pending
 npm run db:push             # Push Drizzle schema directly (tables only, no migrations)
 npm run db:generate         # Generate a migration SQL from Drizzle schema diff
 npm run db:studio           # Open Drizzle Studio (visual DB browser at localhost)
+
+# === Supabase Keep-Alive ===
+# See supabase/heartbeat-guide.md for full setup
 ```
 
 ### When to use which:
@@ -378,6 +382,35 @@ npm run db:studio           # Open Drizzle Studio (visual DB browser at localhos
 | Quick schema push during development (no migration file needed) | `npm run db:push` |
 | Creating a migration file from schema changes | `npm run db:generate` |
 | Browsing data visually | `npm run db:studio` |
+
+### Drizzle Studio
+
+Drizzle Studio is a visual database browser that runs locally. It connects directly to your database and lets you browse, filter, and edit data.
+
+```bash
+npm run db:studio
+# Opens at https://local.drizzle.studio
+```
+
+**Important:** Studio requires a **direct connection** (port 5432), not the transaction pooler (port 6543). This is why `drizzle.config.ts` uses `DIRECT_URL` with a fallback to `DATABASE_URL`:
+
+```typescript
+dbCredentials: {
+  url: process.env.DIRECT_URL ?? process.env.DATABASE_URL!,
+}
+```
+
+Add both to your `.env.local`:
+
+```env
+# Transaction pooler — used by the app at runtime (port 6543)
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+
+# Direct connection — used by Drizzle Studio & migrations (port 5432)
+DIRECT_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+```
+
+Get `DIRECT_URL` from: **Supabase Dashboard > Project Settings > Database > Connection string > Session mode** (change port 6543 to 5432).
 
 ---
 
@@ -530,19 +563,23 @@ export default defineConfig({
   out: './src/db/migrations',           // Where generated migrations go
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL!,  // Prefer direct connection
   },
 })
 ```
+
+> Drizzle Kit (studio, push, generate) needs a direct connection (port 5432). The runtime app uses the transaction pooler (port 6543) via `DATABASE_URL`.
 
 ### Connection
 
 `src/db/index.ts` creates a single `db` instance optimized for serverless:
 ```typescript
 const client = postgres(process.env.DATABASE_URL, {
-  max: 5,           // Connection pool size
-  idle_timeout: 20,  // Close idle connections after 20s
-  prepare: false,    // Required for Supabase connection pooler
+  max: 10,            // Connection pool size (handles parallel dashboard queries)
+  idle_timeout: 20,   // Close idle connections after 20s
+  connect_timeout: 15, // Connection timeout
+  max_lifetime: 300,  // Recycle connections before pooler drops them (5 min)
+  prepare: false,     // Required for Supabase transaction pooler (Supavisor)
 })
 
 export const db = drizzle(client, { schema })
@@ -779,10 +816,15 @@ Inserted by `0001_setup.sql` using `ON CONFLICT DO NOTHING` (safe to re-run):
 
 ```env
 # .env.local
+
+# Transaction pooler — used by the app at runtime (port 6543)
 DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+
+# Direct connection — used by Drizzle Studio & migrations (port 5432)
+DIRECT_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
 ```
 
-Get this from: **Supabase Dashboard > Project Settings > Database > Connection string > URI** (use the **Transaction pooler** connection for serverless).
+Get these from: **Supabase Dashboard > Project Settings > Database > Connection string > URI**. Use the **Transaction pooler** (port 6543) for `DATABASE_URL` and change the port to **5432** for `DIRECT_URL`.
 
 ### Other Supabase env vars (for the Supabase client, not Drizzle):
 
@@ -961,3 +1003,19 @@ user_roles.volunteer_id        -> volunteers.id     ON DELETE CASCADE
 user_roles.role_definition_id  -> role_definitions.id ON DELETE CASCADE
 *_approved_by / *_recorded_by  -> volunteers.id     ON DELETE SET NULL  (preserve records)
 ```
+
+---
+
+## 19. Supabase Keep-Alive (Free Tier)
+
+Supabase free-tier projects auto-pause after 1 week of inactivity. We use a `pg_cron` job + Edge Function + BetterStack heartbeat to prevent this and monitor DB health.
+
+```
+pg_cron (every 5 min) → Edge Function → DB health check → BetterStack heartbeat
+```
+
+**Full setup guide:** [`supabase/heartbeat-guide.md`](./supabase/heartbeat-guide.md)
+
+**Files:**
+- `supabase/functions/better-stack/index.ts` — Edge Function
+- `supabase/cron-setup.sql` — Vault + cron SQL commands

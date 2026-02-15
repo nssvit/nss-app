@@ -36,7 +36,7 @@ export async function getEventsWithStats() {
       ec.category_name,
       ec.color_hex as category_color
     FROM events e
-    LEFT JOIN event_participation ep ON e.id = ep.event_id AND ep.approval_status = 'approved'
+    LEFT JOIN event_participation ep ON e.id = ep.event_id
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     WHERE e.is_active = true
     GROUP BY e.id, ec.category_name, ec.color_hex
@@ -51,7 +51,7 @@ export async function getEventsWithStats() {
  */
 export async function getEventById(eventId: string) {
   const result = await db.query.events.findFirst({
-    where: eq(events.id, eventId),
+    where: and(eq(events.id, eventId), eq(events.isActive, true)),
     with: {
       category: true,
       createdBy: true,
@@ -101,7 +101,8 @@ export async function createEvent(
     registrationDeadline?: Date | null
     eventStatus?: string
   },
-  createdByVolunteerId: string
+  createdByVolunteerId: string,
+  volunteerIds?: string[]
 ) {
   return await db.transaction(async (tx) => {
     const [newEvent] = await tx
@@ -123,6 +124,18 @@ export async function createEvent(
       })
       .returning()
 
+    // Pre-register selected volunteers
+    if (volunteerIds && volunteerIds.length > 0) {
+      await tx.insert(eventParticipation).values(
+        volunteerIds.map((volunteerId) => ({
+          eventId: newEvent.id,
+          volunteerId,
+          participationStatus: 'registered' as const,
+          registrationDate: new Date(),
+        }))
+      )
+    }
+
     return { success: true, eventId: newEvent.id }
   })
 }
@@ -136,6 +149,16 @@ export async function updateEvent(eventId: string, updates: Partial<Event>) {
     Object.entries(updates).filter(([, v]) => v !== undefined)
   )
   return await db.transaction(async (tx) => {
+    // Verify event exists and is active before updating
+    const [existing] = await tx
+      .select({ id: events.id })
+      .from(events)
+      .where(and(eq(events.id, eventId), eq(events.isActive, true)))
+
+    if (!existing) {
+      throw new Error('Event not found or is inactive')
+    }
+
     await tx
       .update(events)
       .set({
@@ -163,6 +186,23 @@ export async function deleteEvent(eventId: string) {
 
     return { success: true }
   })
+}
+
+/**
+ * Reset attendance for all participants of an event.
+ * Sets participation_status back to 'registered', hours to 0, clears attendance date.
+ * Used when an event is reopened (status moves backward from completed/ongoing).
+ */
+export async function resetEventAttendance(eventId: string) {
+  await db
+    .update(eventParticipation)
+    .set({
+      participationStatus: 'registered',
+      hoursAttended: 0,
+      attendanceDate: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(eventParticipation.eventId, eventId))
 }
 
 /**

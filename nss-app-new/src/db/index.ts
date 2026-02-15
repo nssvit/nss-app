@@ -30,50 +30,52 @@ if (!process.env.DATABASE_URL) {
  * Configuration optimized for Vercel/serverless:
  * - max: 10 connections (allows parallel queries without exhausting pool)
  * - idle_timeout: 20 seconds before closing idle connections
- * - connect_timeout: 10 seconds connection timeout
+ * - connect_timeout: 15 seconds connection timeout
+ * - max_lifetime: 60*5 seconds — recycle connections before pooler drops them
  * - prepare: false (required for connection poolers like Supavisor)
  */
 const client = postgres(process.env.DATABASE_URL, {
-  max: 10, // Enough for dashboard's 10 parallel queries
+  max: 10,
   idle_timeout: 20,
-  connect_timeout: 10,
-  prepare: false, // Required for Supabase connection pooler
+  connect_timeout: 15,
+  max_lifetime: 60 * 5,
+  prepare: false,
+  connection: {
+    application_name: 'nss-app',
+  },
 })
 
 /**
  * Drizzle ORM database instance with schema
- *
- * Usage:
- * ```typescript
- * import { db } from '@/db'
- * import { volunteers } from '@/db/schema'
- * import { eq } from 'drizzle-orm'
- *
- * // Query all volunteers
- * const allVolunteers = await db.select().from(volunteers)
- *
- * // Query with relations
- * const volunteersWithRoles = await db.query.volunteers.findMany({
- *   with: { assignedRoles: true }
- * })
- *
- * // Insert new volunteer
- * const newVolunteer = await db.insert(volunteers).values({
- *   firstName: 'John',
- *   lastName: 'Doe',
- *   rollNumber: '12345',
- *   email: 'john@example.com',
- *   branch: 'CMPN',
- *   year: 'SE'
- * }).returning()
- *
- * // Update volunteer
- * await db.update(volunteers)
- *   .set({ isActive: false })
- *   .where(eq(volunteers.id, 'some-uuid'))
- * ```
  */
 export const db = drizzle(client, { schema })
+
+/**
+ * Retry wrapper for transient DB/network failures.
+ * Retries up to `attempts` times with a short delay between each try.
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  attempts: number = 3,
+  delayMs: number = 500
+): Promise<T> {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      const isTransient =
+        err instanceof Error &&
+        (err.message.includes('CONNECT_TIMEOUT') ||
+          err.message.includes('connection terminated') ||
+          err.message.includes('Connection terminated') ||
+          err.message.includes('write CONNECT_TIMEOUT') ||
+          err.message.includes('Failed query'))
+      if (!isTransient || i === attempts) throw err
+      await new Promise((r) => setTimeout(r, delayMs * i))
+    }
+  }
+  throw new Error('withRetry: unreachable')
+}
 
 /**
  * Type exports for use in other modules

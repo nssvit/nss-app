@@ -4,16 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAnyRole } from '@/lib/auth-cache'
 import { mapEventRow } from '@/lib/mappers'
-
-/** Valid event status transitions */
-const STATUS_TRANSITIONS: Record<string, string[]> = {
-  planned: ['registration_open', 'cancelled'],
-  registration_open: ['registration_closed', 'ongoing', 'cancelled'],
-  registration_closed: ['ongoing', 'cancelled'],
-  ongoing: ['completed', 'cancelled'],
-  completed: [],
-  cancelled: [],
-}
+import { STATUS_TRANSITIONS } from '@/lib/constants'
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -28,6 +19,7 @@ export interface CreateEventInput {
   eventStatus?: string
   location?: string
   registrationDeadline?: Date
+  volunteerIds?: string[]
 }
 
 export interface UpdateEventInput {
@@ -82,9 +74,11 @@ export async function createEvent(data: CreateEventInput) {
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
     },
-    volunteer.id
+    volunteer.id,
+    data.volunteerIds
   )
   revalidatePath('/events')
+  revalidatePath('/event-registration')
   return result
 }
 
@@ -95,6 +89,7 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
   await requireAnyRole('admin', 'head')
 
   // Validate status transition if status is being changed
+  let shouldResetAttendance = false
   if (updates.eventStatus) {
     const event = await queries.getEventById(eventId)
     if (!event) throw new Error('Event not found')
@@ -106,6 +101,17 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
         `Invalid status transition: cannot go from "${currentStatus}" to "${updates.eventStatus}". Allowed: [${allowed.join(', ')}]`
       )
     }
+
+    // If moving from a post-attendance state back to a pre-attendance state,
+    // reset all attendance records (hours, present/absent → registered)
+    const postAttendanceStates = ['ongoing', 'completed']
+    const preAttendanceStates = ['planned', 'registration_open', 'registration_closed']
+    if (
+      postAttendanceStates.includes(currentStatus) &&
+      preAttendanceStates.includes(updates.eventStatus)
+    ) {
+      shouldResetAttendance = true
+    }
   }
 
   const result = await queries.updateEvent(eventId, {
@@ -113,8 +119,15 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
     startDate: updates.startDate ? new Date(updates.startDate) : undefined,
     endDate: updates.endDate ? new Date(updates.endDate) : undefined,
   })
+
+  // Reset attendance if reopening the event
+  if (shouldResetAttendance) {
+    await queries.resetEventAttendance(eventId)
+  }
+
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
+  revalidatePath('/volunteers')
   return result
 }
 
@@ -162,6 +175,29 @@ export async function registerForEvent(eventId: string) {
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   return result
+}
+
+/**
+ * Add volunteers to an event (admin/head only).
+ * Registers each volunteer, skipping any already registered.
+ */
+export async function addVolunteersToEvent(eventId: string, volunteerIds: string[]) {
+  await requireAnyRole('admin', 'head')
+  if (volunteerIds.length === 0) return { added: 0 }
+
+  let added = 0
+  for (const vid of volunteerIds) {
+    try {
+      await queries.registerForEvent(eventId, vid)
+      added++
+    } catch {
+      // Skip already-registered volunteers
+    }
+  }
+
+  revalidatePath('/events')
+  revalidatePath(`/events/${eventId}`)
+  return { added }
 }
 
 /**

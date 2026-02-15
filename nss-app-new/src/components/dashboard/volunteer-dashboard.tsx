@@ -89,26 +89,29 @@ export function VolunteerDashboard() {
     load()
   }, [])
 
-  // Aggregate hours by category for donut chart
+  // Aggregate hours by category for donut chart (skip rejected)
   const categoryData = useMemo(() => {
     const grouped: Record<string, number> = {}
     for (const p of participation) {
+      if (p.approvalStatus === 'rejected') continue
       const cat = p.categoryName || 'Other'
-      grouped[cat] = (grouped[cat] || 0) + (p.approvedHours ?? p.hoursAttended ?? 0)
+      const hours = p.approvalStatus === 'approved' ? (p.approvedHours ?? 0) : (p.hoursAttended ?? 0)
+      grouped[cat] = (grouped[cat] || 0) + hours
     }
     return Object.entries(grouped)
       .map(([name, value]) => ({ name, value }))
       .filter((d) => d.value > 0)
   }, [participation])
 
-  // Aggregate hours by month for bar chart
+  // Aggregate hours by month for bar chart (skip rejected)
   const monthlyData = useMemo(() => {
     const grouped: Record<string, number> = {}
     for (const p of participation) {
-      if (!p.startDate) continue
+      if (p.approvalStatus === 'rejected' || !p.startDate) continue
       const d = new Date(p.startDate)
       const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-      grouped[key] = (grouped[key] || 0) + (p.approvedHours ?? p.hoursAttended ?? 0)
+      const hours = p.approvalStatus === 'approved' ? (p.approvedHours ?? 0) : (p.hoursAttended ?? 0)
+      grouped[key] = (grouped[key] || 0) + hours
     }
     // Sort chronologically
     return Object.entries(grouped)
@@ -269,7 +272,7 @@ export function VolunteerDashboard() {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground text-xs">
-                        {p.approvedHours ?? p.hoursAttended}h
+                        {p.approvalStatus === 'approved' ? (p.approvedHours ?? 0) : (p.hoursAttended ?? 0)}h
                       </span>
                       <Badge
                         variant="secondary"

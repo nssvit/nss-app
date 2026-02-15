@@ -40,6 +40,14 @@ export async function approveHours(
   notes?: string
 ) {
   const volunteer = await requireAnyRole('admin', 'head')
+
+  // Validate approvedHours range
+  if (approvedHours !== undefined && approvedHours !== null) {
+    if (approvedHours < 0 || approvedHours > 24) {
+      throw new Error('Approved hours must be between 0 and 24')
+    }
+  }
+
   const result = await queries.approveHoursTransaction(
     participationId,
     volunteer.id,
