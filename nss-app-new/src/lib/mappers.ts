@@ -79,6 +79,7 @@ export function mapEventRow(r: any): EventWithStats {
     totalHours: r.total_hours ?? 0,
     categoryName: r.category_name,
     categoryColor: r.category_color,
+    userParticipationStatus: r.user_participation_status ?? null,
   }
 }
 

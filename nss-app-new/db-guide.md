@@ -26,6 +26,7 @@
 17. [Troubleshooting](#17-troubleshooting)
 18. [Rules & Constraints Quick Reference](#18-rules--constraints-quick-reference)
 19. [Supabase Keep-Alive (Free Tier)](#19-supabase-keep-alive-free-tier)
+20. [Migrating to Another PostgreSQL Provider](#20-migrating-to-another-postgresql-provider)
 
 ---
 
@@ -1019,3 +1020,121 @@ pg_cron (every 5 min) → Edge Function → DB health check → BetterStack hear
 **Files:**
 - `supabase/functions/better-stack/index.ts` — Edge Function
 - `supabase/cron-setup.sql` — Vault + cron SQL commands
+
+---
+
+## 20. Migrating to Another PostgreSQL Provider
+
+This app's data layer (Drizzle ORM + `postgres-js`) is **pure PostgreSQL** — it has no Supabase-specific dependencies. You can migrate to any PostgreSQL provider (Neon, Railway, AWS RDS, etc.) by swapping the connection string.
+
+### What depends on what
+
+| Concern | Current Provider | Can migrate? | Notes |
+|---|---|---|---|
+| **Data queries** (Drizzle ORM) | Supabase Postgres | Yes — any Postgres | Only needs `DATABASE_URL` |
+| **Auth** (login/signup/sessions) | Supabase Auth | Stays on Supabase | Uses `NEXT_PUBLIC_SUPABASE_URL` + `ANON_KEY`, independent of data DB |
+| **Auth triggers** (`handle_new_user`, `handle_auth_user_deleted`) | Supabase Postgres | Needs attention | These triggers reference `auth.users` which only exists on Supabase |
+| **RLS policies** | Supabase Postgres | Not needed on new DB | Drizzle bypasses RLS; app code handles authorization |
+| **Keep-alive cron** | Supabase `pg_cron` | Not needed | Other providers don't auto-pause |
+
+### Migration Steps (e.g., Supabase → Neon)
+
+#### Step 1: Create new database
+
+Create a project on your new provider and get the connection string.
+
+#### Step 2: Dump existing data from Supabase
+
+```bash
+# Get your Supabase direct connection string
+# (Dashboard > Project Settings > Database > Connection string > URI, port 5432)
+
+pg_dump "postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres" \
+  --no-owner --no-acl --clean --if-exists \
+  -F c -f supabase_backup.dump
+```
+
+**Flags explained:**
+- `--no-owner` — Don't include ownership commands (new DB has different roles)
+- `--no-acl` — Don't include permission grants (avoid Supabase-specific role errors)
+- `--clean --if-exists` — Drop objects before recreating (safe for empty target)
+- `-F c` — Custom format (compressed, supports selective restore)
+
+#### Step 3: Restore to new provider
+
+```bash
+# Example for Neon:
+pg_restore -d "postgresql://[user]:[pass]@[host].neon.tech/neondb?sslmode=require" \
+  --no-owner --no-acl --clean --if-exists \
+  supabase_backup.dump
+```
+
+**Note:** You may see warnings about `auth.users` or Supabase-specific schemas — these are safe to ignore since auth stays on Supabase.
+
+#### Step 4: Update environment variables
+
+```env
+# .env.local
+
+# Auth stays on Supabase (no change)
+NEXT_PUBLIC_SUPABASE_URL=https://[ref].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+
+# Data queries point to new provider
+DATABASE_URL=postgresql://[user]:[pass]@[host].neon.tech/neondb?sslmode=require
+DIRECT_URL=postgresql://[user]:[pass]@[host].neon.tech/neondb?sslmode=require
+```
+
+#### Step 5: Adjust connection settings (optional)
+
+In `src/db/index.ts`, the `prepare: false` setting was required for Supabase's Supavisor pooler. Other providers may support prepared statements — you can remove it or leave it (works either way):
+
+```typescript
+const client = postgres(process.env.DATABASE_URL, {
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 15,
+  max_lifetime: 60 * 5,
+  prepare: false, // Can be removed for Neon/Railway (but leaving it is harmless)
+})
+```
+
+#### Step 6: Handle auth triggers
+
+The signup/delete triggers (`handle_new_user`, `handle_auth_user_deleted`) fire on `auth.users` which is a Supabase-internal table. On the new database, these triggers won't exist and aren't needed since auth stays on Supabase. Two options:
+
+1. **Keep auth triggers on Supabase** (recommended) — The triggers fire on Supabase's `auth.users` table and write to the `volunteers` table. If your data moves to a different DB, these triggers can't write to it. Instead, handle volunteer creation in application code (server action) after Supabase auth signup.
+
+2. **Use Supabase webhooks** — Configure a Supabase webhook on `auth.users` INSERT/DELETE to call an API route in your app, which then writes to the new database.
+
+#### Step 7: Verify
+
+```bash
+# Check schema matches
+npx drizzle-kit push
+
+# Run migration status
+npm run db:migrate:status
+
+# Test the app
+npm run dev
+```
+
+### What you lose by leaving Supabase Postgres
+
+| Feature | Alternative |
+|---|---|
+| `pg_cron` (keep-alive, scheduled jobs) | Not needed if new provider doesn't auto-pause |
+| RLS policies | Already handled by app code (server actions check roles) |
+| Supabase Dashboard SQL editor | Use Drizzle Studio (`npm run db:studio`) |
+| Supabase Dashboard table viewer | Use Drizzle Studio |
+| Auth triggers on `auth.users` | Handle in application code or webhooks |
+
+### What stays exactly the same
+
+- All Drizzle schema files (`src/db/schema/`)
+- All query functions (`src/db/queries/`)
+- All server actions (`src/app/actions/`)
+- All validations (`src/db/validations.ts`)
+- Migration system (`src/db/migrations/`)
+- Supabase Auth (login, signup, sessions, middleware)

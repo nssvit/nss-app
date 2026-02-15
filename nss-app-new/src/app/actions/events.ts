@@ -43,7 +43,8 @@ export interface UpdateEventInput {
  */
 export async function getEvents() {
   await getAuthUser() // Cached auth check
-  const rows = await queries.getEventsWithStats()
+  const volunteer = await getCurrentVolunteer()
+  const rows = await queries.getEventsWithStats(volunteer.id)
   return rows.map(mapEventRow)
 }
 

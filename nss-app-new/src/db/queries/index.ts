@@ -76,6 +76,7 @@ export {
   getAllRoles,
   createRoleDefinition,
   updateRoleDefinition,
+  getAllUserRolesWithNames,
   adminAssignRole,
   adminRevokeRole,
 } from './roles'
@@ -161,6 +162,7 @@ export const queries = {
   // Admin
   adminGetAllVolunteers: volunteers.adminGetAllVolunteers,
   adminUpdateVolunteer: volunteers.adminUpdateVolunteer,
+  getAllUserRolesWithNames: roles.getAllUserRolesWithNames,
   adminAssignRole: roles.adminAssignRole,
   adminRevokeRole: roles.adminRevokeRole,
 }

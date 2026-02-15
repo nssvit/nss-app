@@ -59,6 +59,7 @@ export const eventWithStatsRowSchema = z.object({
   total_hours: z.number(),
   category_name: z.string().nullable(),
   category_color: z.string().nullable(),
+  user_participation_status: z.string().nullable(),
 }).passthrough()
 
 // --- Attendance ---

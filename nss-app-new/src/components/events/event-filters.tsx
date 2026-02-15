@@ -13,35 +13,26 @@ import {
 import { EVENT_STATUS, EVENT_STATUS_DISPLAY } from '@/lib/constants'
 import type { EventCategory } from '@/types'
 
+export interface EventFilterValues {
+  search: string
+  categoryId: number | null
+  status: string | null
+  attendance: 'all' | 'attended' | 'not_attended'
+}
+
 interface EventFiltersProps {
   categories: EventCategory[]
-  onFilterChange: (filters: {
-    search: string
-    categoryId: number | null
-    status: string | null
-  }) => void
+  onFilterChange: (filters: EventFilterValues) => void
 }
 
 export function EventFilters({ categories, onFilterChange }: EventFiltersProps) {
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState<number | null>(null)
   const [status, setStatus] = useState<string | null>(null)
+  const [attendance, setAttendance] = useState<'all' | 'attended' | 'not_attended'>('all')
 
-  function handleSearchChange(value: string) {
-    setSearch(value)
-    onFilterChange({ search: value, categoryId, status })
-  }
-
-  function handleCategoryChange(value: string) {
-    const newCategoryId = value === 'all' ? null : Number(value)
-    setCategoryId(newCategoryId)
-    onFilterChange({ search, categoryId: newCategoryId, status })
-  }
-
-  function handleStatusChange(value: string) {
-    const newStatus = value === 'all' ? null : value
-    setStatus(newStatus)
-    onFilterChange({ search, categoryId, status: newStatus })
+  function emit(overrides: Partial<EventFilterValues>) {
+    onFilterChange({ search, categoryId, status, attendance, ...overrides })
   }
 
   return (
@@ -51,11 +42,18 @@ export function EventFilters({ categories, onFilterChange }: EventFiltersProps) 
         <Input
           placeholder="Search events..."
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            emit({ search: e.target.value })
+          }}
           className="pl-9"
         />
       </div>
-      <Select value={categoryId?.toString() ?? 'all'} onValueChange={handleCategoryChange}>
+      <Select value={categoryId?.toString() ?? 'all'} onValueChange={(v) => {
+        const val = v === 'all' ? null : Number(v)
+        setCategoryId(val)
+        emit({ categoryId: val })
+      }}>
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="All Categories" />
         </SelectTrigger>
@@ -68,7 +66,11 @@ export function EventFilters({ categories, onFilterChange }: EventFiltersProps) 
           ))}
         </SelectContent>
       </Select>
-      <Select value={status ?? 'all'} onValueChange={handleStatusChange}>
+      <Select value={status ?? 'all'} onValueChange={(v) => {
+        const val = v === 'all' ? null : v
+        setStatus(val)
+        emit({ status: val })
+      }}>
         <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="All Statuses" />
         </SelectTrigger>
@@ -79,6 +81,20 @@ export function EventFilters({ categories, onFilterChange }: EventFiltersProps) 
               {EVENT_STATUS_DISPLAY[s]}
             </SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+      <Select value={attendance} onValueChange={(v) => {
+        const val = v as 'all' | 'attended' | 'not_attended'
+        setAttendance(val)
+        emit({ attendance: val })
+      }}>
+        <SelectTrigger className="w-full sm:w-[160px]">
+          <SelectValue placeholder="My Attendance" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Events</SelectItem>
+          <SelectItem value="attended">Attended</SelectItem>
+          <SelectItem value="not_attended">Not Attended</SelectItem>
         </SelectContent>
       </Select>
     </div>

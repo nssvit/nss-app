@@ -1,21 +1,21 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { LayoutGrid, List } from 'lucide-react'
 import { useEvents } from '@/hooks/use-events'
 import { useAuth } from '@/contexts/auth-context'
 import { PageHeader } from '@/components/page-header'
-import { EventFilters } from './event-filters'
+import { EventFilters, type EventFilterValues } from './event-filters'
 import { EventFormModal } from './event-form-modal'
 import { EventsGrid } from './events-grid'
+import { EventsTable } from './events-table'
 import { EventDetailModal } from './event-detail-modal'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import type { EventWithStats, EventCategory } from '@/types'
 
-interface Filters {
-  search: string
-  categoryId: number | null
-  status: string | null
-}
+type Filters = EventFilterValues
 
 interface EventsPageProps {
   initialData?: {
@@ -32,7 +32,9 @@ export function EventsPage({ initialData }: EventsPageProps) {
     search: '',
     categoryId: null,
     status: null,
+    attendance: 'all',
   })
+  const [view, setView] = useState<'grid' | 'list'>('grid')
   const [selectedEvent, setSelectedEvent] = useState<EventWithStats | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
 
@@ -49,6 +51,13 @@ export function EventsPage({ initialData }: EventsPageProps) {
       }
       if (filters.status !== null && event.eventStatus !== filters.status) {
         return false
+      }
+      if (filters.attendance === 'attended') {
+        const s = event.userParticipationStatus
+        if (s !== 'present' && s !== 'partially_present') return false
+      } else if (filters.attendance === 'not_attended') {
+        const s = event.userParticipationStatus
+        if (s === 'present' || s === 'partially_present') return false
       }
       return true
     })
@@ -74,22 +83,64 @@ export function EventsPage({ initialData }: EventsPageProps) {
         description="Manage and browse NSS events."
         actions={canManageEvents ? <EventFormModal categories={categories} onSuccess={refresh} /> : undefined}
       />
-      <EventFilters categories={categories} onFilterChange={setFilters} />
-      <EventsGrid
-        events={filteredEvents}
-        onEventClick={(event) => {
-          setSelectedEvent(event)
-          setDetailOpen(true)
-        }}
-      />
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <EventFilters categories={categories} onFilterChange={setFilters} />
+        </div>
+        <div className="flex items-center rounded-md border">
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn('h-8 w-8 rounded-r-none', view === 'grid' && 'bg-muted')}
+            onClick={() => setView('grid')}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn('h-8 w-8 rounded-l-none', view === 'list' && 'bg-muted')}
+            onClick={() => setView('list')}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      {view === 'grid' ? (
+        <EventsGrid
+          events={filteredEvents}
+          onEventClick={
+            canManageEvents
+              ? (event) => {
+                  setSelectedEvent(event)
+                  setDetailOpen(true)
+                }
+              : undefined
+          }
+        />
+      ) : (
+        <EventsTable
+          events={filteredEvents}
+          onEventClick={
+            canManageEvents
+              ? (event) => {
+                  setSelectedEvent(event)
+                  setDetailOpen(true)
+                }
+              : undefined
+          }
+        />
+      )}
 
-      <EventDetailModal
+      {canManageEvents && (
+        <EventDetailModal
         event={selectedEvent}
         categories={categories}
         open={detailOpen}
         onOpenChange={setDetailOpen}
         onEventUpdated={refresh}
       />
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Users, Clock } from 'lucide-react'
+import { Calendar, MapPin, Users, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EventStatusBadge } from './event-status-badge'
 import type { EventWithStats } from '@/types'
@@ -17,6 +17,8 @@ export function EventCard({ event, onClick }: EventCardProps) {
       })
     : 'TBD'
 
+  const attended = event.userParticipationStatus === 'present' || event.userParticipationStatus === 'partially_present'
+
   return (
     <Card
       className={`transition-shadow hover:shadow-md ${onClick ? 'cursor-pointer' : ''}`}
@@ -24,7 +26,10 @@ export function EventCard({ event, onClick }: EventCardProps) {
     >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="line-clamp-1 text-base">{event.eventName}</CardTitle>
+          <div className="flex items-center gap-1.5">
+            {attended && <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />}
+            <CardTitle className="line-clamp-1 text-base">{event.eventName}</CardTitle>
+          </div>
           <EventStatusBadge status={event.eventStatus} />
         </div>
         {event.categoryName && (

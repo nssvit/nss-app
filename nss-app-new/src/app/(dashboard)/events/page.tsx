@@ -1,5 +1,6 @@
 import { EventsPage } from '@/components/events'
 import { requireAuthServer } from '@/lib/auth-server'
+import { getCurrentVolunteer } from '@/lib/auth-cache'
 import { queries } from '@/db/queries'
 import { mapEventRow } from '@/lib/mappers'
 import { eq } from 'drizzle-orm'
@@ -8,8 +9,9 @@ import { eventCategories } from '@/db/schema'
 
 export default async function Events() {
   await requireAuthServer()
+  const volunteer = await getCurrentVolunteer()
   const [eventRows, categoryRows] = await Promise.all([
-    withRetry(() => queries.getEventsWithStats()),
+    withRetry(() => queries.getEventsWithStats(volunteer.id)),
     withRetry(() =>
       db.query.eventCategories.findMany({
         where: eq(eventCategories.isActive, true),

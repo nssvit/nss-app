@@ -74,6 +74,7 @@ export {
   getRoles,
   getVolunteerRoles,
   getCurrentUserRoles,
+  getAllRoleAssignments,
   hasRole,
   hasAnyRole,
   isAdmin,
@@ -88,6 +89,8 @@ export {
 export {
   getCategoryDistribution,
   getTopEventsByImpact,
+  exportCSVData,
+  exportXLSXData,
 } from './reports'
 
 // Category actions
