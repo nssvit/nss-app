@@ -3,8 +3,17 @@
 import { PageHeader } from '@/components/page-header'
 import { useReports } from '@/hooks/use-reports'
 import { ReportMetrics } from './report-metrics'
-import { MonthlyTrends } from './monthly-trends'
-import { CategoryChart } from './category-chart'
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+
+const MonthlyTrends = dynamic(() => import('./monthly-trends').then(m => ({ default: m.MonthlyTrends })), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[380px] rounded-xl" />,
+})
+const CategoryChart = dynamic(() => import('./category-chart').then(m => ({ default: m.CategoryChart })), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[380px] rounded-xl" />,
+})
 import { TopEventsTable } from './top-events-table'
 import { ExportButton } from './export-button'
 

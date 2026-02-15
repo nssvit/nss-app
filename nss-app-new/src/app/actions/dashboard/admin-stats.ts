@@ -2,48 +2,8 @@
 
 import { sql, count, sum, eq, and, gte, lte } from 'drizzle-orm'
 import { db } from '@/db'
-import { queries } from '@/db/queries'
 import { volunteers, events, eventParticipation } from '@/db/schema'
-import { getAuthUser, getCurrentVolunteer as getCachedVolunteer } from '@/lib/auth-cache'
-import { mapTrendRow } from '@/lib/mappers'
-
-// Use cached auth helpers for better performance
-
-/**
- * Get dashboard statistics
- * Returns: totalEvents, activeVolunteers, totalHours, ongoingProjects
- */
-export async function getDashboardStats() {
-  await getAuthUser() // Cached auth check
-  return queries.getDashboardStats()
-}
-
-/**
- * Get monthly activity trends for charts
- * Returns last 12 months of activity data
- */
-export async function getMonthlyTrends() {
-  await getAuthUser()
-  const rows = await queries.getMonthlyActivityTrends()
-  return rows.map(mapTrendRow)
-}
-
-/**
- * Get count of pending hour approvals
- */
-export async function getPendingApprovalsCount() {
-  await getAuthUser()
-  return queries.getPendingApprovalsCount()
-}
-
-/**
- * Get user statistics
- * Returns: totalUsers, activeUsers, pendingUsers, adminCount
- */
-export async function getUserStats() {
-  await getAuthUser()
-  return queries.getUserStats()
-}
+import { getAuthUser } from '@/lib/auth-cache'
 
 /**
  * Get admin dashboard stats (extended version)
@@ -280,54 +240,4 @@ export async function getRecentEvents(limit: number = 6) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
   return (result as any).rows || result
-}
-
-/**
- * Get heads dashboard stats (events created by current user)
- */
-export async function getHeadsDashboardStats() {
-  const volunteer = await getCachedVolunteer()
-
-  // Get events created by this head
-  const result = await db.execute(sql`
-    SELECT
-      e.id,
-      e.event_name,
-      e.description as event_description,
-      e.start_date,
-      e.end_date,
-      e.declared_hours,
-      e.is_active,
-      e.created_at,
-      ec.category_name,
-      COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int as participant_count,
-      COALESCE(SUM(ep.approved_hours), 0)::int as total_hours
-    FROM events e
-    LEFT JOIN event_categories ec ON e.category_id = ec.id
-    LEFT JOIN event_participation ep ON e.id = ep.event_id
-    WHERE e.created_by_volunteer_id = ${volunteer.id}
-    GROUP BY e.id, ec.category_name
-    ORDER BY e.created_at DESC
-  `)
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL result
-  const myEvents = ((result as any).rows || result) as any[]
-
-  // Calculate stats
-  const totalParticipants = myEvents.reduce((sum, event) => sum + (event.participant_count || 0), 0)
-  const hoursManaged = myEvents.reduce((sum, event) => sum + (event.total_hours || 0), 0)
-  const activeEvents = myEvents.filter((event) => {
-    const eventDate = new Date(event.start_date)
-    return event.is_active && eventDate >= new Date()
-  }).length
-
-  return {
-    stats: {
-      myEvents: myEvents.length,
-      totalParticipants,
-      hoursManaged,
-      activeEvents,
-    },
-    events: myEvents,
-  }
 }

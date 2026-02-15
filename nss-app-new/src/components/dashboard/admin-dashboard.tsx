@@ -2,9 +2,15 @@
 
 import type { DashboardStats, ActivityTrend } from '@/types'
 import { useDashboard } from '@/hooks/use-dashboard'
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
 import { StatsOverview } from './stats-overview'
-import { ActivityChart } from './activity-chart'
 import { RecentEvents } from './recent-events'
+
+const ActivityChart = dynamic(() => import('./activity-chart').then(m => ({ default: m.ActivityChart })), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[380px] rounded-xl" />,
+})
 import { QuickActions } from './quick-actions'
 
 interface AdminDashboardProps {

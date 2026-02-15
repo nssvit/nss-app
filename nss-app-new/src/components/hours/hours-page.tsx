@@ -1,11 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import type { EventParticipationWithVolunteer } from '@/types'
 import { cn } from '@/lib/utils'
 import { useHours } from '@/hooks/use-hours'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { usePagination } from '@/hooks/use-pagination'
 import { PageHeader } from '@/components/page-header'
+import { TablePagination } from '@/components/table-pagination'
+import { HoursCardList } from './hours-card-list'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -19,8 +24,14 @@ import { ApprovalModal } from './approval-modal'
 
 export function HoursPage() {
   const { pendingApprovals, loading, approveHours, rejectHours } = useHours()
+  const isMobile = useMediaQuery('(max-width: 767px)')
+  const [view, setView] = useState<'grid' | 'list'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  useEffect(() => {
+    setView(isMobile ? 'grid' : 'list')
+  }, [isMobile])
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedParticipation, setSelectedParticipation] =
     useState<EventParticipationWithVolunteer | null>(null)
@@ -39,6 +50,8 @@ export function HoursPage() {
 
     return matchesSearch && matchesStatus
   })
+
+  const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(filteredApprovals, 20)
 
   const handleApprove = (participation: EventParticipationWithVolunteer) => {
     setSelectedParticipation(participation)
@@ -91,13 +104,29 @@ export function HoursPage() {
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
         </Select>
+        <ViewToggle view={view} onViewChange={setView} />
       </div>
 
-      <HoursTable
-        participations={filteredApprovals}
-        loading={loading}
-        onApprove={handleApprove}
-        onReject={handleReject}
+      {view === 'grid' ? (
+        <HoursCardList
+          participations={paginatedItems}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      ) : (
+        <HoursTable
+          participations={paginatedItems}
+          loading={loading}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      )}
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
       />
 
       <ApprovalModal

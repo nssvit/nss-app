@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -31,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const assignRoleSchema = z.object({
@@ -83,9 +85,11 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
     setSubmitting(true)
     try {
       await assignRole(values.volunteerId, values.roleDefinitionId)
+      toast.success('Role assigned successfully')
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {
+      toast.error('Failed to assign role')
       console.error('Failed to assign role:', err)
     } finally {
       setSubmitting(false)
@@ -156,6 +160,7 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
                 Cancel
               </Button>
               <Button type="submit" disabled={dataLoading || submitting}>
+                {submitting && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
                 {submitting ? 'Assigning...' : 'Assign Role'}
               </Button>
             </DialogFooter>

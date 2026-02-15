@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Download, Loader2, FileSpreadsheet, FileText, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,7 +27,9 @@ export function ExportButton({ filename = 'NSS-Hours' }: ExportButtonProps) {
       const csvString = await exportCSVData()
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
       triggerDownload(blob, `${filename}-${dateSuffix}.csv`)
+      toast.success('CSV exported successfully')
     } catch (err) {
+      toast.error('CSV export failed')
       console.error('CSV export failed:', err)
     } finally {
       setLoading(false)
@@ -42,7 +45,9 @@ export function ExportButton({ filename = 'NSS-Hours' }: ExportButtonProps) {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       })
       triggerDownload(blob, `${filename}-${dateSuffix}.xlsx`)
+      toast.success('XLSX exported successfully')
     } catch (err) {
+      toast.error('XLSX export failed')
       console.error('XLSX export failed:', err)
     } finally {
       setLoading(false)

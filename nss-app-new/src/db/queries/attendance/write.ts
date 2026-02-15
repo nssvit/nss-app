@@ -1,43 +1,10 @@
 /**
- * Attendance Queries
- * Provides attendance-related database operations
+ * Attendance Write Queries
  */
 
-import { eq, and, sql, count, inArray } from 'drizzle-orm'
-import { parseRows, eventParticipantRowSchema, eventsForAttendanceRowSchema } from '../query-validators'
-import { db } from '../index'
-import { events, eventParticipation } from '../schema'
-
-/**
- * Get event participants with details
- * Replaces: get_event_participants RPC function
- */
-export async function getEventParticipants(eventId: string) {
-  const result = await db.execute(sql`
-    SELECT
-      ep.id as participant_id,
-      ep.volunteer_id,
-      CONCAT(v.first_name, ' ', v.last_name) as volunteer_name,
-      v.roll_number,
-      v.branch,
-      v.year,
-      ep.participation_status,
-      ep.hours_attended,
-      ep.attendance_date,
-      ep.registration_date,
-      ep.notes,
-      ep.approval_status,
-      ep.approved_hours,
-      ep.approved_by,
-      ep.approved_at
-    FROM event_participation ep
-    JOIN volunteers v ON ep.volunteer_id = v.id
-    WHERE ep.event_id = ${eventId}
-    ORDER BY v.first_name, v.last_name
-  `)
-
-  return parseRows(result, eventParticipantRowSchema)
-}
+import { eq, and, count, inArray, sql } from 'drizzle-orm'
+import { db } from '../../index'
+import { eventParticipation } from '../../schema'
 
 /**
  * Mark attendance for multiple volunteers at an event
@@ -54,49 +21,53 @@ export async function markEventAttendance(
   }
 
   return await db.transaction(async (tx) => {
-    let addedCount = 0
-
-    for (const volunteerId of volunteerIds) {
-      // Check if participation already exists
-      const [existing] = await tx
-        .select()
-        .from(eventParticipation)
-        .where(
-          and(
-            eq(eventParticipation.eventId, eventId),
-            eq(eventParticipation.volunteerId, volunteerId)
-          )
+    // Batch-fetch all existing participations for this event + volunteers
+    const existing = await tx
+      .select({ id: eventParticipation.id, volunteerId: eventParticipation.volunteerId })
+      .from(eventParticipation)
+      .where(
+        and(
+          eq(eventParticipation.eventId, eventId),
+          inArray(eventParticipation.volunteerId, volunteerIds)
         )
+      )
 
-      if (existing) {
-        // Update existing participation to present
-        await tx
-          .update(eventParticipation)
-          .set({
-            participationStatus: 'present',
-            hoursAttended: declaredHours,
-            attendanceDate: new Date(),
-            recordedByVolunteerId: recordedBy,
-            updatedAt: new Date(),
-          })
-          .where(eq(eventParticipation.id, existing.id))
-      } else {
-        // Create new participation
-        await tx.insert(eventParticipation).values({
-          eventId,
-          volunteerId,
+    const existingMap = new Map(existing.map((e) => [e.volunteerId, e.id]))
+    const now = new Date()
+
+    // Batch update existing participations
+    const toUpdate = volunteerIds.filter((id) => existingMap.has(id))
+    for (const volunteerId of toUpdate) {
+      await tx
+        .update(eventParticipation)
+        .set({
           participationStatus: 'present',
           hoursAttended: declaredHours,
-          attendanceDate: new Date(),
+          attendanceDate: now,
           recordedByVolunteerId: recordedBy,
+          updatedAt: now,
         })
-        addedCount++
-      }
+        .where(eq(eventParticipation.id, existingMap.get(volunteerId)!))
+    }
+
+    // Batch insert new participations
+    const toInsert = volunteerIds.filter((id) => !existingMap.has(id))
+    if (toInsert.length > 0) {
+      await tx.insert(eventParticipation).values(
+        toInsert.map((volunteerId) => ({
+          eventId,
+          volunteerId,
+          participationStatus: 'present' as const,
+          hoursAttended: declaredHours,
+          attendanceDate: now,
+          recordedByVolunteerId: recordedBy,
+        }))
+      )
     }
 
     return {
       success: true,
-      participantsAdded: addedCount,
+      participantsAdded: toInsert.length,
       message: `Marked attendance for ${volunteerIds.length} volunteers`,
     }
   })
@@ -235,23 +206,29 @@ export async function registerForEvent(
       throw new Error('Already registered for this event')
     }
 
-    // Check event exists and is active
-    const [event] = await tx
-      .select()
-      .from(events)
-      .where(and(eq(events.id, eventId), eq(events.isActive, true)))
+    // Lock the event row to prevent concurrent registration race condition
+    const [event] = await tx.execute<{
+      id: string
+      is_active: boolean
+      max_participants: number | null
+    }>(sql`
+      SELECT id, is_active, max_participants
+      FROM events
+      WHERE id = ${eventId} AND is_active = true
+      FOR UPDATE
+    `)
 
     if (!event) {
       throw new Error('Event not found or is inactive')
     }
 
-    if (event.maxParticipants) {
+    if (event.max_participants) {
       const [{ count: currentCount }] = await tx
         .select({ count: count() })
         .from(eventParticipation)
         .where(eq(eventParticipation.eventId, eventId))
 
-      if (currentCount >= event.maxParticipants) {
+      if (currentCount >= event.max_participants) {
         throw new Error('Event is at full capacity')
       }
     }
@@ -308,69 +285,58 @@ export async function bulkMarkAttendance(params: {
   const { eventId, volunteerIds, status, hoursAttended, notes, recordedBy } = params
 
   return await db.transaction(async (tx) => {
-    let updatedCount = 0
-
-    for (const volunteerId of volunteerIds) {
-      // Check if participation exists
-      const [existing] = await tx
-        .select()
-        .from(eventParticipation)
-        .where(
-          and(
-            eq(eventParticipation.eventId, eventId),
-            eq(eventParticipation.volunteerId, volunteerId)
-          )
+    // Batch-fetch all existing participations for this event + volunteers
+    const existing = await tx
+      .select({
+        id: eventParticipation.id,
+        volunteerId: eventParticipation.volunteerId,
+        hoursAttended: eventParticipation.hoursAttended,
+        notes: eventParticipation.notes,
+      })
+      .from(eventParticipation)
+      .where(
+        and(
+          eq(eventParticipation.eventId, eventId),
+          inArray(eventParticipation.volunteerId, volunteerIds)
         )
+      )
 
-      if (existing) {
-        // Update existing
-        await tx
-          .update(eventParticipation)
-          .set({
-            participationStatus: status,
-            hoursAttended: hoursAttended ?? existing.hoursAttended,
-            notes: notes ?? existing.notes,
-            attendanceDate: new Date(),
-            updatedAt: new Date(),
-          })
-          .where(eq(eventParticipation.id, existing.id))
-        updatedCount++
-      } else {
-        // Insert new
-        await tx.insert(eventParticipation).values({
+    const existingMap = new Map(existing.map((e) => [e.volunteerId, e]))
+    const now = new Date()
+
+    // Update existing participations
+    const toUpdate = volunteerIds.filter((id) => existingMap.has(id))
+    for (const volunteerId of toUpdate) {
+      const record = existingMap.get(volunteerId)!
+      await tx
+        .update(eventParticipation)
+        .set({
+          participationStatus: status,
+          hoursAttended: hoursAttended ?? record.hoursAttended,
+          notes: notes ?? record.notes,
+          attendanceDate: now,
+          updatedAt: now,
+        })
+        .where(eq(eventParticipation.id, record.id))
+    }
+
+    // Batch insert new participations
+    const toInsert = volunteerIds.filter((id) => !existingMap.has(id))
+    if (toInsert.length > 0) {
+      await tx.insert(eventParticipation).values(
+        toInsert.map((volunteerId) => ({
           eventId,
           volunteerId,
           participationStatus: status,
           hoursAttended: hoursAttended ?? 0,
           notes,
-          registrationDate: new Date(),
-          attendanceDate: new Date(),
+          registrationDate: now,
+          attendanceDate: now,
           recordedByVolunteerId: recordedBy,
-        })
-        updatedCount++
-      }
+        }))
+      )
     }
 
-    return { count: updatedCount, error: null }
+    return { count: toUpdate.length + toInsert.length, error: null }
   })
-}
-
-/**
- * Get events for attendance manager
- */
-export async function getEventsForAttendance(limit: number = 50) {
-  const result = await db.execute(sql`
-    SELECT
-      e.id,
-      e.event_name,
-      e.start_date,
-      e.declared_hours,
-      e.location
-    FROM events e
-    WHERE e.is_active = true
-    ORDER BY e.start_date DESC
-    LIMIT ${limit}
-  `)
-
-  return parseRows(result, eventsForAttendanceRowSchema)
 }

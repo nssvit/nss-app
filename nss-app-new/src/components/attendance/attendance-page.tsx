@@ -1,11 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CalendarDays, Search, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { EVENT_STATUS_COLORS, EVENT_STATUS_DISPLAY, type EventStatus } from '@/lib/constants'
 import { useAttendance } from '@/hooks/use-attendance'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { usePagination } from '@/hooks/use-pagination'
 import { PageHeader } from '@/components/page-header'
+import { EmptyState } from '@/components/empty-state'
+import { TablePagination } from '@/components/table-pagination'
+import { AttendanceCardList } from './attendance-card-list'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -27,8 +33,14 @@ import {
 
 export function AttendancePage() {
   const { events, loading } = useAttendance()
+  const isMobile = useMediaQuery('(max-width: 767px)')
+  const [view, setView] = useState<'grid' | 'list'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  useEffect(() => {
+    setView(isMobile ? 'grid' : 'list')
+  }, [isMobile])
 
   const filteredEvents = events.filter((e) => {
     const matchesSearch =
@@ -40,6 +52,8 @@ export function AttendancePage() {
 
     return matchesSearch && matchesStatus
   })
+
+  const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(filteredEvents, 20)
 
   return (
     <div className="space-y-6">
@@ -56,7 +70,7 @@ export function AttendancePage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -69,6 +83,7 @@ export function AttendancePage() {
             <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
+        <ViewToggle view={view} onViewChange={setView} />
       </div>
 
       {loading ? (
@@ -78,15 +93,13 @@ export function AttendancePage() {
           ))}
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="bg-muted rounded-full p-4">
-            <CalendarDays className="text-muted-foreground h-8 w-8" />
-          </div>
-          <h3 className="mt-4 text-lg font-semibold">No events found</h3>
-          <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-            No events match your current filters. Try adjusting your search or filter.
-          </p>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title="No events found"
+          description="No events match your current filters. Try adjusting your search or filter."
+        />
+      ) : view === 'grid' ? (
+        <AttendanceCardList events={paginatedItems} />
       ) : (
         <div className="rounded-md border">
           <Table>
@@ -103,7 +116,7 @@ export function AttendancePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEvents.map((event) => (
+              {paginatedItems.map((event) => (
                 <TableRow key={event.id}>
                   <TableCell className="font-medium">{event.eventName}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -162,6 +175,13 @@ export function AttendancePage() {
           </Table>
         </div>
       )}
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
+      />
     </div>
   )
 }

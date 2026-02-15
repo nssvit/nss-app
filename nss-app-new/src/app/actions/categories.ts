@@ -1,26 +1,18 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { eq, and, count } from 'drizzle-orm'
 import { db } from '@/db'
 import { eventCategories, events } from '@/db/schema'
 import { getAuthUser, requireAdmin } from '@/lib/auth-cache'
+import { getCachedCategories } from '@/lib/query-cache'
 
 /**
  * Get all active event categories
  */
 export async function getCategories() {
   await getAuthUser()
-
-  const rows = await db.query.eventCategories.findMany({
-    where: eq(eventCategories.isActive, true),
-    orderBy: (categories, { asc }) => [asc(categories.categoryName)],
-  })
-  return rows.map((r) => ({
-    ...r,
-    colorHex: r.colorHex ?? '#6366F1',
-    isActive: r.isActive ?? true,
-  }))
+  return getCachedCategories()
 }
 
 /**
@@ -83,6 +75,7 @@ export async function createCategory(data: {
     })
     .returning()
 
+  revalidateTag('categories')
   revalidatePath('/categories')
   revalidatePath('/events')
   return result
@@ -111,6 +104,7 @@ export async function updateCategory(
     .where(eq(eventCategories.id, categoryId))
     .returning()
 
+  revalidateTag('categories')
   revalidatePath('/categories')
   revalidatePath('/events')
   return result
@@ -140,6 +134,7 @@ export async function deactivateCategory(categoryId: number) {
     .where(eq(eventCategories.id, categoryId))
     .returning()
 
+  revalidateTag('categories')
   revalidatePath('/categories')
   revalidatePath('/events')
   return result
@@ -157,6 +152,7 @@ export async function reactivateCategory(categoryId: number) {
     .where(eq(eventCategories.id, categoryId))
     .returning()
 
+  revalidateTag('categories')
   revalidatePath('/categories')
   revalidatePath('/events')
   return result

@@ -1,10 +1,11 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAnyRole } from '@/lib/auth-cache'
 import { mapEventRow } from '@/lib/mappers'
 import { STATUS_TRANSITIONS } from '@/lib/constants'
+import { logAudit } from '@/lib/audit'
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -78,6 +79,8 @@ export async function createEvent(data: CreateEventInput) {
     volunteer.id,
     data.volunteerIds
   )
+  logAudit({ action: 'event.create', actorId: volunteer.id, targetType: 'event', details: { eventName: data.eventName } })
+  revalidateTag('dashboard-stats')
   revalidatePath('/events')
   revalidatePath('/event-registration')
   return result
@@ -87,7 +90,7 @@ export async function createEvent(data: CreateEventInput) {
  * Update an event
  */
 export async function updateEvent(eventId: string, updates: UpdateEventInput) {
-  await requireAnyRole('admin', 'head')
+  const actor = await requireAnyRole('admin', 'head')
 
   // Validate status transition if status is being changed
   let shouldResetAttendance = false
@@ -126,6 +129,8 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
     await queries.resetEventAttendance(eventId)
   }
 
+  logAudit({ action: 'event.update', actorId: actor.id, targetType: 'event', targetId: eventId, details: { ...updates } })
+  revalidateTag('dashboard-stats')
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   revalidatePath('/volunteers')
@@ -136,8 +141,10 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
  * Delete (soft-delete) an event
  */
 export async function deleteEvent(eventId: string) {
-  await requireAnyRole('admin', 'head')
+  const actor = await requireAnyRole('admin', 'head')
   const result = await queries.deleteEvent(eventId)
+  logAudit({ action: 'event.delete', actorId: actor.id, targetType: 'event', targetId: eventId })
+  revalidateTag('dashboard-stats')
   revalidatePath('/events')
   return result
 }
@@ -173,6 +180,7 @@ export async function getEventParticipants(eventId: string) {
 export async function registerForEvent(eventId: string) {
   const volunteer = await getCurrentVolunteer()
   const result = await queries.registerForEvent(eventId, volunteer.id)
+  logAudit({ action: 'event.register', actorId: volunteer.id, targetType: 'event', targetId: eventId })
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   return result

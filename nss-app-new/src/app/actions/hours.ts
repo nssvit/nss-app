@@ -1,8 +1,12 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
+import { z } from 'zod'
 import { queries } from '@/db/queries'
 import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
+import { logAudit } from '@/lib/audit'
+
+const notesSchema = z.string().max(500, 'Notes must be 500 characters or fewer').optional()
 
 /**
  * Get all pending hour approvals
@@ -48,12 +52,16 @@ export async function approveHours(
     }
   }
 
+  const validatedNotes = notesSchema.parse(notes)
+
   const result = await queries.approveHoursTransaction(
     participationId,
     volunteer.id,
     approvedHours,
-    notes
+    validatedNotes
   )
+  logAudit({ action: 'hours.approve', actorId: volunteer.id, targetType: 'participation', targetId: participationId, details: { approvedHours } })
+  revalidateTag('dashboard-stats')
   revalidatePath('/hours-approval')
   revalidatePath('/reports')
   return result
@@ -64,7 +72,9 @@ export async function approveHours(
  */
 export async function rejectHours(participationId: string, notes?: string) {
   const volunteer = await requireAnyRole('admin', 'head')
-  const result = await queries.rejectHoursTransaction(participationId, volunteer.id, notes)
+  const validatedNotes = notesSchema.parse(notes)
+  const result = await queries.rejectHoursTransaction(participationId, volunteer.id, validatedNotes)
+  logAudit({ action: 'hours.reject', actorId: volunteer.id, targetType: 'participation', targetId: participationId })
   revalidatePath('/hours-approval')
   return result
 }
@@ -74,7 +84,10 @@ export async function rejectHours(participationId: string, notes?: string) {
  */
 export async function bulkApproveHours(participationIds: string[], notes?: string) {
   const volunteer = await requireAnyRole('admin', 'head')
-  const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, notes)
+  const validatedNotes = notesSchema.parse(notes)
+  const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, validatedNotes)
+  logAudit({ action: 'hours.bulk_approve', actorId: volunteer.id, targetType: 'participation', details: { count: participationIds.length } })
+  revalidateTag('dashboard-stats')
   revalidatePath('/hours-approval')
   revalidatePath('/reports')
   return result
