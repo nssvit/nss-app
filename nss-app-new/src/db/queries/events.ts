@@ -12,7 +12,7 @@ import { events, eventParticipation, type Event } from '../schema'
  * Get all events with statistics
  * Replaces: get_events_with_stats RPC function
  */
-export async function getEventsWithStats() {
+export async function getEventsWithStats(volunteerId?: string) {
   const result = await db.execute(sql`
     SELECT
       e.id,
@@ -34,7 +34,12 @@ export async function getEventsWithStats() {
       COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int as participant_count,
       COALESCE(SUM(ep.approved_hours), 0)::int as total_hours,
       ec.category_name,
-      ec.color_hex as category_color
+      ec.color_hex as category_color,
+      ${
+        volunteerId
+          ? sql`(SELECT ep2.participation_status FROM event_participation ep2 WHERE ep2.event_id = e.id AND ep2.volunteer_id = ${volunteerId} LIMIT 1)`
+          : sql`NULL`
+      } as user_participation_status
     FROM events e
     LEFT JOIN event_participation ep ON e.id = ep.event_id
     LEFT JOIN event_categories ec ON e.category_id = ec.id

@@ -127,7 +127,12 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar
+                        className={cn(
+                          'h-8 w-8',
+                          volunteer.authUserId && 'ring-2 ring-green-500 ring-offset-1 ring-offset-background'
+                        )}
+                      >
                         <AvatarFallback className="text-xs">
                           {volunteer.firstName[0]}
                           {volunteer.lastName[0]}

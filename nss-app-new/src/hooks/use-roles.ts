@@ -1,17 +1,17 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import type { RoleDefinition, UserRoleWithDefinition } from '@/types'
-import { getRoles, getCurrentUserRoles } from '@/app/actions/roles'
+import type { RoleDefinition } from '@/types'
+import { getRoles, getAllRoleAssignments } from '@/app/actions/roles'
 
 export function useRoles() {
   const [roleDefinitions, setRoleDefinitions] = useState<RoleDefinition[]>([])
-  const [userRoles, setUserRoles] = useState<UserRoleWithDefinition[]>([])
+  const [userRoles, setUserRoles] = useState<Awaited<ReturnType<typeof getAllRoleAssignments>>>([])
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
     try {
-      const [rd, ur] = await Promise.all([getRoles(), getCurrentUserRoles()])
+      const [rd, ur] = await Promise.all([getRoles(), getAllRoleAssignments()])
       setRoleDefinitions(rd)
       setUserRoles(ur)
     } catch (err) {
@@ -26,7 +26,7 @@ export function useRoles() {
     let ignore = false
     ;(async () => {
       try {
-        const [rd, ur] = await Promise.all([getRoles(), getCurrentUserRoles()])
+        const [rd, ur] = await Promise.all([getRoles(), getAllRoleAssignments()])
         if (!ignore) {
           setRoleDefinitions(rd)
           setUserRoles(ur)

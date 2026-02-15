@@ -43,6 +43,23 @@ export async function getCurrentUserRoles() {
 }
 
 /**
+ * Get all role assignments with volunteer names (admin only)
+ */
+export async function getAllRoleAssignments() {
+  await requireAdmin()
+  const rows = await queries.getAllUserRolesWithNames()
+  return rows.map((r) => ({
+    ...r,
+    isActive: r.isActive ?? true,
+    roleDefinition: {
+      ...r.roleDefinition,
+      permissions: (r.roleDefinition.permissions ?? {}) as Record<string, string[]>,
+      isActive: r.roleDefinition.isActive ?? true,
+    },
+  }))
+}
+
+/**
  * Check if a volunteer has a specific role
  */
 export async function hasRole(volunteerId: string, roleName: string) {
@@ -122,7 +139,7 @@ export async function assignRole(volunteerId: string, roleDefinitionId: string, 
     admin.id,
     expiresAt
   )
-  revalidatePath('/roles')
+  revalidatePath('/role-management')
   revalidatePath('/volunteers')
   return result
 }
@@ -133,7 +150,7 @@ export async function assignRole(volunteerId: string, roleDefinitionId: string, 
 export async function revokeRole(volunteerId: string, roleDefinitionId: string) {
   await requireAdmin()
   const result = await queries.adminRevokeRole(volunteerId, roleDefinitionId)
-  revalidatePath('/roles')
+  revalidatePath('/role-management')
   revalidatePath('/volunteers')
   return result
 }

@@ -14,7 +14,7 @@ import { RoleDefinitionModal } from './role-definition-modal'
 import { AssignRoleModal } from './assign-role-modal'
 
 export function RoleManagementPage() {
-  const { roleDefinitions, userRoles, loading } = useRoles()
+  const { roleDefinitions, userRoles, loading, refresh } = useRoles()
   const [editingRole, setEditingRole] = useState<RoleDefinition | null>(null)
   const [roleModalOpen, setRoleModalOpen] = useState(false)
   const [assignModalOpen, setAssignModalOpen] = useState(false)
@@ -69,7 +69,7 @@ export function RoleManagementPage() {
         </TabsContent>
 
         <TabsContent value="assignments" className="mt-4">
-          <RoleAssignmentsTable assignments={userRoles} />
+          <RoleAssignmentsTable assignments={userRoles} onRefresh={refresh} />
         </TabsContent>
       </Tabs>
 

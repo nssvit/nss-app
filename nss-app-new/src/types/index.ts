@@ -62,6 +62,7 @@ export interface EventWithStats extends Event {
   categoryColor?: string | null
   participantCount?: number
   totalHours?: number
+  userParticipationStatus?: string | null
 }
 
 export interface EventWithDetails extends Event {

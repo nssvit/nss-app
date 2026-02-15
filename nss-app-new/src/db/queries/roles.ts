@@ -83,6 +83,24 @@ export async function isVolunteerAdmin(volunteerId: string): Promise<boolean> {
 }
 
 /**
+ * Get all user role assignments with volunteer names and role definitions
+ */
+export async function getAllUserRolesWithNames() {
+  return await db.query.userRoles.findMany({
+    with: {
+      roleDefinition: true,
+      volunteer: {
+        columns: { id: true, firstName: true, lastName: true, email: true },
+      },
+      assignedByVolunteer: {
+        columns: { id: true, firstName: true, lastName: true },
+      },
+    },
+    orderBy: (ur, { desc }) => [desc(ur.assignedAt)],
+  })
+}
+
+/**
  * Get all role definitions
  */
 export async function getAllRoles() {
