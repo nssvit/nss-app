@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import type { EventParticipationWithVolunteer } from '@/types'
 import {
   getPendingApprovals,
@@ -44,8 +45,10 @@ export function useHours() {
     try {
       await approveHoursAction(id)
       setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
+      toast.success('Hours approved')
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
+      toast.error('Failed to approve hours')
       console.error('Failed to approve hours:', err)
     }
   }
@@ -54,8 +57,10 @@ export function useHours() {
     try {
       await rejectHoursAction(id)
       setPendingApprovals((prev) => prev.filter((p) => p.id !== id))
+      toast.success('Hours rejected')
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
+      toast.error('Failed to reject hours')
       console.error('Failed to reject hours:', err)
     }
   }

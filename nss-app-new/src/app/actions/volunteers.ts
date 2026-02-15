@@ -8,6 +8,7 @@ import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer, requireAdmin } from '@/lib/auth-cache'
 import { mapVolunteerRow, mapParticipationRow, mapVolunteerHoursSummaryRow } from '@/lib/mappers'
+import { logAudit } from '@/lib/audit'
 
 /** Validation schema for admin volunteer updates */
 const adminUpdateSchema = z.object({
@@ -76,9 +77,10 @@ export async function updateVolunteer(
   volunteerId: string,
   updates: Partial<Omit<Volunteer, 'id' | 'createdAt' | 'updatedAt'>>
 ) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   const validated = adminUpdateSchema.parse(updates)
   const result = await queries.adminUpdateVolunteer(volunteerId, validated)
+  logAudit({ action: 'volunteer.update', actorId: admin.id, targetType: 'volunteer', targetId: volunteerId, details: validated })
   revalidatePath('/volunteers')
   revalidatePath('/profile')
   return result
@@ -222,7 +224,7 @@ export async function getUnlinkedVolunteers() {
  * Admin only.
  */
 export async function mergeVolunteers(keepId: string, removeId: string) {
-  await requireAdmin()
+  const admin = await requireAdmin()
 
   // Validate UUIDs
   const uuidSchema = z.string().uuid()
@@ -237,6 +239,7 @@ export async function mergeVolunteers(keepId: string, removeId: string) {
     sql`SELECT merge_volunteers(${keepId}::uuid, ${removeId}::uuid) as result`
   )
 
+  logAudit({ action: 'volunteer.merge', actorId: admin.id, targetType: 'volunteer', targetId: keepId, details: { removedId: removeId } })
   revalidatePath('/volunteers')
   revalidatePath('/user-management')
   revalidatePath('/profile')
@@ -251,10 +254,18 @@ export async function mergeVolunteers(keepId: string, removeId: string) {
 export async function updateProfilePicture(profilePicUrl: string) {
   const volunteer = await getCachedVolunteer()
 
+  // Validate URL: must be a valid HTTPS URL, max 2048 chars
+  const urlSchema = z.string().url().max(2048).refine(
+    (url) => url.startsWith('https://'),
+    { message: 'Profile picture URL must use HTTPS' }
+  )
+  urlSchema.parse(profilePicUrl)
+
   const result = await queries.adminUpdateVolunteer(volunteer.id, {
     profilePic: profilePicUrl,
   })
 
+  logAudit({ action: 'volunteer.profile_pic', actorId: volunteer.id, targetType: 'volunteer', targetId: volunteer.id })
   revalidatePath('/profile')
   return result
 }

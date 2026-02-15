@@ -11,6 +11,13 @@
 
 import { z } from 'zod'
 
+// --- Reusable validators ---
+
+/** Accepts Date objects or ISO strings from PostgreSQL */
+const zDate = z.union([z.string(), z.date()])
+const zDateNullable = z.union([z.string(), z.date()]).nullable()
+const zBoolean = z.union([z.boolean(), z.number()])
+
 // --- Helper ---
 
 /**
@@ -42,19 +49,19 @@ export const eventWithStatsRowSchema = z.object({
   id: z.string(),
   event_name: z.string(),
   description: z.string().nullable(),
-  start_date: z.any(),
-  end_date: z.any(),
+  start_date: zDate,
+  end_date: zDate,
   declared_hours: z.number(),
   location: z.string().nullable(),
   max_participants: z.number().nullable(),
   min_participants: z.number().nullable(),
-  registration_deadline: z.any().nullable(),
+  registration_deadline: zDateNullable,
   event_status: z.string(),
   category_id: z.number(),
   created_by_volunteer_id: z.string().nullable(),
-  is_active: z.any(),
-  created_at: z.any(),
-  updated_at: z.any(),
+  is_active: zBoolean,
+  created_at: zDate,
+  updated_at: zDate,
   participant_count: z.number(),
   total_hours: z.number(),
   category_name: z.string().nullable(),
@@ -73,19 +80,19 @@ export const eventParticipantRowSchema = z.object({
   year: z.string(),
   participation_status: z.string(),
   hours_attended: z.number(),
-  attendance_date: z.any().nullable(),
-  registration_date: z.any(),
+  attendance_date: zDateNullable,
+  registration_date: zDate,
   notes: z.string().nullable(),
   approval_status: z.string().nullable(),
   approved_hours: z.number().nullable(),
   approved_by: z.string().nullable(),
-  approved_at: z.any().nullable(),
+  approved_at: zDateNullable,
 }).passthrough()
 
 export const eventsForAttendanceRowSchema = z.object({
   id: z.string(),
   event_name: z.string(),
-  start_date: z.any(),
+  start_date: zDate,
   declared_hours: z.number(),
   location: z.string().nullable(),
 }).passthrough()
@@ -104,7 +111,7 @@ export const categoryDistributionRowSchema = z.object({
 export const topEventRowSchema = z.object({
   event_id: z.string(),
   event_name: z.string(),
-  start_date: z.any().nullable(),
+  start_date: zDateNullable,
   category_name: z.string(),
   participant_count: z.number(),
   total_hours: z.number(),
@@ -115,7 +122,7 @@ export const topEventRowSchema = z.object({
 export const attendanceSummaryRowSchema = z.object({
   event_id: z.string(),
   event_name: z.string(),
-  start_date: z.any().nullable(),
+  start_date: zDateNullable,
   category_name: z.string().nullable(),
   total_registered: z.number(),
   total_present: z.number(),
@@ -130,26 +137,26 @@ export const volunteerHoursSummaryRowSchema = z.object({
   total_hours: z.number(),
   approved_hours: z.number(),
   events_count: z.number(),
-  last_activity: z.any().nullable(),
+  last_activity: zDateNullable,
 }).passthrough()
 
 export const participationHistoryRowSchema = z.object({
   participation_id: z.string(),
   event_id: z.string(),
   event_name: z.string(),
-  start_date: z.any().nullable(),
+  start_date: zDateNullable,
   category_name: z.string().nullable(),
   participation_status: z.string(),
   hours_attended: z.number(),
-  attendance_date: z.any().nullable(),
-  registration_date: z.any().nullable(),
+  attendance_date: zDateNullable,
+  registration_date: zDateNullable,
   notes: z.string().nullable(),
   approval_status: z.string().nullable(),
   approved_hours: z.number().nullable(),
   approved_by: z.string().nullable(),
-  approved_at: z.any().nullable(),
+  approved_at: zDateNullable,
   approval_notes: z.string().nullable(),
-  created_at: z.any(),
+  created_at: zDate,
   recorded_by_volunteer_id: z.string().nullable(),
 }).passthrough()
 
@@ -166,14 +173,14 @@ export const volunteerWithStatsRowSchema = z.object({
   branch: z.string(),
   year: z.string(),
   phone_no: z.string().nullable(),
-  birth_date: z.any().nullable(),
+  birth_date: zDateNullable,
   gender: z.string().nullable(),
   nss_join_year: z.number().nullable(),
   address: z.string().nullable(),
   profile_pic: z.string().nullable(),
-  is_active: z.any(),
-  created_at: z.any(),
-  updated_at: z.any(),
+  is_active: zBoolean,
+  created_at: zDate,
+  updated_at: zDate,
   events_participated: z.number(),
   total_hours: z.number(),
   approved_hours: z.number(),

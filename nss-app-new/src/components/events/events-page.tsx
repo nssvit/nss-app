@@ -4,12 +4,14 @@ import { useState, useMemo } from 'react'
 import { LayoutGrid, List } from 'lucide-react'
 import { useEvents } from '@/hooks/use-events'
 import { useAuth } from '@/contexts/auth-context'
+import { usePagination } from '@/hooks/use-pagination'
 import { PageHeader } from '@/components/page-header'
+import { TablePagination } from '@/components/table-pagination'
 import { EventFilters, type EventFilterValues } from './event-filters'
-import { EventFormModal } from './event-form-modal'
+import { EventFormModal } from './event-form'
 import { EventsGrid } from './events-grid'
 import { EventsTable } from './events-table'
-import { EventDetailModal } from './event-detail-modal'
+import { EventDetailModal } from './event-detail'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -63,6 +65,8 @@ export function EventsPage({ initialData }: EventsPageProps) {
     })
   }, [events, filters])
 
+  const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(filteredEvents, 20)
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -108,7 +112,7 @@ export function EventsPage({ initialData }: EventsPageProps) {
       </div>
       {view === 'grid' ? (
         <EventsGrid
-          events={filteredEvents}
+          events={paginatedItems}
           onEventClick={
             canManageEvents
               ? (event) => {
@@ -120,7 +124,7 @@ export function EventsPage({ initialData }: EventsPageProps) {
         />
       ) : (
         <EventsTable
-          events={filteredEvents}
+          events={paginatedItems}
           onEventClick={
             canManageEvents
               ? (event) => {
@@ -131,6 +135,13 @@ export function EventsPage({ initialData }: EventsPageProps) {
           }
         />
       )}
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
+      />
 
       {canManageEvents && (
         <EventDetailModal

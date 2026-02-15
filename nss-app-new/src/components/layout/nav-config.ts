@@ -11,6 +11,7 @@ import {
   Shield,
   Tag,
   UserCog,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -106,6 +107,13 @@ export const navItems: NavItem[] = [
     label: 'User Management',
     href: '/user-management',
     icon: UserCog,
+    section: 'admin',
+    roles: ['admin'],
+  },
+  {
+    label: 'Activity Logs',
+    href: '/activity-logs',
+    icon: ScrollText,
     section: 'admin',
     roles: ['admin'],
   },

@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAdmin } from '@/lib/auth-cache'
 import { getCachedRoleDefinitions } from '@/lib/query-cache'
+import { logAudit } from '@/lib/audit'
 
 /**
  * Get all available roles
@@ -105,8 +106,9 @@ export async function createRoleDefinition(data: {
   hierarchyLevel: number
   isActive?: boolean
 }) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   const result = await queries.createRoleDefinition(data)
+  logAudit({ action: 'role_definition.create', actorId: admin.id, targetType: 'roleDefinition', details: { roleName: data.roleName } })
   revalidateTag('role-definitions')
   revalidatePath('/role-management')
   return result
@@ -124,8 +126,9 @@ export async function updateRoleDefinition(
     isActive?: boolean
   }
 ) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   const result = await queries.updateRoleDefinition(roleId, data)
+  logAudit({ action: 'role_definition.update', actorId: admin.id, targetType: 'roleDefinition', targetId: roleId, details: data })
   revalidateTag('role-definitions')
   revalidatePath('/role-management')
   return result
@@ -142,6 +145,7 @@ export async function assignRole(volunteerId: string, roleDefinitionId: string, 
     admin.id,
     expiresAt
   )
+  logAudit({ action: 'role.assign', actorId: admin.id, targetType: 'volunteer', targetId: volunteerId, details: { roleDefinitionId } })
   revalidatePath('/role-management')
   revalidatePath('/volunteers')
   return result
@@ -151,8 +155,9 @@ export async function assignRole(volunteerId: string, roleDefinitionId: string, 
  * Revoke a role from a volunteer (admin only)
  */
 export async function revokeRole(volunteerId: string, roleDefinitionId: string) {
-  await requireAdmin()
+  const admin = await requireAdmin()
   const result = await queries.adminRevokeRole(volunteerId, roleDefinitionId)
+  logAudit({ action: 'role.revoke', actorId: admin.id, targetType: 'volunteer', targetId: volunteerId, details: { roleDefinitionId } })
   revalidatePath('/role-management')
   revalidatePath('/volunteers')
   return result

@@ -6,7 +6,10 @@ import { cn } from '@/lib/utils'
 import { EVENT_STATUS_COLORS, EVENT_STATUS_DISPLAY, type EventStatus } from '@/lib/constants'
 import { useAttendance } from '@/hooks/use-attendance'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { usePagination } from '@/hooks/use-pagination'
 import { PageHeader } from '@/components/page-header'
+import { EmptyState } from '@/components/empty-state'
+import { TablePagination } from '@/components/table-pagination'
 import { AttendanceCardList } from './attendance-card-list'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +53,8 @@ export function AttendancePage() {
     return matchesSearch && matchesStatus
   })
 
+  const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(filteredEvents, 20)
+
   return (
     <div className="space-y-6">
       <PageHeader title="Attendance" description="View attendance records across all events." />
@@ -88,17 +93,13 @@ export function AttendancePage() {
           ))}
         </div>
       ) : filteredEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="bg-muted rounded-full p-4">
-            <CalendarDays className="text-muted-foreground h-8 w-8" />
-          </div>
-          <h3 className="mt-4 text-lg font-semibold">No events found</h3>
-          <p className="text-muted-foreground mt-1 max-w-sm text-sm">
-            No events match your current filters. Try adjusting your search or filter.
-          </p>
-        </div>
+        <EmptyState
+          icon={CalendarDays}
+          title="No events found"
+          description="No events match your current filters. Try adjusting your search or filter."
+        />
       ) : view === 'grid' ? (
-        <AttendanceCardList events={filteredEvents} />
+        <AttendanceCardList events={paginatedItems} />
       ) : (
         <div className="rounded-md border">
           <Table>
@@ -115,7 +116,7 @@ export function AttendancePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEvents.map((event) => (
+              {paginatedItems.map((event) => (
                 <TableRow key={event.id}>
                   <TableCell className="font-medium">{event.eventName}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -174,6 +175,13 @@ export function AttendancePage() {
           </Table>
         </div>
       )}
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
+      />
     </div>
   )
 }

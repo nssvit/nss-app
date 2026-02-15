@@ -6,7 +6,9 @@ import type { EventParticipationWithVolunteer } from '@/types'
 import { cn } from '@/lib/utils'
 import { useHours } from '@/hooks/use-hours'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { usePagination } from '@/hooks/use-pagination'
 import { PageHeader } from '@/components/page-header'
+import { TablePagination } from '@/components/table-pagination'
 import { HoursCardList } from './hours-card-list'
 import { ViewToggle } from '@/components/ui/view-toggle'
 import { Input } from '@/components/ui/input'
@@ -48,6 +50,8 @@ export function HoursPage() {
 
     return matchesSearch && matchesStatus
   })
+
+  const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(filteredApprovals, 20)
 
   const handleApprove = (participation: EventParticipationWithVolunteer) => {
     setSelectedParticipation(participation)
@@ -105,18 +109,25 @@ export function HoursPage() {
 
       {view === 'grid' ? (
         <HoursCardList
-          participations={filteredApprovals}
+          participations={paginatedItems}
           onApprove={handleApprove}
           onReject={handleReject}
         />
       ) : (
         <HoursTable
-          participations={filteredApprovals}
+          participations={paginatedItems}
           loading={loading}
           onApprove={handleApprove}
           onReject={handleReject}
         />
       )}
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
+      />
 
       <ApprovalModal
         participation={selectedParticipation}

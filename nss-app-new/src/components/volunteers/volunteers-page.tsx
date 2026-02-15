@@ -5,8 +5,12 @@ import { Search, Users, MoreHorizontal, Eye, Pencil } from 'lucide-react'
 import { useVolunteers } from '@/hooks/use-volunteers'
 import { useAuth } from '@/contexts/auth-context'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import { usePagination } from '@/hooks/use-pagination'
+import { useTableSort } from '@/hooks/use-table-sort'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState } from '@/components/empty-state'
+import { TablePagination } from '@/components/table-pagination'
+import { SortableHeader } from '@/components/sortable-header'
 import { ViewUserModal } from '@/components/users/view-user-modal'
 import { EditUserModal } from '@/components/users/edit-user-modal'
 import { VolunteersCardList } from './volunteers-card-list'
@@ -80,6 +84,9 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
     )
   })
 
+  const { sortedItems, sortKey, sortDirection, toggleSort } = useTableSort(filtered)
+  const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(sortedItems, 20)
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -114,7 +121,7 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
         />
       ) : view === 'grid' ? (
         <VolunteersCardList
-          volunteers={filtered}
+          volunteers={paginatedItems}
           onVolunteerClick={(volunteer) => {
             setViewVolunteer(volunteer)
             setViewOpen(true)
@@ -125,18 +132,18 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Roll Number</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Events Participated</TableHead>
-                <TableHead>Total Hours</TableHead>
+                <SortableHeader label="Name" sortKey="firstName" currentSortKey={sortKey as string | null} sortDirection={sortDirection} onSort={(k) => toggleSort(k as keyof VolunteerWithStats)} />
+                <SortableHeader label="Roll Number" sortKey="rollNumber" currentSortKey={sortKey as string | null} sortDirection={sortDirection} onSort={(k) => toggleSort(k as keyof VolunteerWithStats)} />
+                <SortableHeader label="Branch" sortKey="branch" currentSortKey={sortKey as string | null} sortDirection={sortDirection} onSort={(k) => toggleSort(k as keyof VolunteerWithStats)} />
+                <SortableHeader label="Year" sortKey="year" currentSortKey={sortKey as string | null} sortDirection={sortDirection} onSort={(k) => toggleSort(k as keyof VolunteerWithStats)} />
+                <SortableHeader label="Events" sortKey="eventsParticipated" currentSortKey={sortKey as string | null} sortDirection={sortDirection} onSort={(k) => toggleSort(k as keyof VolunteerWithStats)} />
+                <SortableHeader label="Hours" sortKey="totalHours" currentSortKey={sortKey as string | null} sortDirection={sortDirection} onSort={(k) => toggleSort(k as keyof VolunteerWithStats)} />
                 <TableHead>Status</TableHead>
                 {isAdmin && <TableHead className="w-[70px]" />}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((volunteer) => (
+              {paginatedItems.map((volunteer) => (
                 <TableRow
                   key={volunteer.id}
                   className="cursor-pointer"
@@ -235,6 +242,13 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
           </Table>
         </div>
       )}
+
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        onPageChange={setCurrentPage}
+      />
 
       <ViewUserModal
         volunteer={viewVolunteer}

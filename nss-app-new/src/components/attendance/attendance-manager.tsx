@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { CheckCircle, Users, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -48,8 +49,14 @@ export function AttendanceManager() {
 
   const handleSubmit = async () => {
     setSaving(true)
-    await submitAttendance()
-    setSaving(false)
+    try {
+      await submitAttendance()
+      toast.success('Attendance saved successfully')
+    } catch {
+      toast.error('Failed to save attendance')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

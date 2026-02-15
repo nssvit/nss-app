@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,6 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -59,8 +61,10 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         address: values.address || undefined,
         birthDate: values.birthDate || undefined,
       })
+      toast.success('Profile updated successfully')
       onSuccess?.()
     } catch (err) {
+      toast.error('Failed to update profile')
       console.error('Failed to update profile:', err)
     } finally {
       setSubmitting(false)
@@ -175,6 +179,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
             </div>
 
             <Button type="submit" disabled={submitting}>
+              {submitting && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
               {submitting ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>

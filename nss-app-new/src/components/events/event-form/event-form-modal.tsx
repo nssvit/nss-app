@@ -5,10 +5,9 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Plus, Users, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Users, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -18,26 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Form } from '@/components/ui/form'
 import { EVENT_STATUS, EVENT_STATUS_DISPLAY } from '@/lib/constants'
 import { useVolunteers } from '@/hooks/use-volunteers'
 import { useAuth } from '@/contexts/auth-context'
 import type { EventCategory } from '@/types'
 import { createEvent } from '@/app/actions/events'
+import { TextField, SelectField } from './form-fields'
 
 const schema = z.object({
   eventName: z.string().min(1, 'Event name is required').max(100),
@@ -57,93 +43,7 @@ const schema = z.object({
   eventStatus: z.string().min(1, 'Status is required'),
 })
 
-type FormValues = z.infer<typeof schema>
-
-function TextField({
-  control,
-  name,
-  label,
-  placeholder,
-  type = 'text',
-  ...rest
-}: {
-  control: ReturnType<typeof useForm<FormValues>>['control']
-  name: keyof FormValues
-  label: string
-  placeholder?: string
-  type?: string
-  min?: number
-  max?: number
-  step?: number
-}) {
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            {type === 'textarea' ? (
-              <Textarea placeholder={placeholder} {...field} value={field.value as string} />
-            ) : (
-              <Input
-                type={type}
-                placeholder={placeholder}
-                min={rest.min}
-                max={rest.max}
-                step={rest.step}
-                {...field}
-              />
-            )}
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-}
-
-function SelectField({
-  control,
-  name,
-  label,
-  placeholder,
-  options,
-}: {
-  control: ReturnType<typeof useForm<FormValues>>['control']
-  name: keyof FormValues
-  label: string
-  placeholder: string
-  options: { value: string; label: string }[]
-}) {
-  return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value as string}>
-            <FormControl>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={placeholder} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {options.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  )
-}
+export type FormValues = z.infer<typeof schema>
 
 interface EventFormModalProps {
   categories: EventCategory[]
@@ -373,6 +273,7 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
             )}
 
             <Button type="submit" className="mt-2 w-full" disabled={submitting}>
+              {submitting && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
               {submitting ? 'Creating...' : 'Create Event'}
             </Button>
           </form>
