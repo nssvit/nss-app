@@ -247,6 +247,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           branch: userData.branch,
           year: userData.year,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
     return { error: error ?? null }
