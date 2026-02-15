@@ -1,15 +1,16 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAdmin } from '@/lib/auth-cache'
+import { getCachedRoleDefinitions } from '@/lib/query-cache'
 
 /**
  * Get all available roles
  */
 export async function getRoles() {
   await getAuthUser() // Cached auth check
-  const rows = await queries.getAllRoles()
+  const rows = await getCachedRoleDefinitions()
   return rows.map((r) => ({
     ...r,
     permissions: (r.permissions ?? {}) as Record<string, string[]>,
@@ -106,6 +107,7 @@ export async function createRoleDefinition(data: {
 }) {
   await requireAdmin()
   const result = await queries.createRoleDefinition(data)
+  revalidateTag('role-definitions')
   revalidatePath('/role-management')
   return result
 }
@@ -124,6 +126,7 @@ export async function updateRoleDefinition(
 ) {
   await requireAdmin()
   const result = await queries.updateRoleDefinition(roleId, data)
+  revalidateTag('role-definitions')
   revalidatePath('/role-management')
   return result
 }

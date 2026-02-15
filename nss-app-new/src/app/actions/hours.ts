@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
 
@@ -54,6 +54,7 @@ export async function approveHours(
     approvedHours,
     notes
   )
+  revalidateTag('dashboard-stats')
   revalidatePath('/hours-approval')
   revalidatePath('/reports')
   return result
@@ -75,6 +76,7 @@ export async function rejectHours(participationId: string, notes?: string) {
 export async function bulkApproveHours(participationIds: string[], notes?: string) {
   const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, notes)
+  revalidateTag('dashboard-stats')
   revalidatePath('/hours-approval')
   revalidatePath('/reports')
   return result

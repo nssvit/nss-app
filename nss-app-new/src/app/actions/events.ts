@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAnyRole } from '@/lib/auth-cache'
 import { mapEventRow } from '@/lib/mappers'
@@ -78,6 +78,7 @@ export async function createEvent(data: CreateEventInput) {
     volunteer.id,
     data.volunteerIds
   )
+  revalidateTag('dashboard-stats')
   revalidatePath('/events')
   revalidatePath('/event-registration')
   return result
@@ -126,6 +127,7 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
     await queries.resetEventAttendance(eventId)
   }
 
+  revalidateTag('dashboard-stats')
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   revalidatePath('/volunteers')
@@ -138,6 +140,7 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
 export async function deleteEvent(eventId: string) {
   await requireAnyRole('admin', 'head')
   const result = await queries.deleteEvent(eventId)
+  revalidateTag('dashboard-stats')
   revalidatePath('/events')
   return result
 }

@@ -1,20 +1,19 @@
 import { TabbedDashboard, VolunteerDashboard } from '@/components/dashboard'
 import { PageHeader } from '@/components/page-header'
-import { requireAuthServer } from '@/lib/auth-server'
 import { getCurrentVolunteer } from '@/lib/auth-cache'
 import { queries } from '@/db/queries'
 import { withRetry } from '@/db'
 import { mapTrendRow } from '@/lib/mappers'
+import { getCachedDashboardStats, getCachedMonthlyTrends } from '@/lib/query-cache'
 
 export default async function DashboardPage() {
-  await requireAuthServer()
   const volunteer = await getCurrentVolunteer()
   const isAdminOrHead = await withRetry(() => queries.volunteerHasAnyRole(volunteer.id, ['admin', 'head']))
 
   if (isAdminOrHead) {
     const [stats, trendRows] = await Promise.all([
-      withRetry(() => queries.getDashboardStats()),
-      withRetry(() => queries.getMonthlyActivityTrends()),
+      getCachedDashboardStats(),
+      getCachedMonthlyTrends(),
     ])
     const trends = trendRows.map(mapTrendRow)
 

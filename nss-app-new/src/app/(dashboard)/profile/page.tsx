@@ -1,11 +1,11 @@
 import { ProfilePage } from '@/components/profile'
-import { requireAuthServer } from '@/lib/auth-server'
+import { getAuthUser } from '@/lib/auth-cache'
 import { queries } from '@/db/queries'
 import { withRetry } from '@/db'
 import { mapParticipationRow } from '@/lib/mappers'
 
 export default async function Page() {
-  const user = await requireAuthServer()
+  const user = await getAuthUser()
   const volunteer = await withRetry(() => queries.getVolunteerByAuthId(user.id))
 
   if (!volunteer) {

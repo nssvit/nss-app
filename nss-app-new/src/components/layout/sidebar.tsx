@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { PanelLeftClose, PanelLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -17,11 +17,14 @@ interface SidebarProps {
 
 function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname()
+  const router = useRouter()
   const isActive = pathname === item.href
 
   const link = (
     <Link
       href={item.href}
+      onMouseEnter={() => router.prefetch(item.href)}
+      onFocus={() => router.prefetch(item.href)}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
         isActive
