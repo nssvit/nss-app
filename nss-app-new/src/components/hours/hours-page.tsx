@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import type { EventParticipationWithVolunteer } from '@/types'
 import { cn } from '@/lib/utils'
 import { useHours } from '@/hooks/use-hours'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { PageHeader } from '@/components/page-header'
+import { HoursCardList } from './hours-card-list'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -19,8 +22,14 @@ import { ApprovalModal } from './approval-modal'
 
 export function HoursPage() {
   const { pendingApprovals, loading, approveHours, rejectHours } = useHours()
+  const isMobile = useMediaQuery('(max-width: 767px)')
+  const [view, setView] = useState<'grid' | 'list'>('list')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+
+  useEffect(() => {
+    setView(isMobile ? 'grid' : 'list')
+  }, [isMobile])
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedParticipation, setSelectedParticipation] =
     useState<EventParticipationWithVolunteer | null>(null)
@@ -91,14 +100,23 @@ export function HoursPage() {
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
         </Select>
+        <ViewToggle view={view} onViewChange={setView} />
       </div>
 
-      <HoursTable
-        participations={filteredApprovals}
-        loading={loading}
-        onApprove={handleApprove}
-        onReject={handleReject}
-      />
+      {view === 'grid' ? (
+        <HoursCardList
+          participations={filteredApprovals}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      ) : (
+        <HoursTable
+          participations={filteredApprovals}
+          loading={loading}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      )}
 
       <ApprovalModal
         participation={selectedParticipation}

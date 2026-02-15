@@ -27,7 +27,7 @@ export function ActivityChart({ trends, loading }: ActivityChartProps) {
           <Skeleton className="h-4 w-60" />
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full rounded-xl" />
+          <Skeleton className="h-[250px] w-full rounded-xl sm:h-[300px]" />
         </CardContent>
       </Card>
     )
@@ -40,7 +40,7 @@ export function ActivityChart({ trends, loading }: ActivityChartProps) {
         <CardDescription>Monthly events and volunteer hours overview</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
+        <div className="h-[250px] w-full sm:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>

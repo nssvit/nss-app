@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Users, MoreHorizontal, Eye, Pencil } from 'lucide-react'
 import { useVolunteers } from '@/hooks/use-volunteers'
 import { useAuth } from '@/contexts/auth-context'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState } from '@/components/empty-state'
 import { ViewUserModal } from '@/components/users/view-user-modal'
 import { EditUserModal } from '@/components/users/edit-user-modal'
+import { VolunteersCardList } from './volunteers-card-list'
+import { ViewToggle } from '@/components/ui/view-toggle'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -55,11 +58,17 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
   const { volunteers, loading, refresh } = useVolunteers(initialData)
   const { hasRole } = useAuth()
   const isAdmin = hasRole('admin')
+  const isMobile = useMediaQuery('(max-width: 767px)')
+  const [view, setView] = useState<'grid' | 'list'>('list')
   const [search, setSearch] = useState('')
   const [viewVolunteer, setViewVolunteer] = useState<VolunteerWithStats | null>(null)
   const [editVolunteer, setEditVolunteer] = useState<VolunteerWithStats | null>(null)
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+
+  useEffect(() => {
+    setView(isMobile ? 'grid' : 'list')
+  }, [isMobile])
 
   const filtered = volunteers.filter((v) => {
     const query = search.toLowerCase()
@@ -78,14 +87,17 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
         description="Browse the volunteer directory and view participation stats."
       />
 
-      <div className="relative max-w-sm">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input
-          placeholder="Search by name, email, or roll number..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Input
+            placeholder="Search by name, email, or roll number..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <ViewToggle view={view} onViewChange={setView} />
       </div>
 
       {loading ? (
@@ -99,6 +111,14 @@ export function VolunteersPage({ initialData }: VolunteersPageProps) {
               ? 'No volunteers match your search criteria. Try a different query.'
               : 'No volunteers have been registered yet.'
           }
+        />
+      ) : view === 'grid' ? (
+        <VolunteersCardList
+          volunteers={filtered}
+          onVolunteerClick={(volunteer) => {
+            setViewVolunteer(volunteer)
+            setViewOpen(true)
+          }}
         />
       ) : (
         <div className="rounded-md border">
