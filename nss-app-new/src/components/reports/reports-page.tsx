@@ -1,6 +1,7 @@
 'use client'
 
 import { PageHeader } from '@/components/page-header'
+import { useAuth } from '@/contexts/auth-context'
 import { useReports } from '@/hooks/use-reports'
 import { ReportMetrics } from './report-metrics'
 import dynamic from 'next/dynamic'
@@ -18,14 +19,16 @@ import { TopEventsTable } from './top-events-table'
 import { ExportButton } from './export-button'
 
 export function ReportsPage() {
+  const { hasRole } = useAuth()
   const { stats, trends, events, loading } = useReports()
+  const isAdmin = hasRole('admin')
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Reports"
         description="Analytics and reports overview."
-        actions={<ExportButton />}
+        actions={isAdmin ? <ExportButton /> : undefined}
       />
 
       <ReportMetrics stats={stats} loading={loading} />
