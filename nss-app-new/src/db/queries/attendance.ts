@@ -235,11 +235,14 @@ export async function registerForEvent(
       throw new Error('Already registered for this event')
     }
 
-    // Check event capacity
-    const [event] = await tx.select().from(events).where(eq(events.id, eventId))
+    // Check event exists and is active
+    const [event] = await tx
+      .select()
+      .from(events)
+      .where(and(eq(events.id, eventId), eq(events.isActive, true)))
 
     if (!event) {
-      throw new Error('Event not found')
+      throw new Error('Event not found or is inactive')
     }
 
     if (event.maxParticipants) {

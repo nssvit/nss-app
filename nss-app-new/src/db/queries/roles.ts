@@ -201,6 +201,30 @@ export async function adminAssignRole(
  */
 export async function adminRevokeRole(volunteerId: string, roleDefinitionId: string) {
   return await db.transaction(async (tx) => {
+    // Check if this is the last active admin role
+    const [roleDef] = await tx
+      .select({ roleName: roleDefinitions.roleName })
+      .from(roleDefinitions)
+      .where(eq(roleDefinitions.id, roleDefinitionId))
+
+    if (roleDef?.roleName === 'admin') {
+      const [adminCount] = await tx
+        .select({ count: count() })
+        .from(userRoles)
+        .innerJoin(roleDefinitions, eq(userRoles.roleDefinitionId, roleDefinitions.id))
+        .where(
+          and(
+            eq(roleDefinitions.roleName, 'admin'),
+            eq(userRoles.isActive, true),
+            eq(roleDefinitions.isActive, true)
+          )
+        )
+
+      if ((adminCount?.count ?? 0) <= 1) {
+        throw new Error('Cannot revoke the last admin role. Assign another admin first.')
+      }
+    }
+
     await tx
       .update(userRoles)
       .set({

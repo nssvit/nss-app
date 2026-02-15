@@ -7,6 +7,7 @@
 
 import { cache } from 'react'
 import { queries } from '@/db/queries'
+import { withRetry } from '@/db'
 import { createClient } from '@/lib/supabase/server'
 
 export type CachedUser = {
@@ -43,10 +44,11 @@ export const getAuthUser = cache(async (): Promise<CachedUser> => {
 
 /**
  * Cached volunteer fetch - only runs once per request
+ * Wrapped with retry for transient connection failures to remote pooler.
  */
 export const getCurrentVolunteer = cache(async (): Promise<CachedVolunteer> => {
   const user = await getAuthUser()
-  const volunteer = await queries.getVolunteerByAuthId(user.id)
+  const volunteer = await withRetry(() => queries.getVolunteerByAuthId(user.id))
 
   if (!volunteer) {
     throw new Error('Volunteer profile not found')
@@ -68,7 +70,7 @@ export const getCurrentVolunteer = cache(async (): Promise<CachedVolunteer> => {
  */
 export async function requireAnyRole(...roles: string[]): Promise<CachedVolunteer> {
   const volunteer = await getCurrentVolunteer()
-  const hasRole = await queries.volunteerHasAnyRole(volunteer.id, roles)
+  const hasRole = await withRetry(() => queries.volunteerHasAnyRole(volunteer.id, roles))
   if (!hasRole) {
     throw new Error(`Unauthorized: Requires one of [${roles.join(', ')}]`)
   }

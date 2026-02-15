@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { toast } from 'sonner'
 import { Plus, Users, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,8 +42,8 @@ import { createEvent } from '@/app/actions/events'
 const schema = z.object({
   eventName: z.string().min(1, 'Event name is required').max(100),
   description: z.string().max(500).optional(),
-  startDate: z.string().min(1, 'Start date/time is required'),
-  endDate: z.string().min(1, 'End date/time is required'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
   location: z.string().min(1, 'Location is required').max(200),
   maxParticipants: z
     .string()
@@ -199,18 +200,21 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
 
   async function onSubmit(values: FormValues) {
     setSubmitting(true)
+    const today = new Date().toISOString().split('T')[0]
     try {
       await createEvent({
         eventName: values.eventName,
         description: values.description,
-        startDate: values.startDate,
-        endDate: values.endDate,
+        startDate: values.startDate || today,
+        endDate: values.endDate || values.startDate || today,
         declaredHours: Number(values.declaredHours),
         categoryId: Number(values.categoryId),
         maxParticipants: Number(values.maxParticipants),
         eventStatus: values.eventStatus,
         location: values.location,
+        volunteerIds: selectedVolunteers.length > 0 ? selectedVolunteers : undefined,
       })
+      toast.success('Event created successfully!')
       form.reset()
       setSelectedVolunteers([])
       setVolunteerSearch('')
@@ -218,6 +222,7 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
       setOpen(false)
       onSuccess?.()
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create event')
       console.error('Failed to create event:', err)
     } finally {
       setSubmitting(false)
@@ -232,10 +237,11 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
           Create Event
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+      <DialogContent className="max-h-[90vh] grid-rows-[auto_1fr] overflow-hidden sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create New Event</DialogTitle>
         </DialogHeader>
+        <div className="-mr-2 overflow-y-auto pr-2">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <TextField
@@ -255,14 +261,14 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
               <TextField
                 control={form.control}
                 name="startDate"
-                label="Start Date & Time"
-                type="datetime-local"
+                label="Start Date"
+                type="date"
               />
               <TextField
                 control={form.control}
                 name="endDate"
-                label="End Date & Time"
-                type="datetime-local"
+                label="End Date"
+                type="date"
               />
             </div>
             <TextField
@@ -371,6 +377,7 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
             </Button>
           </form>
         </Form>
+        </div>
       </DialogContent>
     </Dialog>
   )

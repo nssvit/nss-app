@@ -44,6 +44,16 @@ export const EVENT_STATUS_DISPLAY: Record<EventStatus, string> = {
   [EVENT_STATUS.CANCELLED]: 'Cancelled',
 }
 
+/** Valid event status transitions — used by edit form dropdown and server-side validation */
+export const STATUS_TRANSITIONS: Record<string, string[]> = {
+  planned: ['registration_open', 'ongoing', 'cancelled'],
+  registration_open: ['registration_closed', 'ongoing', 'cancelled'],
+  registration_closed: ['ongoing', 'cancelled'],
+  ongoing: ['completed', 'cancelled'],
+  completed: ['registration_open'],          // allow reopening
+  cancelled: ['planned', 'registration_open'], // allow reviving
+}
+
 export const EVENT_STATUS_COLORS: Record<EventStatus, string> = {
   [EVENT_STATUS.PLANNED]: 'bg-gray-500/20 text-gray-400',
   [EVENT_STATUS.REGISTRATION_OPEN]: 'bg-blue-500/20 text-blue-400',

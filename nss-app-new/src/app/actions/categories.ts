@@ -1,9 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { eq } from 'drizzle-orm'
+import { eq, and, count } from 'drizzle-orm'
 import { db } from '@/db'
-import { eventCategories } from '@/db/schema'
+import { eventCategories, events } from '@/db/schema'
 import { getAuthUser, requireAdmin } from '@/lib/auth-cache'
 
 /**
@@ -121,6 +121,18 @@ export async function updateCategory(
  */
 export async function deactivateCategory(categoryId: number) {
   await requireAdmin()
+
+  // Prevent deactivating category with active events
+  const [activeEvents] = await db
+    .select({ count: count() })
+    .from(events)
+    .where(and(eq(events.categoryId, categoryId), eq(events.isActive, true)))
+
+  if ((activeEvents?.count ?? 0) > 0) {
+    throw new Error(
+      `Cannot deactivate category: ${activeEvents.count} active event(s) still use this category. Reassign or delete those events first.`
+    )
+  }
 
   const [result] = await db
     .update(eventCategories)

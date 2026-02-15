@@ -26,7 +26,8 @@ export async function getDashboardStats() {
   const [hoursSum] = await db
     .select({ total: sum(eventParticipation.approvedHours) })
     .from(eventParticipation)
-    .where(eq(eventParticipation.approvalStatus, 'approved'))
+    .innerJoin(events, eq(eventParticipation.eventId, events.id))
+    .where(and(eq(eventParticipation.approvalStatus, 'approved'), eq(events.isActive, true)))
 
   const [ongoingCount] = await db
     .select({ count: count() })

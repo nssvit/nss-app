@@ -66,11 +66,15 @@ export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalPr
 
   const initials = `${volunteer.firstName[0]}${volunteer.lastName[0]}`.toUpperCase()
 
-  // Compute hours by category
+  // Compute hours by category (skip rejected participations)
   const hoursByCategory = participation.reduce(
     (acc, p) => {
+      if (p.approvalStatus === 'rejected') return acc
       const cat = p.categoryName || 'Other'
-      acc[cat] = (acc[cat] || 0) + (p.approvedHours ?? p.hoursAttended ?? 0)
+      const hours = p.approvalStatus === 'approved'
+        ? (p.approvedHours ?? 0)
+        : (p.hoursAttended ?? 0)
+      acc[cat] = (acc[cat] || 0) + hours
       return acc
     },
     {} as Record<string, number>

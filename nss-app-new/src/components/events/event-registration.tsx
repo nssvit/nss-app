@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { Calendar, MapPin, Clock } from 'lucide-react'
+import { toast } from 'sonner'
 import { useEvents } from '@/hooks/use-events'
 import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,8 +14,9 @@ import { EVENT_STATUS } from '@/lib/constants'
 import { registerForEvent } from '@/app/actions/events'
 
 export function EventRegistration() {
-  const { events, loading } = useEvents()
+  const { events, loading, refresh } = useEvents()
   const [registering, setRegistering] = useState<string | null>(null)
+  const [registeredIds, setRegisteredIds] = useState<Set<string>>(new Set())
 
   const openEvents = useMemo(() => {
     return events.filter((e) => e.eventStatus === EVENT_STATUS.REGISTRATION_OPEN)
@@ -24,7 +26,18 @@ export function EventRegistration() {
     setRegistering(eventId)
     try {
       await registerForEvent(eventId)
+      setRegisteredIds((prev) => new Set(prev).add(eventId))
+      toast.success('Registered successfully!')
+      refresh()
     } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Failed to register'
+      if (msg.includes('Already registered')) {
+        toast.info('You are already registered for this event')
+        setRegisteredIds((prev) => new Set(prev).add(eventId))
+      } else {
+        toast.error(msg)
+      }
       console.error('Failed to register:', err)
     } finally {
       setRegistering(null)
@@ -64,6 +77,8 @@ export function EventRegistration() {
                 })
               : 'TBD'
 
+            const alreadyRegistered = registeredIds.has(event.id)
+
             return (
               <Card key={event.id} className="transition-shadow hover:shadow-md">
                 <CardHeader>
@@ -90,9 +105,14 @@ export function EventRegistration() {
                   <Button
                     className="mt-1 w-full"
                     onClick={() => handleRegister(event.id)}
-                    disabled={registering === event.id}
+                    disabled={registering === event.id || alreadyRegistered}
+                    variant={alreadyRegistered ? 'secondary' : 'default'}
                   >
-                    {registering === event.id ? 'Registering...' : 'Register'}
+                    {registering === event.id
+                      ? 'Registering...'
+                      : alreadyRegistered
+                        ? 'Registered'
+                        : 'Register'}
                   </Button>
                 </CardContent>
               </Card>

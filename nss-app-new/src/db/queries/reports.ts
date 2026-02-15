@@ -106,12 +106,13 @@ export async function getVolunteerHoursSummary() {
     SELECT
       v.id as volunteer_id,
       CONCAT(v.first_name, ' ', v.last_name) as volunteer_name,
-      COALESCE(SUM(ep.hours_attended), 0)::int as total_hours,
+      COALESCE(SUM(CASE WHEN ep.approval_status != 'rejected' THEN ep.hours_attended ELSE 0 END), 0)::int as total_hours,
       COALESCE(SUM(CASE WHEN ep.approval_status = 'approved' THEN ep.approved_hours ELSE 0 END), 0)::int as approved_hours,
       COUNT(DISTINCT ep.event_id)::int as events_count,
       MAX(ep.attendance_date) as last_activity
     FROM volunteers v
     LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
+      AND ep.event_id IN (SELECT id FROM events WHERE is_active = true)
     WHERE v.is_active = true
     GROUP BY v.id, v.first_name, v.last_name
     ORDER BY total_hours DESC
@@ -148,6 +149,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     JOIN events e ON ep.event_id = e.id
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     WHERE ep.volunteer_id = ${volunteerId}
+      AND e.is_active = true
     ORDER BY e.start_date DESC
   `)
 
