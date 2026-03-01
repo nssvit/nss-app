@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Calendar, MapPin, Users, Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,7 +23,7 @@ interface AttendanceCardProps {
   event: AttendanceEvent
 }
 
-export function AttendanceCard({ event }: AttendanceCardProps) {
+export const AttendanceCard = memo(function AttendanceCard({ event }: AttendanceCardProps) {
   const formattedDate = event.startDate
     ? new Date(event.startDate).toLocaleDateString('en-IN', {
         day: 'numeric',
@@ -80,4 +81,4 @@ export function AttendanceCard({ event }: AttendanceCardProps) {
       </CardContent>
     </Card>
   )
-}
+})

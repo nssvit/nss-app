@@ -7,6 +7,7 @@ import { db } from '@/db'
 import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer, requireAdmin } from '@/lib/auth-cache'
+import { getCachedVolunteerHoursSummary } from '@/lib/query-cache'
 import { mapVolunteerRow, mapParticipationRow, mapVolunteerHoursSummaryRow } from '@/lib/mappers'
 import { logAudit } from '@/lib/audit'
 
@@ -100,7 +101,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
  */
 export async function getVolunteerHoursSummary() {
   await getAuthUser()
-  const rows = await queries.getVolunteerHoursSummary()
+  const rows = await getCachedVolunteerHoursSummary()
   return rows.map(mapVolunteerHoursSummaryRow)
 }
 

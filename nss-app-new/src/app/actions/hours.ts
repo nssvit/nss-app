@@ -1,10 +1,11 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { queries } from '@/db/queries'
 import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
 import { logAudit } from '@/lib/audit'
+import { invalidateHoursMutation } from '@/lib/cache-invalidation'
 
 const notesSchema = z.string().max(500, 'Notes must be 500 characters or fewer').optional()
 
@@ -61,9 +62,7 @@ export async function approveHours(
     validatedNotes
   )
   logAudit({ action: 'hours.approve', actorId: volunteer.id, targetType: 'participation', targetId: participationId, details: { approvedHours } })
-  revalidateTag('dashboard-stats')
-  revalidatePath('/hours-approval')
-  revalidatePath('/reports')
+  await invalidateHoursMutation()
   return result
 }
 
@@ -87,9 +86,7 @@ export async function bulkApproveHours(participationIds: string[], notes?: strin
   const validatedNotes = notesSchema.parse(notes)
   const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, validatedNotes)
   logAudit({ action: 'hours.bulk_approve', actorId: volunteer.id, targetType: 'participation', details: { count: participationIds.length } })
-  revalidateTag('dashboard-stats')
-  revalidatePath('/hours-approval')
-  revalidatePath('/reports')
+  await invalidateHoursMutation()
   return result
 }
 

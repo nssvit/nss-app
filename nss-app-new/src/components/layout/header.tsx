@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Link from 'next/link'
 import { Moon, Sun, Menu, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -16,16 +17,50 @@ import { useTheme } from '@/contexts/theme-context'
 import { useAuth } from '@/contexts/auth-context'
 import { usePageTitle } from '@/contexts/page-title-context'
 
+const ThemeToggle = memo(function ThemeToggle() {
+  const { toggleTheme } = useTheme()
+  return (
+    <Button variant="ghost" size="icon" onClick={toggleTheme}>
+      <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+      <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  )
+})
+
+const ProfileMenu = memo(function ProfileMenu() {
+  const { currentUser, signOut } = useAuth()
+  const initials = currentUser ? `${currentUser.firstName[0]}${currentUser.lastName[0]}` : 'U'
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem asChild>
+          <Link href="/profile">Profile</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/settings">Settings</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => signOut()}>Sign out</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+})
+
 interface HeaderProps {
   onMobileMenuOpen: () => void
 }
 
 export function Header({ onMobileMenuOpen }: HeaderProps) {
-  const { toggleTheme } = useTheme()
-  const { currentUser, signOut } = useAuth()
   const { title } = usePageTitle()
-
-  const initials = currentUser ? `${currentUser.firstName[0]}${currentUser.lastName[0]}` : 'U'
 
   return (
     <header className="bg-background/80 border-b backdrop-blur-sm">
@@ -58,31 +93,8 @@ export function Header({ onMobileMenuOpen }: HeaderProps) {
           </kbd>
         </Button>
 
-        <Button variant="ghost" size="icon" onClick={toggleTheme}>
-          <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href="/profile">Profile</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/settings">Settings</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => signOut()}>Sign out</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ThemeToggle />
+        <ProfileMenu />
       </div>
     </header>
   )

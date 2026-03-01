@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { LayoutGrid, List } from 'lucide-react'
 import { useEvents } from '@/hooks/use-events'
 import { useAuth } from '@/contexts/auth-context'
@@ -67,6 +67,11 @@ export function EventsPage({ initialData }: EventsPageProps) {
 
   const { paginatedItems, currentPage, totalPages, totalItems, setCurrentPage } = usePagination(filteredEvents, 20)
 
+  const handleEventClick = useCallback((event: EventWithStats) => {
+    setSelectedEvent(event)
+    setDetailOpen(true)
+  }, [])
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -113,26 +118,12 @@ export function EventsPage({ initialData }: EventsPageProps) {
       {view === 'grid' ? (
         <EventsGrid
           events={paginatedItems}
-          onEventClick={
-            canManageEvents
-              ? (event) => {
-                  setSelectedEvent(event)
-                  setDetailOpen(true)
-                }
-              : undefined
-          }
+          onEventClick={canManageEvents ? handleEventClick : undefined}
         />
       ) : (
         <EventsTable
           events={paginatedItems}
-          onEventClick={
-            canManageEvents
-              ? (event) => {
-                  setSelectedEvent(event)
-                  setDetailOpen(true)
-                }
-              : undefined
-          }
+          onEventClick={canManageEvents ? handleEventClick : undefined}
         />
       )}
 

@@ -61,6 +61,7 @@ export async function getEventById(eventId: string) {
       category: true,
       createdBy: true,
       participations: {
+        limit: 100,
         with: {
           volunteer: true,
         },

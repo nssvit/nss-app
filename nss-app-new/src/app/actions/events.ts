@@ -1,11 +1,12 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAnyRole } from '@/lib/auth-cache'
 import { mapEventRow } from '@/lib/mappers'
 import { STATUS_TRANSITIONS } from '@/lib/constants'
 import { logAudit } from '@/lib/audit'
+import { invalidateDashboardCache, invalidateReportsCache } from '@/lib/cache-invalidation'
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -80,7 +81,8 @@ export async function createEvent(data: CreateEventInput) {
     data.volunteerIds
   )
   logAudit({ action: 'event.create', actorId: volunteer.id, targetType: 'event', details: { eventName: data.eventName } })
-  revalidateTag('dashboard-stats')
+  await invalidateDashboardCache()
+  await invalidateReportsCache()
   revalidatePath('/events')
   revalidatePath('/event-registration')
   return result
@@ -130,7 +132,8 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
   }
 
   logAudit({ action: 'event.update', actorId: actor.id, targetType: 'event', targetId: eventId, details: { ...updates } })
-  revalidateTag('dashboard-stats')
+  await invalidateDashboardCache()
+  await invalidateReportsCache()
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   revalidatePath('/volunteers')
@@ -144,7 +147,8 @@ export async function deleteEvent(eventId: string) {
   const actor = await requireAnyRole('admin', 'head')
   const result = await queries.deleteEvent(eventId)
   logAudit({ action: 'event.delete', actorId: actor.id, targetType: 'event', targetId: eventId })
-  revalidateTag('dashboard-stats')
+  await invalidateDashboardCache()
+  await invalidateReportsCache()
   revalidatePath('/events')
   return result
 }

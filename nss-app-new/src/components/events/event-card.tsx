@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Calendar, MapPin, Users, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EventStatusBadge } from './event-status-badge'
@@ -8,7 +9,7 @@ interface EventCardProps {
   onClick?: () => void
 }
 
-export function EventCard({ event, onClick }: EventCardProps) {
+export const EventCard = memo(function EventCard({ event, onClick }: EventCardProps) {
   const formattedDate = event.startDate
     ? new Date(event.startDate).toLocaleDateString('en-IN', {
         day: 'numeric',
@@ -66,4 +67,4 @@ export function EventCard({ event, onClick }: EventCardProps) {
       </CardContent>
     </Card>
   )
-}
+})
