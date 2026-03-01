@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { PanelLeftClose, PanelLeft } from 'lucide-react'
@@ -15,7 +16,7 @@ interface SidebarProps {
   onToggle: () => void
 }
 
-function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+const NavLink = memo(function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const isActive = pathname === item.href
@@ -48,16 +49,20 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   }
 
   return link
-}
+})
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { currentUser } = useAuth()
   const userRoles = currentUser?.roles ?? []
-  const filtered = getFilteredNavItems(userRoles)
 
-  const mainItems = filtered.filter((i) => i.section === 'main')
-  const managementItems = filtered.filter((i) => i.section === 'management')
-  const adminItems = filtered.filter((i) => i.section === 'admin')
+  const { mainItems, managementItems, adminItems } = useMemo(() => {
+    const filtered = getFilteredNavItems(userRoles)
+    return {
+      mainItems: filtered.filter((i) => i.section === 'main'),
+      managementItems: filtered.filter((i) => i.section === 'management'),
+      adminItems: filtered.filter((i) => i.section === 'admin'),
+    }
+  }, [userRoles])
 
   return (
     <aside

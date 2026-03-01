@@ -1,10 +1,12 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
+import { getCachedAttendanceSummary } from '@/lib/query-cache'
 import { mapAttendanceSummaryRow } from '@/lib/mappers'
 import { logAudit } from '@/lib/audit'
+import { invalidateAttendanceMutation } from '@/lib/cache-invalidation'
 
 /**
  * Mark attendance for multiple volunteers at an event
@@ -17,9 +19,7 @@ export async function markAttendance(
   const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.markEventAttendance(eventId, volunteerIds, declaredHours, volunteer.id)
   logAudit({ action: 'attendance.mark', actorId: volunteer.id, targetType: 'event', targetId: eventId, details: { volunteerCount: volunteerIds.length, declaredHours } })
-  revalidateTag('dashboard-stats')
-  revalidatePath('/attendance')
-  revalidatePath(`/events/${eventId}`)
+  await invalidateAttendanceMutation(eventId)
   return result
 }
 
@@ -29,9 +29,7 @@ export async function markAttendance(
 export async function updateAttendance(eventId: string, volunteerIds: string[]) {
   const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.updateEventAttendance(eventId, volunteerIds, volunteer.id)
-  revalidateTag('dashboard-stats')
-  revalidatePath('/attendance')
-  revalidatePath(`/events/${eventId}`)
+  await invalidateAttendanceMutation(eventId)
   return result
 }
 
@@ -42,9 +40,7 @@ export async function syncAttendance(eventId: string, selectedVolunteerIds: stri
   const volunteer = await requireAnyRole('admin', 'head')
   const result = await queries.syncEventAttendance(eventId, selectedVolunteerIds)
   logAudit({ action: 'attendance.sync', actorId: volunteer.id, targetType: 'event', targetId: eventId, details: { volunteerCount: selectedVolunteerIds.length } })
-  revalidateTag('dashboard-stats')
-  revalidatePath('/attendance')
-  revalidatePath(`/events/${eventId}`)
+  await invalidateAttendanceMutation(eventId)
   return result
 }
 
@@ -53,7 +49,7 @@ export async function syncAttendance(eventId: string, selectedVolunteerIds: stri
  */
 export async function getAttendanceSummary() {
   await getAuthUser()
-  const rows = await queries.getAttendanceSummary()
+  const rows = await getCachedAttendanceSummary()
   return rows.map(mapAttendanceSummaryRow)
 }
 
@@ -72,8 +68,7 @@ export async function updateParticipationStatus(
     hoursAttended,
     notes,
   })
-  revalidateTag('dashboard-stats')
-  revalidatePath('/attendance')
+  await invalidateAttendanceMutation()
   return result
 }
 
@@ -97,9 +92,7 @@ export async function bulkMarkAttendance(params: {
     recordedBy: volunteer.id,
   })
   logAudit({ action: 'attendance.bulk', actorId: volunteer.id, targetType: 'event', targetId: params.eventId, details: { volunteerCount: params.volunteerIds.length, status: params.status } })
-  revalidateTag('dashboard-stats')
-  revalidatePath('/attendance')
-  revalidatePath(`/events/${params.eventId}`)
+  await invalidateAttendanceMutation(params.eventId)
   return result
 }
 

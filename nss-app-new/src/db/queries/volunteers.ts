@@ -71,6 +71,7 @@ export async function getVolunteerById(volunteerId: string) {
         },
       },
       participations: {
+        limit: 100,
         with: {
           event: {
             with: {

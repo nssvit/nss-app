@@ -1,10 +1,11 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAdmin } from '@/lib/auth-cache'
 import { getCachedRoleDefinitions } from '@/lib/query-cache'
 import { logAudit } from '@/lib/audit'
+import { invalidateRolesCache } from '@/lib/cache-invalidation'
 
 /**
  * Get all available roles
@@ -109,7 +110,7 @@ export async function createRoleDefinition(data: {
   const admin = await requireAdmin()
   const result = await queries.createRoleDefinition(data)
   logAudit({ action: 'role_definition.create', actorId: admin.id, targetType: 'roleDefinition', details: { roleName: data.roleName } })
-  revalidateTag('role-definitions')
+  await invalidateRolesCache()
   revalidatePath('/role-management')
   return result
 }
@@ -129,7 +130,7 @@ export async function updateRoleDefinition(
   const admin = await requireAdmin()
   const result = await queries.updateRoleDefinition(roleId, data)
   logAudit({ action: 'role_definition.update', actorId: admin.id, targetType: 'roleDefinition', targetId: roleId, details: data })
-  revalidateTag('role-definitions')
+  await invalidateRolesCache()
   revalidatePath('/role-management')
   return result
 }

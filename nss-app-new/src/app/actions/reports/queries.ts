@@ -1,7 +1,10 @@
 'use server'
 
-import { queries } from '@/db/queries'
 import { getAuthUser } from '@/lib/auth-cache'
+import {
+  getCachedCategoryDistribution,
+  getCachedTopEventsByImpact,
+} from '@/lib/query-cache'
 import {
   mapCategoryDistributionRow,
   mapTopEventRow,
@@ -13,7 +16,7 @@ import {
  */
 export async function getCategoryDistribution() {
   await getAuthUser()
-  const rows = await queries.getCategoryDistribution()
+  const rows = await getCachedCategoryDistribution()
   return rows.map(mapCategoryDistributionRow)
 }
 
@@ -23,6 +26,6 @@ export async function getCategoryDistribution() {
  */
 export async function getTopEventsByImpact(limit?: number) {
   await getAuthUser()
-  const rows = await queries.getTopEventsByImpact(limit)
+  const rows = await getCachedTopEventsByImpact(limit)
   return rows.map(mapTopEventRow)
 }
