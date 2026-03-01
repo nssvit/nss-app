@@ -1,0 +1,61 @@
+name: nss_app
+description: NSS Volunteer Management System - Flutter Mobile App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Supabase
+  supabase_flutter: ^2.8.0
+
+  # State Management
+  flutter_riverpod: ^3.2.1
+  riverpod_annotation: ^4.0.2
+
+  # Routing
+  go_router: ^17.1.0
+
+  # Data Classes
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.11.0
+
+  # Charts
+  fl_chart: ^1.1.1
+
+  # Storage
+  shared_preferences: ^2.3.3
+
+  # Forms
+  flutter_form_builder: ^10.3.0+2
+  form_builder_validators: ^11.0.0
+
+  # Utilities
+  intl: ^0.20.2
+  csv: ^7.1.0
+  share_plus: ^12.0.1
+  path_provider: ^2.1.5
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  flutter_dotenv: ^6.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  freezed: ^3.2.5
+  json_serializable: ^6.8.0
+  riverpod_generator: ^4.0.3
+  riverpod_lint: ^3.1.3
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env

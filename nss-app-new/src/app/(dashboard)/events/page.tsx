@@ -1,28 +1,19 @@
 import { EventsPage } from '@/components/events'
 import { getCurrentVolunteer } from '@/lib/auth-cache'
 import { queries } from '@/db/queries'
+import { getCachedCategories } from '@/lib/query-cache'
 import { mapEventRow } from '@/lib/mappers'
-import { eq } from 'drizzle-orm'
-import { db, withRetry } from '@/db'
-import { eventCategories } from '@/db/schema'
+import { withRetry } from '@/db'
 
 export default async function Events() {
   const volunteer = await getCurrentVolunteer()
-  const [eventRows, categoryRows] = await Promise.all([
-    withRetry(() => queries.getEventsWithStats(volunteer.id)),
-    withRetry(() =>
-      db.query.eventCategories.findMany({
-        where: eq(eventCategories.isActive, true),
-        orderBy: (categories, { asc }) => [asc(categories.categoryName)],
-      })
-    ),
-  ])
-  const events = eventRows.map(mapEventRow)
-  const categories = categoryRows.map((r) => ({
-    ...r,
-    colorHex: r.colorHex ?? '#6366F1',
-    isActive: r.isActive ?? true,
-  }))
 
+  // Parallelize event fetch + cached categories lookup
+  const [eventRows, categories] = await Promise.all([
+    withRetry(() => queries.getEventsWithStats(volunteer.id)),
+    getCachedCategories(),
+  ])
+
+  const events = eventRows.map(mapEventRow)
   return <EventsPage initialData={{ events, categories }} />
 }

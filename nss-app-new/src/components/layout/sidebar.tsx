@@ -27,7 +27,7 @@ const NavLink = memo(function NavLink({ item, collapsed }: { item: NavItem; coll
       onMouseEnter={() => router.prefetch(item.href)}
       onFocus={() => router.prefetch(item.href)}
       className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+        'flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
         isActive
           ? 'bg-primary/10 text-primary'
           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
@@ -72,7 +72,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       )}
     >
       <div className="flex h-14 items-center justify-between px-4">
-        {!collapsed && <span className="text-lg font-bold">NSS App</span>}
+        {!collapsed && <span className="text-sm font-semibold tracking-tight">NSS App</span>}
         <Button variant="ghost" size="icon" onClick={onToggle} className="h-8 w-8">
           {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </Button>

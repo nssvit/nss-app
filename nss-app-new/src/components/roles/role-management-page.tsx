@@ -79,7 +79,7 @@ export function RoleManagementPage() {
         onOpenChange={setRoleModalOpen}
       />
 
-      <AssignRoleModal open={assignModalOpen} onOpenChange={setAssignModalOpen} />
+      <AssignRoleModal open={assignModalOpen} onOpenChange={setAssignModalOpen} onSuccess={refresh} />
     </div>
   )
 }

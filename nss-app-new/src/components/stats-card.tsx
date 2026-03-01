@@ -15,11 +15,11 @@ interface StatsCardProps {
 export function StatsCard({ title, value, icon: Icon, trend, className }: StatsCardProps) {
   return (
     <Card className={cn('relative overflow-hidden', className)}>
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-muted-foreground text-sm font-medium">{title}</p>
-            <p className="text-3xl font-bold tracking-tight">{value}</p>
+            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">{title}</p>
+            <p className="text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
             {trend && (
               <p
                 className={cn(
@@ -32,8 +32,8 @@ export function StatsCard({ title, value, icon: Icon, trend, className }: StatsC
               </p>
             )}
           </div>
-          <div className="bg-primary/10 rounded-xl p-3">
-            <Icon className="text-primary h-6 w-6" />
+          <div className="bg-primary/10 rounded-lg p-2.5">
+            <Icon className="text-primary h-5 w-5" />
           </div>
         </div>
       </CardContent>

@@ -70,7 +70,7 @@ export function RecentEvents() {
             return (
               <div
                 key={event.id}
-                className="bg-muted/50 flex items-center justify-between rounded-lg p-3"
+                className="flex flex-col gap-2 border-b border-border/50 py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="truncate text-sm font-medium">{event.eventName}</p>
@@ -88,7 +88,7 @@ export function RecentEvents() {
                     {event.location && (
                       <span className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {event.location}
+                        <span className="truncate max-w-[120px] sm:max-w-none">{event.location}</span>
                       </span>
                     )}
                   </div>

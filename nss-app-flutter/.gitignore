@@ -1,0 +1,35 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# macOS
+.DS_Store
+*.swp
+
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# Environment
+.env
+
+# Android
+/android/app/debug
+/android/app/profile
+/android/app/release
+*.jks
+*.keystore
+local.properties
+
+# iOS
+/ios/Flutter/
+/ios/Pods/
+/ios/.symlinks/

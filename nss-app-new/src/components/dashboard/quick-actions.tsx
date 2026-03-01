@@ -41,13 +41,13 @@ const actions: QuickAction[] = [
 
 export function QuickActions() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {actions.map((action) => (
         <Link key={action.label} href={action.href}>
-          <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
-            <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-              <div className={cn('rounded-xl p-3', action.color)}>
-                <action.icon className="h-6 w-6" />
+          <Card className="hover:bg-accent/50 cursor-pointer transition-colors">
+            <CardContent className="flex flex-col items-center gap-3 p-4 text-center sm:p-6">
+              <div className={cn('rounded-lg p-2.5', action.color)}>
+                <action.icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
               <p className="text-sm font-medium">{action.label}</p>
             </CardContent>

@@ -3,42 +3,37 @@
  * Provides dashboard-specific statistics and activity trends
  */
 
-import { eq, and, sql, count, sum } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { parseRows, monthlyTrendRowSchema } from '../query-validators'
 import { db } from '../index'
-import { volunteers, events, eventParticipation } from '../schema'
 
 /**
- * Get dashboard statistics
- * Replaces: get_dashboard_stats RPC function
+ * Get dashboard statistics — single query replaces 4 sequential round-trips.
+ * Uses scalar subqueries so Postgres resolves all counts in one execution.
  */
 export async function getDashboardStats() {
-  const [eventsCount] = await db
-    .select({ count: count() })
-    .from(events)
-    .where(eq(events.isActive, true))
+  const result = await db.execute(sql`
+    SELECT
+      (SELECT COUNT(*)::int FROM events WHERE is_active = true) as total_events,
+      (SELECT COUNT(*)::int FROM volunteers WHERE is_active = true) as active_volunteers,
+      (SELECT COALESCE(SUM(ep.approved_hours), 0)::int
+       FROM event_participation ep
+       INNER JOIN events e ON ep.event_id = e.id
+       WHERE ep.approval_status = 'approved' AND e.is_active = true) as total_hours,
+      (SELECT COUNT(*)::int FROM events WHERE is_active = true AND event_status = 'ongoing') as ongoing_projects
+  `)
 
-  const [volunteersCount] = await db
-    .select({ count: count() })
-    .from(volunteers)
-    .where(eq(volunteers.isActive, true))
-
-  const [hoursSum] = await db
-    .select({ total: sum(eventParticipation.approvedHours) })
-    .from(eventParticipation)
-    .innerJoin(events, eq(eventParticipation.eventId, events.id))
-    .where(and(eq(eventParticipation.approvalStatus, 'approved'), eq(events.isActive, true)))
-
-  const [ongoingCount] = await db
-    .select({ count: count() })
-    .from(events)
-    .where(and(eq(events.isActive, true), eq(events.eventStatus, 'ongoing')))
-
+  const row = (Array.isArray(result) ? result[0] : null) as {
+    total_events: number
+    active_volunteers: number
+    total_hours: number
+    ongoing_projects: number
+  } | null
   return {
-    totalEvents: eventsCount?.count ?? 0,
-    activeVolunteers: volunteersCount?.count ?? 0,
-    totalHours: Number(hoursSum?.total) || 0,
-    ongoingProjects: ongoingCount?.count ?? 0,
+    totalEvents: Number(row?.total_events) || 0,
+    activeVolunteers: Number(row?.active_volunteers) || 0,
+    totalHours: Number(row?.total_hours) || 0,
+    ongoingProjects: Number(row?.ongoing_projects) || 0,
   }
 }
 
