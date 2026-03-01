@@ -9,7 +9,6 @@ import {
   Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import type { EventWithStats } from '@/types'
 
 interface EventInfoDisplayProps {
@@ -44,93 +43,101 @@ export function EventInfoDisplay({
     : 'TBD'
 
   return (
-    <>
-      <div className="grid gap-2">
-        {event.description && (
-          <p className="text-muted-foreground text-sm">
-            {event.description}
-          </p>
-        )}
-        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          {event.categoryName && (
-            <div className="text-muted-foreground flex items-center gap-2">
-              <span
-                className="inline-block h-2.5 w-2.5 rounded-full"
-                style={{
-                  backgroundColor: event.categoryColor ?? '#6b7280',
-                }}
-              />
+    <div className="space-y-4">
+      {event.description && (
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {event.description}
+        </p>
+      )}
+
+      {/* Metadata grid */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {event.categoryName && (
+          <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2.5">
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{
+                backgroundColor: event.categoryColor ?? '#6b7280',
+              }}
+            />
+            <span className="truncate text-sm font-medium">
               {event.categoryName}
-            </div>
-          )}
-          <div className="text-muted-foreground flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            {formattedDate}
+            </span>
           </div>
-          {event.location && (
-            <div className="text-muted-foreground flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
+        )}
+        <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2.5">
+          <Calendar className="text-muted-foreground h-4 w-4 shrink-0" />
+          <span className="truncate text-sm font-medium">{formattedDate}</span>
+        </div>
+        {event.location && (
+          <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2.5">
+            <MapPin className="text-muted-foreground h-4 w-4 shrink-0" />
+            <span className="truncate text-sm font-medium">
               {event.location}
-            </div>
-          )}
-          <div className="text-muted-foreground flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            {event.declaredHours}h credits
+            </span>
           </div>
-          <div className="text-muted-foreground flex items-center gap-2">
-            <Users className="h-4 w-4" />
+        )}
+        <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2.5">
+          <Clock className="text-muted-foreground h-4 w-4 shrink-0" />
+          <span className="text-sm font-medium">
+            {event.declaredHours}h credits
+          </span>
+        </div>
+        <div className="bg-muted/50 flex items-center gap-2 rounded-lg px-3 py-2.5">
+          <Users className="text-muted-foreground h-4 w-4 shrink-0" />
+          <span className="text-sm font-medium">
             {participantCount} participant
             {participantCount !== 1 ? 's' : ''}
-          </div>
+          </span>
         </div>
-        {canManage && (
-          <div className="mt-1 flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEdit}
-            >
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              Edit
-            </Button>
-            {confirmDelete ? (
-              <div className="flex items-center gap-1.5">
-                <span className="text-destructive text-xs font-medium">
-                  Delete this event?
-                </span>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={deleting}
-                  onClick={onDeleteConfirm}
-                >
-                  {deleting ? 'Deleting...' : 'Yes, delete'}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={deleting}
-                  onClick={onDeleteCancel}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : (
+      </div>
+
+      {/* Action buttons */}
+      {canManage && (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEdit}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            Edit
+          </Button>
+          {confirmDelete ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-destructive text-xs font-medium">
+                Delete this event?
+              </span>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={deleting}
+                onClick={onDeleteConfirm}
+              >
+                {deleting ? 'Deleting...' : 'Yes, delete'}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="text-destructive hover:bg-destructive/10"
-                onClick={onDeleteClick}
+                disabled={deleting}
+                onClick={onDeleteCancel}
               >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Delete
+                Cancel
               </Button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <Separator className="my-4" />
-    </>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10"
+              onClick={onDeleteClick}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Delete
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

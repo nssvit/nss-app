@@ -36,7 +36,7 @@ export function EventFilters({ categories, onFilterChange }: EventFiltersProps) 
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
         <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <Input

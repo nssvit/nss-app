@@ -214,6 +214,61 @@ export async function adminAssignRole(
 }
 
 /**
+ * Admin: Update a role assignment (change role or expiration)
+ * If changing role, checks for unique constraint conflicts and handles them.
+ */
+export async function adminUpdateRoleAssignment(
+  userRoleId: string,
+  data: {
+    roleDefinitionId?: string
+    expiresAt?: Date | null
+  }
+) {
+  return await db.transaction(async (tx) => {
+    // Get the current assignment
+    const [current] = await tx
+      .select()
+      .from(userRoles)
+      .where(eq(userRoles.id, userRoleId))
+
+    if (!current) throw new Error('Role assignment not found')
+
+    // If changing the role, check for existing assignment with the new role
+    if (data.roleDefinitionId && data.roleDefinitionId !== current.roleDefinitionId) {
+      const [existing] = await tx
+        .select()
+        .from(userRoles)
+        .where(
+          and(
+            eq(userRoles.volunteerId, current.volunteerId),
+            eq(userRoles.roleDefinitionId, data.roleDefinitionId)
+          )
+        )
+
+      if (existing) {
+        if (existing.isActive) {
+          throw new Error('Volunteer already has this role assigned')
+        }
+        // There's an inactive record for the target role — delete it so we can update
+        await tx.delete(userRoles).where(eq(userRoles.id, existing.id))
+      }
+    }
+
+    const cleanUpdates: Record<string, unknown> = { updatedAt: new Date() }
+    if (data.roleDefinitionId !== undefined) cleanUpdates.roleDefinitionId = data.roleDefinitionId
+    if (data.expiresAt !== undefined) cleanUpdates.expiresAt = data.expiresAt
+
+    const [result] = await tx
+      .update(userRoles)
+      .set(cleanUpdates)
+      .where(eq(userRoles.id, userRoleId))
+      .returning()
+
+    return result
+  })
+}
+
+/**
  * Admin: Revoke role from volunteer
  * Replaces: admin_revoke_role RPC function
  */

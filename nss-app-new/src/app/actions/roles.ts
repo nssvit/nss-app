@@ -153,6 +153,21 @@ export async function assignRole(volunteerId: string, roleDefinitionId: string, 
 }
 
 /**
+ * Update a role assignment (admin only)
+ */
+export async function updateRoleAssignment(
+  userRoleId: string,
+  data: { roleDefinitionId?: string; expiresAt?: Date | null }
+) {
+  const admin = await requireAdmin()
+  const result = await queries.adminUpdateRoleAssignment(userRoleId, data)
+  logAudit({ action: 'role.update', actorId: admin.id, targetType: 'userRole', targetId: userRoleId, details: data })
+  revalidatePath('/role-management')
+  revalidatePath('/volunteers')
+  return result
+}
+
+/**
  * Revoke a role from a volunteer (admin only)
  */
 export async function revokeRole(volunteerId: string, roleDefinitionId: string) {

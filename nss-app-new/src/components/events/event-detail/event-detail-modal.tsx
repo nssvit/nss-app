@@ -286,15 +286,17 @@ export function EventDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] grid-rows-[auto_1fr] overflow-hidden sm:max-w-[700px]">
-        <DialogHeader>
-          <div className="flex items-start justify-between gap-2 pr-8">
-            <DialogTitle className="text-lg">{event.eventName}</DialogTitle>
+      <DialogContent className="max-h-[90vh] grid-rows-[auto_1fr] gap-0 overflow-hidden p-0 sm:max-w-[720px]">
+        <DialogHeader className="border-b px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-start justify-between gap-3 pr-8">
+            <DialogTitle className="text-lg font-semibold leading-tight">
+              {event.eventName}
+            </DialogTitle>
             <EventStatusBadge status={event.eventStatus} />
           </div>
         </DialogHeader>
 
-        <div className="-mr-2 overflow-y-auto pr-2">
+        <div className="overflow-y-auto px-4 py-4 sm:px-6">
           {editing ? (
             <EventEditForm
               editForm={editForm}

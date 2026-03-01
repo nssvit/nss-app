@@ -29,6 +29,7 @@ export {
   getVolunteersWithStats,
   getVolunteerById,
   getVolunteerByAuthId,
+  getVolunteerWithRolesByAuthId,
   adminGetAllVolunteers,
   adminUpdateVolunteer,
 } from './volunteers'
@@ -78,6 +79,7 @@ export {
   updateRoleDefinition,
   getAllUserRolesWithNames,
   adminAssignRole,
+  adminUpdateRoleAssignment,
   adminRevokeRole,
 } from './roles'
 
@@ -113,6 +115,7 @@ export const queries = {
   getVolunteersWithStats: volunteers.getVolunteersWithStats,
   getVolunteerById: volunteers.getVolunteerById,
   getVolunteerByAuthId: volunteers.getVolunteerByAuthId,
+  getVolunteerWithRolesByAuthId: volunteers.getVolunteerWithRolesByAuthId,
 
   // Events
   getEventsWithStats: events.getEventsWithStats,
@@ -164,6 +167,7 @@ export const queries = {
   adminUpdateVolunteer: volunteers.adminUpdateVolunteer,
   getAllUserRolesWithNames: roles.getAllUserRolesWithNames,
   adminAssignRole: roles.adminAssignRole,
+  adminUpdateRoleAssignment: roles.adminUpdateRoleAssignment,
   adminRevokeRole: roles.adminRevokeRole,
 }
 

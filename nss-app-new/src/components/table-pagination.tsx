@@ -38,8 +38,8 @@ export function TablePagination({
   }
 
   return (
-    <div className="flex items-center justify-between pt-4">
-      <p className="text-muted-foreground text-sm">
+    <div className="flex items-center justify-between gap-2 pt-4">
+      <p className="text-muted-foreground text-xs sm:text-sm">
         {totalItems} item{totalItems !== 1 ? 's' : ''}
       </p>
       <Pagination>
@@ -52,11 +52,11 @@ export function TablePagination({
           </PaginationItem>
           {pages.map((p, i) =>
             p === 'ellipsis' ? (
-              <PaginationItem key={`e-${i}`}>
+              <PaginationItem key={`e-${i}`} className="hidden sm:block">
                 <PaginationEllipsis />
               </PaginationItem>
             ) : (
-              <PaginationItem key={p}>
+              <PaginationItem key={p} className="hidden sm:block">
                 <PaginationLink
                   isActive={p === currentPage}
                   onClick={() => onPageChange(p)}

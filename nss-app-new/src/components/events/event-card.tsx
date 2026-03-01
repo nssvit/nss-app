@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { Calendar, MapPin, Users, Clock, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EventStatusBadge } from './event-status-badge'
+import { cn } from '@/lib/utils'
 import type { EventWithStats } from '@/types'
 
 interface EventCardProps {
@@ -22,19 +23,19 @@ export const EventCard = memo(function EventCard({ event, onClick }: EventCardPr
 
   return (
     <Card
-      className={`transition-shadow hover:shadow-md ${onClick ? 'cursor-pointer' : ''}`}
+      className={cn('transition-colors hover:bg-accent/50', onClick && 'cursor-pointer')}
       onClick={onClick}
     >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-1.5">
-            {attended && <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />}
+            {attended && <CheckCircle className="h-3.5 w-3.5 shrink-0 text-green-500" />}
             <CardTitle className="line-clamp-1 text-base">{event.eventName}</CardTitle>
           </div>
           <EventStatusBadge status={event.eventStatus} />
         </div>
         {event.categoryName && (
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          <div className="text-muted-foreground flex items-center gap-2 text-xs sm:text-sm">
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: event.categoryColor ?? '#6b7280' }}
@@ -43,24 +44,24 @@ export const EventCard = memo(function EventCard({ event, onClick }: EventCardPr
           </div>
         )}
       </CardHeader>
-      <CardContent className="grid gap-3">
+      <CardContent className="space-y-2.5">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Calendar className="h-4 w-4 shrink-0" />
+          <Calendar className="h-3.5 w-3.5 shrink-0 opacity-50" />
           <span>{formattedDate}</span>
         </div>
         {event.location && (
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4 shrink-0" />
+            <MapPin className="h-3.5 w-3.5 shrink-0 opacity-50" />
             <span className="line-clamp-1">{event.location}</span>
           </div>
         )}
         <div className="flex items-center justify-between">
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Users className="h-4 w-4 shrink-0" />
+            <Users className="h-3.5 w-3.5 shrink-0 opacity-50" />
             <span>{event.participantCount ?? 0} participants</span>
           </div>
           <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <Clock className="h-4 w-4 shrink-0" />
+            <Clock className="h-3.5 w-3.5 shrink-0 opacity-50" />
             <span>{event.declaredHours}h credits</span>
           </div>
         </div>

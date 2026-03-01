@@ -100,6 +100,43 @@ export async function getVolunteerByAuthId(authUserId: string) {
 }
 
 /**
+ * Get volunteer + active role names in a single query.
+ * Used by auth-cache to avoid 2 sequential round-trips (volunteer lookup + role check).
+ */
+export async function getVolunteerWithRolesByAuthId(authUserId: string) {
+  const result = await db.execute(sql`
+    SELECT
+      v.id, v.auth_user_id, v.first_name, v.last_name, v.email, v.is_active,
+      COALESCE(
+        ARRAY_AGG(rd.role_name) FILTER (WHERE rd.role_name IS NOT NULL),
+        ARRAY[]::text[]
+      ) as role_names
+    FROM volunteers v
+    LEFT JOIN user_roles ur ON ur.volunteer_id = v.id
+      AND ur.is_active = true
+      AND (ur.expires_at IS NULL OR ur.expires_at > NOW())
+    LEFT JOIN role_definitions rd ON ur.role_definition_id = rd.id
+      AND rd.is_active = true
+    WHERE v.auth_user_id = ${authUserId}
+    GROUP BY v.id
+    LIMIT 1
+  `)
+
+  const row = Array.isArray(result) ? result[0] : null
+  if (!row) return null
+
+  return {
+    id: row.id as string,
+    authUserId: row.auth_user_id as string | null,
+    firstName: row.first_name as string,
+    lastName: row.last_name as string,
+    email: row.email as string,
+    isActive: row.is_active as boolean | null,
+    roleNames: (row.role_names ?? []) as string[],
+  }
+}
+
+/**
  * Admin: Get all volunteers (bypasses RLS)
  * Replaces: admin_get_all_volunteers RPC function
  */

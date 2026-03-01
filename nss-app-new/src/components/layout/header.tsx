@@ -35,8 +35,8 @@ const ProfileMenu = memo(function ProfileMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+          <Avatar className="h-9 w-9">
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -63,17 +63,17 @@ export function Header({ onMobileMenuOpen }: HeaderProps) {
   const { title } = usePageTitle()
 
   return (
-    <header className="bg-background/80 border-b backdrop-blur-sm">
+    <header className="bg-background/95 border-b backdrop-blur-md">
       <div className="flex h-14 items-center gap-4 px-4">
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={onMobileMenuOpen}>
+        <Button variant="ghost" size="icon" className="h-10 w-10 md:hidden md:h-9 md:w-9" onClick={onMobileMenuOpen}>
           <Menu className="h-5 w-5" />
         </Button>
 
-        <span className="text-sm font-semibold md:hidden">{title || 'NSS App'}</span>
+        <span className="text-sm font-medium md:hidden">{title || 'NSS App'}</span>
 
         <div className="hidden items-center gap-3 md:flex">
           <Separator orientation="vertical" className="h-6" />
-          <h1 className="text-sm font-semibold">{title}</h1>
+          <h1 className="text-sm font-medium">{title}</h1>
         </div>
 
         <div className="flex-1" />
@@ -88,7 +88,7 @@ export function Header({ onMobileMenuOpen }: HeaderProps) {
         >
           <Search className="size-4" />
           <span>Search</span>
-          <kbd className="bg-muted text-muted-foreground pointer-events-none ml-2 inline-flex h-5 items-center rounded border px-1.5 font-mono text-xs">
+          <kbd className="bg-muted text-muted-foreground pointer-events-none ml-2 inline-flex h-5 items-center rounded border px-1.5 font-mono text-[10px]">
             ⌘K
           </kbd>
         </Button>

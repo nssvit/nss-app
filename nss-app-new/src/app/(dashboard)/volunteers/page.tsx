@@ -8,14 +8,10 @@ import { mapVolunteerRow } from '@/lib/mappers'
 export default async function Page() {
   const volunteer = await getCurrentVolunteer()
 
-  // Parallelize auth check and data fetch instead of sequential waterfall
-  const [isAdmin, rows] = await Promise.all([
-    withRetry(() => queries.volunteerHasRole(volunteer.id, 'admin')),
-    withRetry(() => queries.getVolunteersWithStats()),
-  ])
+  // Role check uses pre-loaded roleNames — no extra DB query
+  if (!volunteer.roleNames.includes('admin')) redirect('/dashboard')
 
-  if (!isAdmin) redirect('/dashboard')
-
+  const rows = await withRetry(() => queries.getVolunteersWithStats())
   const volunteers = rows.map(mapVolunteerRow)
   return <VolunteersPage initialData={volunteers} />
 }

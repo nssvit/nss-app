@@ -31,13 +31,13 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
         href={item.href}
         onClick={() => onOpenChange(false)}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
           isActive
             ? 'bg-primary/10 text-primary'
             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
         )}
       >
-        <item.icon className="h-4 w-4" />
+        <item.icon className="h-5 w-5" />
         <span>{item.label}</span>
       </Link>
     )
@@ -45,9 +45,9 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-72 p-0">
+      <SheetContent side="left" className="w-[280px] max-w-[85vw] p-0">
         <SheetHeader className="px-4 pt-4">
-          <SheetTitle className="text-lg font-bold">NSS App</SheetTitle>
+          <SheetTitle className="text-sm font-semibold tracking-tight pb-1">NSS App</SheetTitle>
         </SheetHeader>
         <Separator className="my-2" />
         <nav className="space-y-1 px-3 py-2">

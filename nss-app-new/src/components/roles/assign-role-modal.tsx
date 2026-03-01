@@ -32,12 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const assignRoleSchema = z.object({
   volunteerId: z.string().min(1, 'Please select a volunteer'),
   roleDefinitionId: z.string().min(1, 'Please select a role'),
+  expiresAt: z.string().optional(),
 })
 
 type AssignRoleFormValues = z.infer<typeof assignRoleSchema>
@@ -59,6 +61,7 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
     defaultValues: {
       volunteerId: '',
       roleDefinitionId: '',
+      expiresAt: '',
     },
   })
 
@@ -77,14 +80,15 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
         }
       }
       loadData()
-      form.reset({ volunteerId: '', roleDefinitionId: '' })
+      form.reset({ volunteerId: '', roleDefinitionId: '', expiresAt: '' })
     }
   }, [open, form])
 
   async function onSubmit(values: AssignRoleFormValues) {
     setSubmitting(true)
     try {
-      await assignRole(values.volunteerId, values.roleDefinitionId)
+      const expiresAt = values.expiresAt ? new Date(values.expiresAt) : undefined
+      await assignRole(values.volunteerId, values.roleDefinitionId, expiresAt)
       toast.success('Role assigned successfully')
       onOpenChange(false)
       onSuccess?.()
@@ -151,6 +155,19 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="expiresAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Expires At (optional)</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

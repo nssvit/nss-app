@@ -3,6 +3,10 @@
  *
  * Caches auth state within a single request lifecycle using React's cache()
  * This prevents multiple auth checks per request.
+ *
+ * OPTIMIZED: getCurrentVolunteer() now fetches volunteer + roles in a single
+ * SQL query, eliminating the separate volunteerHasAnyRole() round-trip for
+ * page-level auth checks.
  */
 
 import { cache } from 'react'
@@ -22,6 +26,8 @@ export type CachedVolunteer = {
   lastName: string
   email: string
   isActive: boolean | null
+  /** Pre-loaded role names — avoids a separate DB query for role checks */
+  roleNames: string[]
 }
 
 /**
@@ -43,34 +49,28 @@ export const getAuthUser = cache(async (): Promise<CachedUser> => {
 })
 
 /**
- * Cached volunteer fetch - only runs once per request
- * Wrapped with retry for transient connection failures to remote pooler.
+ * Cached volunteer fetch with roles - only runs once per request.
+ * Single SQL query returns volunteer data + role names together,
+ * eliminating the need for a separate volunteerHasAnyRole() call.
  */
 export const getCurrentVolunteer = cache(async (): Promise<CachedVolunteer> => {
   const user = await getAuthUser()
-  const volunteer = await withRetry(() => queries.getVolunteerByAuthId(user.id))
+  const result = await withRetry(() => queries.getVolunteerWithRolesByAuthId(user.id))
 
-  if (!volunteer) {
+  if (!result) {
     throw new Error('Volunteer profile not found')
   }
 
-  return {
-    id: volunteer.id,
-    authUserId: volunteer.authUserId,
-    firstName: volunteer.firstName,
-    lastName: volunteer.lastName,
-    email: volunteer.email,
-    isActive: volunteer.isActive,
-  }
+  return result
 })
 
 /**
  * Require current user to have at least one of the specified roles.
- * Throws if unauthorized. Returns the cached volunteer.
+ * Uses pre-loaded roleNames from getCurrentVolunteer() — no extra DB query.
  */
 export async function requireAnyRole(...roles: string[]): Promise<CachedVolunteer> {
   const volunteer = await getCurrentVolunteer()
-  const hasRole = await withRetry(() => queries.volunteerHasAnyRole(volunteer.id, roles))
+  const hasRole = roles.some((r) => volunteer.roleNames.includes(r))
   if (!hasRole) {
     throw new Error(`Unauthorized: Requires one of [${roles.join(', ')}]`)
   }

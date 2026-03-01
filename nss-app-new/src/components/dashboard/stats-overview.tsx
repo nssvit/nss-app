@@ -12,9 +12,9 @@ interface StatsOverviewProps {
 
 function StatsOverviewSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-[120px] rounded-xl" />
+        <Skeleton key={i} className="h-[120px] rounded-lg" />
       ))}
     </div>
   )
@@ -26,7 +26,7 @@ export function StatsOverview({ stats, loading }: StatsOverviewProps) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatsCard
         title="Total Events"
         value={stats.totalEvents}
