@@ -22,12 +22,24 @@ interface VolunteerProfileData {
  * 1. Try to match by email → link auth_user_id
  * 2. Try to match by name → link auth_user_id
  * 3. Create new volunteer row
+ *
+ * Works both with and without an active session (email verification
+ * may be required before a session exists, so we look up the auth
+ * user by email as a fallback).
  */
 export async function ensureVolunteerProfile(data: VolunteerProfileData): Promise<{ success: boolean; error?: string }> {
+  // Try session first, fall back to email lookup for pre-verification signups
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return { success: false, error: 'Not authenticated' }
+  let authUserId = session?.user?.id ?? null
 
-  const authUserId = session.user.id
+  if (!authUserId) {
+    // No session yet (email verification pending) — look up user by email
+    const [authUser] = await db.execute(sql`
+      SELECT id FROM "user" WHERE email = ${data.email} LIMIT 1
+    `)
+    if (!authUser) return { success: false, error: 'User account not found' }
+    authUserId = authUser.id as string
+  }
 
   try {
     return await withRetry(async () => {
@@ -41,11 +53,21 @@ export async function ensureVolunteerProfile(data: VolunteerProfileData): Promis
       const byEmail = await db.query.volunteers.findFirst({
         where: eq(volunteers.email, data.email),
       })
-      if (byEmail && !byEmail.authUserId) {
-        await db
-          .update(volunteers)
-          .set({ authUserId, updatedAt: new Date() })
-          .where(eq(volunteers.id, byEmail.id))
+      if (byEmail) {
+        if (!byEmail.authUserId) {
+          // Unlinked volunteer — claim it
+          await db
+            .update(volunteers)
+            .set({ authUserId, updatedAt: new Date() })
+            .where(eq(volunteers.id, byEmail.id))
+        } else if (byEmail.authUserId !== authUserId) {
+          // Already linked to a different auth user — update to new auth user
+          await db
+            .update(volunteers)
+            .set({ authUserId, updatedAt: new Date() })
+            .where(eq(volunteers.id, byEmail.id))
+        }
+        // else: already linked to this auth user
         return { success: true }
       }
 

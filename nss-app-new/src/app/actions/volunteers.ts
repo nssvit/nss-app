@@ -2,8 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { db } from '@/db'
+import { volunteers } from '@/db/schema'
 import { queries } from '@/db/queries'
 import type { Volunteer } from '@/db/schema'
 import { getAuthUser, getCurrentVolunteer as getCachedVolunteer, requireAdmin } from '@/lib/auth-cache'
@@ -247,6 +248,59 @@ export async function mergeVolunteers(keepId: string, removeId: string) {
 
   const row = Array.isArray(result) ? result[0] : null
   return row?.result ?? { success: true }
+}
+
+/**
+ * Deactivate a volunteer (soft-delete) and remove their Better Auth account.
+ * Admin only. This:
+ * 1. Sets is_active = false on the volunteer row
+ * 2. Deletes sessions, accounts, and user from Better Auth tables
+ * 3. Unlinks auth_user_id from the volunteer
+ */
+export async function deactivateVolunteer(volunteerId: string) {
+  const admin = await requireAdmin()
+  z.string().uuid().parse(volunteerId)
+
+  const volunteer = await db.query.volunteers.findFirst({
+    where: eq(volunteers.id, volunteerId),
+  })
+  if (!volunteer) throw new Error('Volunteer not found')
+
+  // Soft-delete the volunteer
+  await db
+    .update(volunteers)
+    .set({ isActive: false, authUserId: null, updatedAt: new Date() })
+    .where(eq(volunteers.id, volunteerId))
+
+  // Clean up Better Auth tables if linked
+  if (volunteer.authUserId) {
+    await db.execute(sql`DELETE FROM "session" WHERE "user_id" = ${volunteer.authUserId}`)
+    await db.execute(sql`DELETE FROM "account" WHERE "user_id" = ${volunteer.authUserId}`)
+    await db.execute(sql`DELETE FROM "user" WHERE "id" = ${volunteer.authUserId}`)
+  }
+
+  logAudit({ action: 'volunteer.deactivate', actorId: admin.id, targetType: 'volunteer', targetId: volunteerId })
+  revalidatePath('/volunteers')
+  revalidatePath('/user-management')
+  return { success: true }
+}
+
+/**
+ * Reactivate a deactivated volunteer. Admin only.
+ */
+export async function reactivateVolunteer(volunteerId: string) {
+  const admin = await requireAdmin()
+  z.string().uuid().parse(volunteerId)
+
+  await db
+    .update(volunteers)
+    .set({ isActive: true, updatedAt: new Date() })
+    .where(eq(volunteers.id, volunteerId))
+
+  logAudit({ action: 'volunteer.reactivate', actorId: admin.id, targetType: 'volunteer', targetId: volunteerId })
+  revalidatePath('/volunteers')
+  revalidatePath('/user-management')
+  return { success: true }
 }
 
 /**

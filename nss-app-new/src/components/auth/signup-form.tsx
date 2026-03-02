@@ -58,6 +58,8 @@ export function SignupForm() {
     },
   })
 
+  const [verificationSent, setVerificationSent] = useState(false)
+
   async function onSubmit(values: SignupFormValues) {
     setServerError(null)
     const { error } = await signUpWithEmail(values.email, values.password, {
@@ -84,7 +86,27 @@ export function SignupForm() {
       return
     }
 
-    router.push('/dashboard')
+    setVerificationSent(true)
+  }
+
+  if (verificationSent) {
+    return (
+      <div className="space-y-4 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
+        <p className="text-muted-foreground text-sm">
+          We&apos;ve sent a verification link to your email. Please verify your email to continue.
+        </p>
+        <p className="text-muted-foreground text-xs">
+          Didn&apos;t receive it? Check your spam folder or{' '}
+          <Link href="/signup" className="text-primary underline-offset-4 hover:underline" onClick={() => setVerificationSent(false)}>
+            try again
+          </Link>
+        </p>
+        <Link href="/login" className="text-primary inline-block text-sm underline-offset-4 hover:underline">
+          Go to Sign in
+        </Link>
+      </div>
+    )
   }
 
   return (
@@ -172,7 +194,7 @@ export function SignupForm() {
                   <FormLabel>Branch</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full truncate">
                         <SelectValue placeholder="Select branch" />
                       </SelectTrigger>
                     </FormControl>
