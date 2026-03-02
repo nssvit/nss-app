@@ -20,6 +20,7 @@ config({ path: '.env.local' })
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import postgres from 'postgres'
+import { resolveDatabaseUrl } from './resolve-url'
 
 // ─── Config ──────────────────────────────────────────────────────
 const CSV_PATH = resolve(__dirname, '../../../NSS Hours 25-26(2025-2026).csv')
@@ -28,11 +29,7 @@ const SE_COUNT = 45
 const TOTAL_VOLUNTEERS = 115
 const EMAIL_DOMAIN = 'vit.edu.in'
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL not set. Add it to .env.local')
-}
-
-const db = postgres(process.env.DATABASE_URL, {
+const db = postgres(resolveDatabaseUrl(), {
   max: 1,
   idle_timeout: 20,
   connect_timeout: 10,

@@ -15,7 +15,7 @@ export const volunteers = pgTable(
   'volunteers',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    authUserId: uuid('auth_user_id').unique(),
+    authUserId: text('auth_user_id').unique(),
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
     rollNumber: text('roll_number').notNull().unique(),

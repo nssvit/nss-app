@@ -6,6 +6,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 })
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ['*.ngrok-free.app'],
   async headers() {
     return [
       {

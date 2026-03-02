@@ -12,7 +12,7 @@ import { volunteers, type Volunteer } from '../schema'
  * Get all volunteers with participation statistics
  * Replaces: get_volunteers_with_stats RPC function
  *
- * Note: This bypasses RLS. For operations respecting RLS, use Supabase client.
+ * Note: This bypasses RLS. Authorization is enforced in server actions.
  */
 export async function getVolunteersWithStats() {
   const result = await db.execute(sql`

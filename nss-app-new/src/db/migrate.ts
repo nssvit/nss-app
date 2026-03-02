@@ -29,6 +29,7 @@ import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { config } from 'dotenv'
 import postgres from 'postgres'
+import { resolveDatabaseUrl } from './resolve-url'
 
 config({ path: '.env.local' })
 
@@ -60,11 +61,7 @@ async function migrate() {
 
   console.log('📦 NSS App Database Migration\n')
 
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set')
-  }
-
-  const client = postgres(process.env.DATABASE_URL, { max: 1 })
+  const client = postgres(resolveDatabaseUrl(), { max: 1 })
 
   try {
     await ensureMigrationsTable(client)

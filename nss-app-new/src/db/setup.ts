@@ -20,6 +20,7 @@ import { readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { config } from 'dotenv'
 import postgres from 'postgres'
+import { resolveDatabaseUrl } from './resolve-url'
 
 config({ path: '.env.local' })
 
@@ -28,10 +29,6 @@ const MIGRATIONS_DIR = join(__dirname, 'migrations')
 async function setup() {
   console.log('🚀 NSS App Database Setup (Fresh)\n')
   console.log('='.repeat(60))
-
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL environment variable is not set')
-  }
 
   // Step 1: Push Drizzle schema
   console.log('\n📌 Step 1: Pushing Drizzle schema (tables, indexes, constraints)...')
@@ -49,7 +46,7 @@ async function setup() {
   // Step 2: Run SQL migrations with tracking
   console.log('\n📌 Step 2: Running SQL migrations...')
 
-  const client = postgres(process.env.DATABASE_URL, { max: 1 })
+  const client = postgres(resolveDatabaseUrl(), { max: 1 })
 
   try {
     // Create migrations tracking table

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { Mail, ArrowLeft } from 'lucide-react'
 
 import {
@@ -26,7 +26,6 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 
 export function ForgotPasswordForm() {
-  const [supabase] = useState(() => createClient())
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
@@ -37,11 +36,12 @@ export function ForgotPasswordForm() {
 
   async function onSubmit(values: ForgotPasswordFormValues) {
     setServerError(null)
-    const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    const { error } = await authClient.requestPasswordReset({
+      email: values.email,
+      redirectTo: '/reset-password',
     })
     if (error) {
-      setServerError(error.message)
+      setServerError(error.message ?? 'Failed to send reset link')
     } else {
       setSuccess(true)
     }

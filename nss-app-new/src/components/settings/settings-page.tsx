@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { ROLE_DISPLAY_NAMES, ROLE_COLORS, type Role } from '@/lib/constants'
 import { cn } from '@/lib/utils'
+import { DatabaseSettings } from './database-settings'
 
 const notificationItems = [
   {
@@ -33,7 +34,7 @@ const notificationItems = [
 ]
 
 export function SettingsPage() {
-  const { currentUser } = useAuth()
+  const { currentUser, hasRole } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [notifications, setNotifications] = useState({
     email: true,
@@ -134,6 +135,8 @@ export function SettingsPage() {
           ))}
         </CardContent>
       </Card>
+
+      {hasRole('admin') && <DatabaseSettings />}
     </div>
   )
 }

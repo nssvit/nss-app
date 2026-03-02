@@ -7,7 +7,7 @@
  * IMPORTANT:
  * - These bypass RLS, so authorization must be checked in application code
  * - For admin operations that need SECURITY DEFINER, keep using RPC functions
- * - For client-side queries that rely on RLS, use Supabase client
+ * - Authorization is enforced via requireAdmin() / requireAnyRole() in server actions
  *
  * Usage:
  * ```typescript

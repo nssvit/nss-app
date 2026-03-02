@@ -41,7 +41,7 @@ export function LoginForm() {
     setServerError(null)
     const { error } = await signInWithEmail(values.email, values.password)
     if (error) {
-      setServerError(error.message)
+      setServerError(error)
     } else {
       setSignedIn(true)
       router.push('/dashboard')
