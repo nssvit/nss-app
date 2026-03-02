@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/contexts/auth-context'
+import { ensureVolunteerProfile } from '@/app/actions/auth'
 import { BRANCHES, YEARS, BRANCH_DISPLAY_NAMES, YEAR_DISPLAY_NAMES } from '@/lib/constants'
-import { Mail } from 'lucide-react'
 
 import {
   Form,
@@ -40,9 +41,9 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>
 
 export function SignupForm() {
+  const router = useRouter()
   const { signUpWithEmail } = useAuth()
   const [serverError, setServerError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -64,34 +65,26 @@ export function SignupForm() {
       year: values.year,
     })
     if (error) {
-      setServerError(error.message)
-    } else {
-      setSuccess(true)
+      setServerError(error)
+      return
     }
-  }
 
-  if (success) {
-    return (
-      <div className="space-y-6">
-        <div className="space-y-2 text-center">
-          <div className="bg-primary/10 mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-            <Mail className="text-primary h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">Check your email</h1>
-          <p className="text-muted-foreground text-sm">
-            We sent you a confirmation link. Please check your email to verify your account.
-          </p>
-        </div>
-        <div className="text-center">
-          <Link
-            href="/login"
-            className="text-primary text-sm underline-offset-4 hover:underline"
-          >
-            Back to sign in
-          </Link>
-        </div>
-      </div>
-    )
+    // Create volunteer profile after successful signup
+    const profileResult = await ensureVolunteerProfile({
+      firstName: values.firstName,
+      lastName: values.lastName,
+      email: values.email,
+      rollNumber: values.rollNumber,
+      branch: values.branch,
+      year: values.year,
+    })
+
+    if (!profileResult.success) {
+      setServerError(profileResult.error ?? 'Failed to create profile')
+      return
+    }
+
+    router.push('/dashboard')
   }
 
   return (

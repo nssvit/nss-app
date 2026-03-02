@@ -1,54 +1,74 @@
 /**
- * Drizzle ORM Database Connection
+ * Drizzle ORM Database Connection — Modular Provider System
  *
- * This module provides the database connection for server-side operations.
+ * Providers self-register via side-effect imports below.
+ * The DATABASE env var controls which provider is the default:
+ *   DATABASE=neon      → Neon is primary
+ *   DATABASE=supabase  → Supabase is primary
+ *   (not set)          → first registered provider wins
  *
- * IMPORTANT: This connection is for SERVER-SIDE USE ONLY (API routes, server actions).
- * - Use Supabase client for client-side queries (relies on RLS)
- * - Use Supabase client for real-time subscriptions
- * - Use Supabase client for Auth operations
+ * To remove a provider: delete its import + delete its file + remove env vars.
  *
- * This Drizzle connection bypasses RLS, so authorization must be handled in application code.
+ * The exported `db` is a Proxy that delegates to the currently active
+ * Drizzle instance, so all existing queries work without changes.
  */
 
-import { drizzle } from 'drizzle-orm/postgres-js'
-import postgres from 'postgres'
-import * as schema from './schema'
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import type * as schema from './schema'
 
-// Check for DATABASE_URL at runtime to fail fast
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    'DATABASE_URL environment variable is not set. ' +
-      'Please add it to your .env.local file. ' +
-      'You can find this in your Supabase project settings under Database > Connection string.'
-  )
+// --- Provider registration ---
+import './providers/neon'
+import './providers/supabase'
+
+import {
+  getProvider,
+  getDefaultProvider,
+  setDefaultProvider,
+  isDualMode,
+} from './providers/registry'
+import { getActiveProvider, cachedProviderSync } from '@/lib/db-provider'
+
+// --- Apply DATABASE env var override ---
+if (process.env.DATABASE) {
+  setDefaultProvider(process.env.DATABASE.toLowerCase())
 }
 
-/**
- * PostgreSQL client for Drizzle ORM
- *
- * Configuration optimized for Vercel/serverless:
- * - max: 10 connections (allows parallel queries without exhausting pool)
- * - idle_timeout: 20 seconds before closing idle connections
- * - connect_timeout: 15 seconds connection timeout
- * - max_lifetime: 60*5 seconds — recycle connections before pooler drops them
- * - prepare: false (required for connection poolers like Supavisor)
- */
-const client = postgres(process.env.DATABASE_URL, {
-  max: 10,
-  idle_timeout: 20,
-  connect_timeout: 15,
-  max_lifetime: 60 * 5,
-  prepare: false,
-  connection: {
-    application_name: 'nss-app',
-  },
-})
+// Validate at startup: at least one provider must exist
+const defaultDb = getDefaultProvider()
+
+// --- Active DB resolver ---
+
+/** Get the Drizzle instance for the currently active provider */
+export async function getDb(): Promise<PostgresJsDatabase<typeof schema>> {
+  if (!isDualMode()) return defaultDb
+
+  const provider = await getActiveProvider()
+  return getProvider(provider) ?? defaultDb
+}
+
+/** Get a specific provider's Drizzle instance (for health checks, admin) */
+export function getDbForProvider(provider: string): PostgresJsDatabase<typeof schema> | null {
+  return getProvider(provider)
+}
+
+// --- Backward-compatible `db` export ---
 
 /**
- * Drizzle ORM database instance with schema
+ * Proxy-based `db` that delegates to the active provider.
+ * This lets all existing code (`db.query.xxx`, `db.select()`, etc.)
+ * work without any changes — the proxy resolves the active DB on each access.
+ *
+ * For hot-path operations, consider using `await getDb()` directly
+ * to avoid the proxy overhead.
  */
-export const db = drizzle(client, { schema })
+export const db: PostgresJsDatabase<typeof schema> = new Proxy(defaultDb, {
+  get(target, prop, receiver) {
+    if (!isDualMode()) return Reflect.get(target, prop, receiver)
+
+    const activeDb = getProvider(cachedProviderSync()) ?? target
+    return Reflect.get(activeDb, prop, receiver)
+  },
+}) as PostgresJsDatabase<typeof schema>
 
 /**
  * Retry wrapper for transient DB/network failures.
@@ -77,7 +97,4 @@ export async function withRetry<T>(
   throw new Error('withRetry: unreachable')
 }
 
-/**
- * Type exports for use in other modules
- */
 export type DbClient = typeof db

@@ -57,7 +57,7 @@ export async function getVolunteerById(volunteerId: string) {
 }
 
 /**
- * Get volunteer by their Supabase auth user ID
+ * Get volunteer by their auth user ID
  */
 export async function getVolunteerByAuthId(authUserId: string) {
   await getAuthUser()

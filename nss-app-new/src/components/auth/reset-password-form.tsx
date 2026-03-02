@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/client'
+import { authClient } from '@/lib/auth-client'
 import { CheckCircle2 } from 'lucide-react'
 
 import {
@@ -32,7 +33,8 @@ const resetPasswordSchema = z
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
 export function ResetPasswordForm() {
-  const [supabase] = useState(() => createClient())
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
@@ -43,9 +45,18 @@ export function ResetPasswordForm() {
 
   async function onSubmit(values: ResetPasswordFormValues) {
     setServerError(null)
-    const { error } = await supabase.auth.updateUser({ password: values.password })
+
+    if (!token) {
+      setServerError('Invalid or missing reset token. Please request a new reset link.')
+      return
+    }
+
+    const { error } = await authClient.resetPassword({
+      newPassword: values.password,
+      token,
+    })
     if (error) {
-      setServerError(error.message)
+      setServerError(error.message ?? 'Failed to reset password')
     } else {
       setSuccess(true)
     }

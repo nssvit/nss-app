@@ -4,15 +4,14 @@
  * Caches auth state within a single request lifecycle using React's cache()
  * This prevents multiple auth checks per request.
  *
- * OPTIMIZED: getCurrentVolunteer() now fetches volunteer + roles in a single
- * SQL query, eliminating the separate volunteerHasAnyRole() round-trip for
- * page-level auth checks.
+ * Uses Better Auth for authentication instead of Supabase Auth.
  */
 
 import { cache } from 'react'
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
 import { queries } from '@/db/queries'
 import { withRetry } from '@/db'
-import { createClient } from '@/lib/supabase/server'
 
 export type CachedUser = {
   id: string
@@ -35,17 +34,13 @@ export type CachedVolunteer = {
  * Uses React's cache() to deduplicate within the same render
  */
 export const getAuthUser = cache(async (): Promise<CachedUser> => {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const session = await auth.api.getSession({ headers: await headers() })
 
-  if (error || !user) {
+  if (!session) {
     throw new Error('Unauthorized: Please sign in')
   }
 
-  return { id: user.id, email: user.email }
+  return { id: session.user.id, email: session.user.email }
 })
 
 /**

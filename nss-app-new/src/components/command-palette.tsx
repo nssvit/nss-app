@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/contexts/auth-context'
 import {
   BarChart3,
   Calendar,
@@ -42,6 +42,7 @@ const navCommands = [
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
+  const { signOut } = useAuth()
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -80,8 +81,7 @@ export function CommandPalette() {
           </CommandItem>
           <CommandItem onSelect={() => {
             setOpen(false)
-            const supabase = createClient()
-            supabase.auth.signOut().then(() => router.push('/login'))
+            signOut()
           }}>
             <LogOut className="mr-2 size-4" />
             Sign Out

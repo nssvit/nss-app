@@ -5,6 +5,7 @@ import { events } from './events'
 import { roleDefinitions } from './roleDefinitions'
 import { userRoles } from './userRoles'
 import { volunteers } from './volunteers'
+import { user, session, account } from './auth-schema'
 
 // Volunteer relations
 export const volunteersRelations = relations(volunteers, ({ many }) => ({
@@ -84,5 +85,25 @@ export const eventParticipationRelations = relations(eventParticipation, ({ one 
     fields: [eventParticipation.approvedBy],
     references: [volunteers.id],
     relationName: 'approver',
+  }),
+}))
+
+// Better Auth relations
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+}))
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}))
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
   }),
 }))
