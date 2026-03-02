@@ -29,7 +29,10 @@ async function sendEmail(to: string, subject: string, html: string) {
   })
 
   if (!res.ok) {
-    console.error(`[EMAIL] Failed to send to ${to}:`, await res.text())
+    const body = await res.text()
+    console.error(`[EMAIL] Failed to send to ${to}: ${res.status} ${body}`)
+  } else {
+    console.log(`[EMAIL] Sent "${subject}" to ${to}`)
   }
 }
 
@@ -37,13 +40,14 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: 'pg', schema }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
     password: {
       // Supabase Auth uses bcrypt — keep compatibility for migrated users
       hash: (password) => bcrypt.hash(password, 10),
       verify: ({ hash, password }) => bcrypt.compare(password, hash),
     },
     sendResetPassword: async ({ user, url }) => {
-      void sendEmail(
+      await sendEmail(
         user.email,
         'Reset your password',
         `<h2>Password Reset</h2>
@@ -54,10 +58,23 @@ export const auth = betterAuth({
         <p style="color:#888;font-size:12px">This link expires in 1 hour.</p>`
       )
     },
+    resetPasswordTokenExpiresIn: 3600,
+    afterResetPassword: async (user: { email: string; name?: string | null }) => {
+      await sendEmail(
+        user.email,
+        'Password changed successfully',
+        `<h2>Password Updated</h2>
+        <p>Hi ${user.name ?? 'there'},</p>
+        <p>Your password was successfully changed. If you did not make this change, please reset your password immediately or contact the administrator.</p>
+        <p style="color:#888;font-size:12px">— NSS App</p>`
+      )
+    },
   },
   emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
-      void sendEmail(
+      await sendEmail(
         user.email,
         'Verify your email',
         `<h2>Email Verification</h2>

@@ -33,17 +33,23 @@ if (process.env.DATABASE) {
   setDefaultProvider(process.env.DATABASE.toLowerCase())
 }
 
-// Validate at startup: at least one provider must exist
-const defaultDb = getDefaultProvider()
+// --- Lazy default DB (deferred so errors are catchable by error boundaries) ---
+let _defaultDb: PostgresJsDatabase<typeof schema> | null = null
+
+function resolveDefaultDb(): PostgresJsDatabase<typeof schema> {
+  if (!_defaultDb) _defaultDb = getDefaultProvider()
+  return _defaultDb
+}
 
 // --- Active DB resolver ---
 
 /** Get the Drizzle instance for the currently active provider */
 export async function getDb(): Promise<PostgresJsDatabase<typeof schema>> {
-  if (!isDualMode()) return defaultDb
+  const def = resolveDefaultDb()
+  if (!isDualMode()) return def
 
   const provider = await getActiveProvider()
-  return getProvider(provider) ?? defaultDb
+  return getProvider(provider) ?? def
 }
 
 /** Get a specific provider's Drizzle instance (for health checks, admin) */
@@ -58,14 +64,16 @@ export function getDbForProvider(provider: string): PostgresJsDatabase<typeof sc
  * This lets all existing code (`db.query.xxx`, `db.select()`, etc.)
  * work without any changes — the proxy resolves the active DB on each access.
  *
- * For hot-path operations, consider using `await getDb()` directly
- * to avoid the proxy overhead.
+ * The proxy is lazy — it resolves the default provider on first use,
+ * not at module load time, so missing env vars trigger catchable errors.
  */
-export const db: PostgresJsDatabase<typeof schema> = new Proxy(defaultDb, {
-  get(target, prop, receiver) {
-    if (!isDualMode()) return Reflect.get(target, prop, receiver)
+export const db = new Proxy({} as PostgresJsDatabase<typeof schema>, {
+  get(_target, prop, receiver) {
+    const defaultDb = resolveDefaultDb()
 
-    const activeDb = getProvider(cachedProviderSync()) ?? target
+    if (!isDualMode()) return Reflect.get(defaultDb, prop, receiver)
+
+    const activeDb = getProvider(cachedProviderSync()) ?? defaultDb
     return Reflect.get(activeDb, prop, receiver)
   },
 }) as PostgresJsDatabase<typeof schema>
