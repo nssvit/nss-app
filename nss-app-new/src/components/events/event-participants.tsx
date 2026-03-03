@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -48,7 +50,7 @@ export function EventParticipants({ eventId, eventName }: EventParticipantsProps
         setParticipants(data)
       })
       .catch((err) => {
-        console.error('Failed to load participants:', err)
+        toast.error(getErrorMessage(err, 'Failed to load participants'))
       })
       .finally(() => {
         setLoading(false)

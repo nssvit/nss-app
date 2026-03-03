@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
+import 'core/services/api_client.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,16 +11,11 @@ Future<void> main() async {
   // Load environment variables
   await dotenv.load(fileName: '.env');
 
-  final url = dotenv.env['SUPABASE_URL'] ?? '';
-  final anonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
-  debugPrint('[INIT] SUPABASE_URL=${url.isNotEmpty ? "${url.substring(0, 20)}..." : "EMPTY"}');
-  debugPrint('[INIT] ANON_KEY=${anonKey.isNotEmpty ? "${anonKey.substring(0, 20)}..." : "EMPTY"}');
+  final baseUrl = dotenv.env['API_BASE_URL'] ?? '';
+  debugPrint('[INIT] API_BASE_URL=${baseUrl.isNotEmpty ? "${baseUrl.substring(0, 20)}..." : "EMPTY"}');
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: url,
-    anonKey: anonKey,
-  );
+  // Initialize API client (loads persisted token)
+  await apiClient.init(baseUrl);
 
   runApp(
     const ProviderScope(

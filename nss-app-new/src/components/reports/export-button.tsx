@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { Download, Loader2, FileSpreadsheet, FileText, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -29,8 +30,7 @@ export function ExportButton({ filename = 'NSS-Hours' }: ExportButtonProps) {
       triggerDownload(blob, `${filename}-${dateSuffix}.csv`)
       toast.success('CSV exported successfully')
     } catch (err) {
-      toast.error('CSV export failed')
-      console.error('CSV export failed:', err)
+      toast.error(getErrorMessage(err, 'CSV export failed'))
     } finally {
       setLoading(false)
     }
@@ -47,8 +47,7 @@ export function ExportButton({ filename = 'NSS-Hours' }: ExportButtonProps) {
       triggerDownload(blob, `${filename}-${dateSuffix}.xlsx`)
       toast.success('XLSX exported successfully')
     } catch (err) {
-      toast.error('XLSX export failed')
-      console.error('XLSX export failed:', err)
+      toast.error(getErrorMessage(err, 'XLSX export failed'))
     } finally {
       setLoading(false)
     }

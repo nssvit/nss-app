@@ -44,6 +44,9 @@ export const CACHE_KEYS = {
   ATTENDANCE_SUMMARY: 'nss:reports:attendance-summary',
   VOLUNTEER_HOURS: 'nss:reports:volunteer-hours',
 
+  // Events (Tier 1 — 5min, invalidated on mutation)
+  EVENTS_WITH_STATS: 'nss:events:stats', // Appended with :{volunteerId}
+
   // Reference data (Tier 2 — 10min, invalidated on mutation)
   CATEGORIES: 'nss:categories:active',
   ROLE_DEFINITIONS: 'nss:roles:definitions',
@@ -113,5 +116,28 @@ export async function invalidateKeys(keys: string[]): Promise<void> {
     await client.del(...keys)
   } catch (err) {
     console.warn('[redis] invalidation failed:', err)
+  }
+}
+
+/**
+ * Delete all cache keys matching a prefix (e.g. "nss:events:stats:*").
+ * Uses SCAN to avoid blocking Redis. Fire-and-forget.
+ */
+export async function invalidateByPrefix(prefix: string): Promise<void> {
+  const client = getRedis()
+  if (!client) return
+
+  try {
+    let cursor = 0
+    do {
+      const result = await client.scan(cursor, { match: `${prefix}*`, count: 100 })
+      cursor = Number(result[0])
+      const keys = result[1] as string[]
+      if (keys.length > 0) {
+        await client.del(...keys)
+      }
+    } while (cursor !== 0)
+  } catch (err) {
+    console.warn(`[redis] prefix invalidation failed for ${prefix}:`, err)
   }
 }

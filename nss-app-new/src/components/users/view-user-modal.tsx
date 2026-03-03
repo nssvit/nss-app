@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { VolunteerWithStats, EventParticipationWithEvent } from '@/types'
 import { getVolunteerParticipationHistory } from '@/app/actions/volunteers'
 import {
@@ -59,7 +61,7 @@ export function ViewUserModal({ volunteer, open, onOpenChange }: ViewUserModalPr
     setLoading(true)
     getVolunteerParticipationHistory(volunteerId)
       .then(setParticipation)
-      .catch((err) => console.error('Failed to load participation:', err))
+      .catch((err) => toast.error(getErrorMessage(err, 'Failed to load participation history')))
       .finally(() => setLoading(false))
   }, [open, volunteerId])
 

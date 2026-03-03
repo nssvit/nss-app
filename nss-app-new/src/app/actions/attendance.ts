@@ -1,6 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
 import { getCachedAttendanceSummary } from '@/lib/query-cache'

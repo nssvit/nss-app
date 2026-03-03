@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { Calendar, MapPin, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -42,7 +44,7 @@ export function RecentEvents() {
         })
         setEvents(sorted.slice(0, 5))
       } catch (err) {
-        console.error('Failed to load recent events:', err)
+        toast.error(getErrorMessage(err, 'Failed to load recent events'))
       } finally {
         setLoading(false)
       }

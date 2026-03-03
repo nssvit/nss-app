@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -74,7 +75,7 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
           setVolunteers(v)
           setRoleDefinitions(rd)
         } catch (err) {
-          console.error('Failed to load data:', err)
+          toast.error(getErrorMessage(err, 'Failed to load role data'))
         } finally {
           setDataLoading(false)
         }
@@ -93,8 +94,7 @@ export function AssignRoleModal({ open, onOpenChange, onSuccess }: AssignRoleMod
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {
-      toast.error('Failed to assign role')
-      console.error('Failed to assign role:', err)
+      toast.error(getErrorMessage(err, 'Failed to assign role'))
     } finally {
       setSubmitting(false)
     }

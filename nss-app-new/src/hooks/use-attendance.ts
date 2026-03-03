@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { EventWithStats, EventParticipationWithVolunteer } from '@/types'
 import { getEvents, getEventParticipants } from '@/app/actions/events'
 import { syncAttendance } from '@/app/actions/attendance'
@@ -17,7 +19,7 @@ export function useAttendance() {
         if (!ignore) setEvents(data)
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load events:', err)
+        toast.error(getErrorMessage(err, 'Failed to load events'))
       } finally {
         if (!ignore) setLoading(false)
       }
@@ -43,7 +45,7 @@ export function useAttendanceManager(eventId: string | null) {
         if (!ignore) setEvents(data)
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load events:', err)
+        toast.error(getErrorMessage(err, 'Failed to load events'))
       } finally {
         if (!ignore && !eventId) setLoading(false)
       }
@@ -72,7 +74,7 @@ export function useAttendanceManager(eventId: string | null) {
         setAttendanceMap(initial)
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load participants:', err)
+        toast.error(getErrorMessage(err, 'Failed to load participants'))
       } finally {
         if (!ignore) setLoading(false)
       }

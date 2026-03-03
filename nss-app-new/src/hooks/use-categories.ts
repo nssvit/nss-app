@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { EventCategory } from '@/types'
 import { getAllCategories } from '@/app/actions/categories'
 
@@ -14,7 +16,7 @@ export function useCategories() {
       setCategories(data)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
-      console.error('Failed to load categories:', err)
+      toast.error(getErrorMessage(err, 'Failed to load categories'))
     } finally {
       setLoading(false)
     }
@@ -28,7 +30,7 @@ export function useCategories() {
         if (!ignore) setCategories(data)
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load categories:', err)
+        toast.error(getErrorMessage(err, 'Failed to load categories'))
       } finally {
         if (!ignore) setLoading(false)
       }

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide Provider;
-import '../core/utils/supabase_client.dart';
+import '../core/services/api_client.dart';
 import '../models/current_user.dart';
 import '../repositories/auth_repository.dart';
 
@@ -18,26 +17,22 @@ class AuthState {
   final AuthStatus status;
   final CurrentUser? currentUser;
   final String? error;
-  final Session? session;
 
   const AuthState({
     this.status = AuthStatus.initial,
     this.currentUser,
     this.error,
-    this.session,
   });
 
   AuthState copyWith({
     AuthStatus? status,
     CurrentUser? currentUser,
     String? error,
-    Session? session,
   }) {
     return AuthState(
       status: status ?? this.status,
       currentUser: currentUser ?? this.currentUser,
       error: error,
-      session: session ?? this.session,
     );
   }
 
@@ -49,60 +44,48 @@ class AuthState {
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
-    // Listen to auth state changes
-    final sub = supabase.auth.onAuthStateChange.listen((event) {
-      switch (event.event) {
-        case AuthChangeEvent.signedIn:
-        case AuthChangeEvent.tokenRefreshed:
-          if (event.session != null) {
-            _fetchCurrentUser(event.session!.user.id);
-          }
-          break;
-        case AuthChangeEvent.signedOut:
-          state = const AuthState(status: AuthStatus.unauthenticated);
-          break;
-        default:
-          break;
-      }
-    });
+    // Wire up 401 handler so any API call can trigger logout
+    apiClient.onUnauthorized = () {
+      state = const AuthState(status: AuthStatus.unauthenticated);
+    };
 
-    ref.onDispose(() => sub.cancel());
-
-    // Defer init to after build() completes (state can't be set during build)
+    // Defer init to after build() completes
     Future.microtask(() => _init());
 
-    // Return initial status (splash screen shown while this is active)
     return const AuthState();
   }
 
   AuthRepository get _repo => ref.read(authRepositoryProvider);
 
+  /// Check for a persisted token and fetch user profile.
   void _init() {
-    final session = currentSession;
-    if (session != null) {
-      _fetchCurrentUser(session.user.id);
+    if (apiClient.hasToken) {
+      _fetchCurrentUser();
     } else {
       state = const AuthState(status: AuthStatus.unauthenticated);
     }
   }
 
-  Future<void> _fetchCurrentUser(String authUserId) async {
+  /// Fetch the current user profile from /api/me.
+  Future<void> _fetchCurrentUser() async {
     state = state.copyWith(status: AuthStatus.loading);
     try {
-      final user = await _repo.fetchCurrentUser(authUserId);
+      final user = await _repo.fetchCurrentUser();
       if (user != null) {
         state = AuthState(
           status: AuthStatus.authenticated,
           currentUser: user,
-          session: currentSession,
         );
       } else {
+        await apiClient.clearToken();
         state = const AuthState(
           status: AuthStatus.unauthenticated,
           error: 'No volunteer profile found for this account.',
         );
       }
     } catch (e) {
+      debugPrint('[AUTH] fetchCurrentUser error: $e');
+      await apiClient.clearToken();
       state = AuthState(
         status: AuthStatus.unauthenticated,
         error: e.toString(),
@@ -118,20 +101,14 @@ class AuthNotifier extends Notifier<AuthState> {
     try {
       debugPrint('[AUTH] signIn attempt for $email');
       await _repo.signIn(email: email, password: password);
-      debugPrint('[AUTH] signIn success');
-      // onAuthStateChange will handle the rest
-    } on AuthException catch (e) {
-      debugPrint('[AUTH] AuthException: ${e.message}');
-      state = AuthState(
-        status: AuthStatus.unauthenticated,
-        error: e.message,
-      );
+      debugPrint('[AUTH] signIn success, fetching user profile...');
+      await _fetchCurrentUser();
     } catch (e, stack) {
-      debugPrint('[AUTH] Exception: $e');
+      debugPrint('[AUTH] signIn error: $e');
       debugPrint('[AUTH] Stack: $stack');
       state = AuthState(
         status: AuthStatus.unauthenticated,
-        error: 'Login failed: ${e.runtimeType} - $e',
+        error: e.toString().replaceFirst('Exception: ', ''),
       );
     }
   }
@@ -156,17 +133,12 @@ class AuthNotifier extends Notifier<AuthState> {
         branch: branch,
         year: year,
       );
-      // Don't set authenticated — wait for email confirmation
+      // Don't set authenticated — wait for email verification
       state = const AuthState(status: AuthStatus.unauthenticated);
-    } on AuthException catch (e) {
-      state = AuthState(
-        status: AuthStatus.unauthenticated,
-        error: e.message,
-      );
     } catch (e) {
       state = AuthState(
         status: AuthStatus.unauthenticated,
-        error: e.toString(),
+        error: e.toString().replaceFirst('Exception: ', ''),
       );
     }
   }
@@ -180,11 +152,10 @@ class AuthNotifier extends Notifier<AuthState> {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
-  /// Refresh current user data from DB.
+  /// Refresh current user data from API.
   Future<void> refreshUser() async {
-    final authUser = currentAuthUser;
-    if (authUser != null) {
-      await _fetchCurrentUser(authUser.id);
+    if (apiClient.hasToken) {
+      await _fetchCurrentUser();
     }
   }
 }

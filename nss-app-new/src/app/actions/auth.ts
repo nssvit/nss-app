@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
+import { getErrorMessage } from '@/lib/error-utils'
 import { db, withRetry } from '@/db'
 import { volunteers } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
@@ -113,8 +114,7 @@ export async function ensureVolunteerProfile(data: VolunteerProfileData): Promis
       return { success: true }
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to create volunteer profile'
-    return { success: false, error: message }
+    return { success: false, error: getErrorMessage(err, 'Failed to create volunteer profile') }
   }
 }
 

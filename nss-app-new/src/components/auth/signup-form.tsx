@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -41,7 +40,6 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>
 
 export function SignupForm() {
-  const router = useRouter()
   const { signUpWithEmail } = useAuth()
   const [serverError, setServerError] = useState<string | null>(null)
 

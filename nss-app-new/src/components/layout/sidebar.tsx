@@ -53,16 +53,16 @@ const NavLink = memo(function NavLink({ item, collapsed }: { item: NavItem; coll
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { currentUser } = useAuth()
-  const userRoles = currentUser?.roles ?? []
 
   const { mainItems, managementItems, adminItems } = useMemo(() => {
-    const filtered = getFilteredNavItems(userRoles)
+    const roles = currentUser?.roles ?? []
+    const filtered = getFilteredNavItems(roles)
     return {
       mainItems: filtered.filter((i) => i.section === 'main'),
       managementItems: filtered.filter((i) => i.section === 'management'),
       adminItems: filtered.filter((i) => i.section === 'admin'),
     }
-  }, [userRoles])
+  }, [currentUser?.roles])
 
   return (
     <aside

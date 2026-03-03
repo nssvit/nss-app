@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { MoreHorizontal, ShieldOff, ShieldCheck, Pencil } from 'lucide-react'
 import { ROLE_DISPLAY_NAMES, ROLE_COLORS, type Role } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -53,7 +55,7 @@ export function RoleAssignmentsTable({ assignments, onRefresh }: RoleAssignments
       await revokeRole(assignment.volunteerId, assignment.roleDefinitionId)
       onRefresh?.()
     } catch (err) {
-      console.error('Failed to revoke role:', err)
+      toast.error(getErrorMessage(err, 'Failed to revoke role'))
     } finally {
       setLoading(null)
     }
@@ -65,7 +67,7 @@ export function RoleAssignmentsTable({ assignments, onRefresh }: RoleAssignments
       await assignRole(assignment.volunteerId, assignment.roleDefinitionId)
       onRefresh?.()
     } catch (err) {
-      console.error('Failed to reactivate role:', err)
+      toast.error(getErrorMessage(err, 'Failed to reactivate role'))
     } finally {
       setLoading(null)
     }

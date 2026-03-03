@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { EventCategory } from '@/types'
 import { useCategories } from '@/hooks/use-categories'
 import { cn } from '@/lib/utils'
@@ -41,7 +43,7 @@ export function CategoryManagementPage() {
       await deleteCategory(category.id)
       refresh()
     } catch (err) {
-      console.error('Failed to delete category:', err)
+      toast.error(getErrorMessage(err, 'Failed to delete category'))
     }
   }
 

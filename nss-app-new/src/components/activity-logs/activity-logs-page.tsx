@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { ScrollText, RefreshCw } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState } from '@/components/empty-state'
@@ -55,7 +57,7 @@ export function ActivityLogsPage() {
       setLogs(data)
       setActionTypes(types)
     } catch (err) {
-      console.error('Failed to load audit logs:', err)
+      toast.error(getErrorMessage(err, 'Failed to load activity logs'))
     } finally {
       setLoading(false)
     }

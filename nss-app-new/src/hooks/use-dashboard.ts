@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { DashboardStats, ActivityTrend } from '@/types'
 import { getDashboardStats, getMonthlyTrends } from '@/app/actions/dashboard'
 
@@ -26,7 +28,7 @@ export function useDashboard(initialData?: DashboardInitialData) {
         }
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load dashboard data:', err)
+        toast.error(getErrorMessage(err, 'Failed to load dashboard'))
       } finally {
         if (!ignore) setLoading(false)
       }
