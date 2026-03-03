@@ -3,10 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { queries } from '@/db/queries'
 import { getAuthUser, getCurrentVolunteer, requireAnyRole } from '@/lib/auth-cache'
+import { getCachedEventsWithStats } from '@/lib/query-cache'
 import { mapEventRow } from '@/lib/mappers'
 import { STATUS_TRANSITIONS } from '@/lib/constants'
 import { logAudit } from '@/lib/audit'
-import { invalidateDashboardCache, invalidateReportsCache } from '@/lib/cache-invalidation'
+import { invalidateDashboardCache, invalidateReportsCache, invalidateEventsCache } from '@/lib/cache-invalidation'
 
 // Types for event creation/update
 export interface CreateEventInput {
@@ -46,7 +47,7 @@ export interface UpdateEventInput {
 export async function getEvents() {
   await getAuthUser() // Cached auth check
   const volunteer = await getCurrentVolunteer()
-  const rows = await queries.getEventsWithStats(volunteer.id)
+  const rows = await getCachedEventsWithStats(volunteer.id)
   return rows.map(mapEventRow)
 }
 
@@ -83,6 +84,7 @@ export async function createEvent(data: CreateEventInput) {
   logAudit({ action: 'event.create', actorId: volunteer.id, targetType: 'event', details: { eventName: data.eventName } })
   await invalidateDashboardCache()
   await invalidateReportsCache()
+  await invalidateEventsCache()
   revalidatePath('/events')
   revalidatePath('/event-registration')
   return result
@@ -134,6 +136,7 @@ export async function updateEvent(eventId: string, updates: UpdateEventInput) {
   logAudit({ action: 'event.update', actorId: actor.id, targetType: 'event', targetId: eventId, details: { ...updates } })
   await invalidateDashboardCache()
   await invalidateReportsCache()
+  await invalidateEventsCache()
   revalidatePath('/events')
   revalidatePath(`/events/${eventId}`)
   revalidatePath('/volunteers')
@@ -149,6 +152,7 @@ export async function deleteEvent(eventId: string) {
   logAudit({ action: 'event.delete', actorId: actor.id, targetType: 'event', targetId: eventId })
   await invalidateDashboardCache()
   await invalidateReportsCache()
+  await invalidateEventsCache()
   revalidatePath('/events')
   return result
 }

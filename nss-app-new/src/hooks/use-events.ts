@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { EventWithStats, EventCategory } from '@/types'
 import { getEvents } from '@/app/actions/events'
 import { getCategories } from '@/app/actions/categories'
@@ -23,7 +25,7 @@ export function useEvents(initialData?: EventsInitialData) {
       setCategories(c)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
-      console.error('Failed to load events:', err)
+      toast.error(getErrorMessage(err, 'Failed to load events'))
     } finally {
       setLoading(false)
     }
@@ -42,7 +44,7 @@ export function useEvents(initialData?: EventsInitialData) {
         }
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load events:', err)
+        toast.error(getErrorMessage(err, 'Failed to load events'))
       } finally {
         if (!ignore) setLoading(false)
       }

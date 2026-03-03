@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import {
   Dialog,
   DialogContent,
@@ -166,7 +167,7 @@ export function EventDetailModal({
       onEventUpdated?.()
       if (resetted) loadParticipants() // refresh participant list
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update event')
+      toast.error(getErrorMessage(err, 'Failed to update event'))
     } finally {
       setSaving(false)
     }
@@ -264,7 +265,7 @@ export function EventDetailModal({
       loadParticipants()
       onEventUpdated?.()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to add volunteers')
+      toast.error(getErrorMessage(err, 'Failed to add volunteers'))
     } finally {
       setAddingVolunteers(false)
     }

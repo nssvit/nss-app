@@ -93,8 +93,24 @@ export {
   getUserStats,
 } from './reports'
 
+// Category queries
+export {
+  getActiveCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from './categories'
+
+// Audit queries
+export {
+  getAuditLogs,
+  getDistinctAuditActions,
+} from './audit'
+
 // Import all for namespace export
 import * as attendance from './attendance'
+import * as audit from './audit'
+import * as categories from './categories'
 import * as dashboard from './dashboard'
 import * as events from './events'
 import * as hours from './hours'
@@ -169,6 +185,16 @@ export const queries = {
   adminAssignRole: roles.adminAssignRole,
   adminUpdateRoleAssignment: roles.adminUpdateRoleAssignment,
   adminRevokeRole: roles.adminRevokeRole,
+
+  // Categories
+  getActiveCategories: categories.getActiveCategories,
+  createCategory: categories.createCategory,
+  updateCategory: categories.updateCategory,
+  deleteCategory: categories.deleteCategory,
+
+  // Audit
+  getAuditLogs: audit.getAuditLogs,
+  getDistinctAuditActions: audit.getDistinctAuditActions,
 }
 
 export default queries

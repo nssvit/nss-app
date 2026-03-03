@@ -8,7 +8,7 @@
  */
 
 import { revalidateTag, revalidatePath } from 'next/cache'
-import { invalidateKeys, CACHE_KEYS } from './redis'
+import { invalidateKeys, invalidateByPrefix, CACHE_KEYS } from './redis'
 
 // --- Domain-specific invalidation ---
 
@@ -61,6 +61,15 @@ export async function invalidateRolesCache() {
   revalidateTag('role-definitions')
 }
 
+/**
+ * Invalidate all per-user events-with-stats caches.
+ * Called by: event create/update/delete, attendance mutations.
+ * Uses prefix scan since keys are per-volunteer (nss:events:stats:{id}).
+ */
+export async function invalidateEventsCache() {
+  await invalidateByPrefix(`${CACHE_KEYS.EVENTS_WITH_STATS}:`)
+}
+
 // --- Composite invalidation for common mutation patterns ---
 
 /**
@@ -70,6 +79,7 @@ export async function invalidateRolesCache() {
 export async function invalidateAttendanceMutation(eventId?: string) {
   await Promise.all([
     invalidateDashboardCache(),
+    invalidateEventsCache(),
     invalidateKeys([CACHE_KEYS.ATTENDANCE_SUMMARY]),
   ])
   revalidatePath('/attendance')
@@ -84,6 +94,7 @@ export async function invalidateHoursMutation() {
   await Promise.all([
     invalidateDashboardCache(),
     invalidateReportsCache(),
+    invalidateEventsCache(),
   ])
   revalidatePath('/hours-approval')
   revalidatePath('/reports')

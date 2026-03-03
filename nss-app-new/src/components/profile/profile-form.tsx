@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -64,8 +65,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
       toast.success('Profile updated successfully')
       onSuccess?.()
     } catch (err) {
-      toast.error('Failed to update profile')
-      console.error('Failed to update profile:', err)
+      toast.error(getErrorMessage(err, 'Failed to update profile'))
     } finally {
       setSubmitting(false)
     }

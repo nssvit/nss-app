@@ -1,44 +1,28 @@
-import '../core/utils/supabase_client.dart';
+import '../core/services/api_client.dart';
 import '../models/models.dart';
 
 class CategoryRepository {
   /// Fetch all active event categories.
   Future<List<EventCategory>> getCategories() async {
-    final res = await supabase
-        .from('event_categories')
-        .select()
-        .eq('is_active', true)
-        .order('category_name');
-
-    return (res as List)
-        .map((row) => EventCategory.fromJson(row))
+    final data = await apiClient.get('/api/categories');
+    return (data as List)
+        .map((row) => EventCategory.fromJson(row as Map<String, dynamic>))
         .toList();
   }
 
   /// Create a new category.
   Future<EventCategory> createCategory(Map<String, dynamic> data) async {
-    final res = await supabase
-        .from('event_categories')
-        .insert(data)
-        .select()
-        .single();
-    return EventCategory.fromJson(res);
+    final res = await apiClient.post('/api/categories', body: data);
+    return EventCategory.fromJson(res as Map<String, dynamic>);
   }
 
   /// Update a category.
   Future<void> updateCategory(int id, Map<String, dynamic> updates) async {
-    updates['updated_at'] = DateTime.now().toIso8601String();
-    await supabase.from('event_categories').update(updates).eq('id', id);
+    await apiClient.put('/api/categories/$id', body: updates);
   }
 
   /// Soft-delete a category.
   Future<void> deleteCategory(int id) async {
-    await supabase
-        .from('event_categories')
-        .update({
-          'is_active': false,
-          'updated_at': DateTime.now().toIso8601String(),
-        })
-        .eq('id', id);
+    await apiClient.delete('/api/categories/$id');
   }
 }

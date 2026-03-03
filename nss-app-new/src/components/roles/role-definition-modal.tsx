@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -99,8 +100,7 @@ export function RoleDefinitionModal({
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {
-      toast.error('Failed to save role')
-      console.error('Failed to save role:', err)
+      toast.error(getErrorMessage(err, 'Failed to save role'))
     } finally {
       setSubmitting(false)
     }

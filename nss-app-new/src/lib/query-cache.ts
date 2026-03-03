@@ -95,6 +95,21 @@ export function getCachedRoleDefinitions() {
   )
 }
 
+// --- Events with stats (Tier 1 — 5min Redis, 60s ISR, per-user) ---
+
+/** Events with stats — per-volunteer cache key, Redis first, then ISR, then DB */
+export function getCachedEventsWithStats(volunteerId?: string) {
+  const key = volunteerId
+    ? `${CACHE_KEYS.EVENTS_WITH_STATS}:${volunteerId}`
+    : `${CACHE_KEYS.EVENTS_WITH_STATS}:_anon`
+
+  return getOrSetCache(
+    key,
+    CACHE_TTL.SHORT,
+    () => queries.getEventsWithStats(volunteerId),
+  )
+}
+
 // --- Report aggregates (Tier 1 — 300s Redis, no ISR) ---
 
 /** Category distribution — Redis cached, 5 min TTL */

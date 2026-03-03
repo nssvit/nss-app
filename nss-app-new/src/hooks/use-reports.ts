@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { DashboardStats, ActivityTrend, EventWithStats } from '@/types'
 import { getDashboardStats, getMonthlyTrends } from '@/app/actions/dashboard'
 import { getEvents } from '@/app/actions/events'
@@ -23,7 +25,7 @@ export function useReports() {
         }
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load reports:', err)
+        toast.error(getErrorMessage(err, 'Failed to load reports'))
       } finally {
         if (!ignore) setLoading(false)
       }

@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import type { VolunteerWithStats } from '@/types'
 import { getVolunteers } from '@/app/actions/volunteers'
 
@@ -15,7 +17,7 @@ export function useVolunteers(initialData?: VolunteerWithStats[]) {
       setVolunteers(data)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') return
-      console.error('Failed to load volunteers:', err)
+      toast.error(getErrorMessage(err, 'Failed to load volunteers'))
     } finally {
       setLoading(false)
     }
@@ -31,7 +33,7 @@ export function useVolunteers(initialData?: VolunteerWithStats[]) {
         if (!ignore) setVolunteers(data)
       } catch (err) {
         if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        console.error('Failed to load volunteers:', err)
+        toast.error(getErrorMessage(err, 'Failed to load volunteers'))
       } finally {
         if (!ignore) setLoading(false)
       }

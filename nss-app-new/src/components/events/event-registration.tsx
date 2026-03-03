@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Calendar, MapPin, Clock } from 'lucide-react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { useEvents } from '@/hooks/use-events'
 import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,15 +31,13 @@ export function EventRegistration() {
       toast.success('Registered successfully!')
       refresh()
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Failed to register'
+      const msg = getErrorMessage(err, 'Failed to register')
       if (msg.includes('Already registered')) {
         toast.info('You are already registered for this event')
         setRegisteredIds((prev) => new Set(prev).add(eventId))
       } else {
         toast.error(msg)
       }
-      console.error('Failed to register:', err)
     } finally {
       setRegistering(null)
     }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -105,8 +106,7 @@ export function EditUserModal({ volunteer, open, onOpenChange, onSuccess }: Edit
       onOpenChange(false)
       onSuccess?.()
     } catch (err) {
-      toast.error('Failed to update user')
-      console.error('Failed to update user:', err)
+      toast.error(getErrorMessage(err, 'Failed to update user'))
     } finally {
       setSubmitting(false)
     }

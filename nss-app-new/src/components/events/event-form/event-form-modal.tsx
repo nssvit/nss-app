@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { Plus, Users, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -122,7 +123,7 @@ export function EventFormModal({ categories, onSuccess }: EventFormModalProps) {
       setOpen(false)
       onSuccess?.()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create event')
+      toast.error(getErrorMessage(err, 'Failed to create event'))
       console.error('Failed to create event:', err)
     } finally {
       setSubmitting(false)

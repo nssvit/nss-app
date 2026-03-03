@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/error-utils'
 import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { StatsCard } from '@/components/stats-card'
@@ -55,7 +57,7 @@ export function VolunteerDashboard() {
         setParticipation(data.participation || [])
         setUpcomingEvents(data.availableEvents || [])
       } catch (err) {
-        console.error('Failed to load volunteer dashboard:', err)
+        toast.error(getErrorMessage(err, 'Failed to load dashboard'))
       } finally {
         setLoading(false)
       }
