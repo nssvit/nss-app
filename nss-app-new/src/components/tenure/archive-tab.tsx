@@ -1,19 +1,20 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
-import { ArrowLeft, Archive, Loader2 } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Archive, Download, Eye, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getErrorMessage } from '@/lib/error-utils'
-import {
-  getTenureArchive,
-  getTenureEvents,
-} from '@/app/actions/admin/tenure'
-import { PageHeader } from '@/components/page-header'
-import { EmptyState } from '@/components/empty-state'
+import { exportTenureCSV, getTenureArchive, getTenureEvents } from '@/app/actions/admin/tenure'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -23,41 +24,34 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 
-type Tenure = Awaited<ReturnType<typeof getTenureArchive>>[number]
+type ArchiveRow = Awaited<ReturnType<typeof getTenureArchive>>[number]
 type TenureEvent = Awaited<ReturnType<typeof getTenureEvents>>[number]
 
-export function TenureArchivePage() {
-  const [tenures, setTenures] = useState<Tenure[] | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [selected, setSelected] = useState<Tenure | null>(null)
+interface TenureArchiveTabProps {
+  archive: ArchiveRow[] | null
+  loading: boolean
+}
+
+function triggerCSVDownload(filename: string, csv: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+export function TenureArchiveTab({ archive, loading }: TenureArchiveTabProps) {
+  const [selected, setSelected] = useState<ArchiveRow | null>(null)
   const [events, setEvents] = useState<TenureEvent[] | null>(null)
   const [eventsLoading, setEventsLoading] = useState(false)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await getTenureArchive()
-      setTenures(data)
-    } catch (err) {
-      toast.error(getErrorMessage(err, 'Failed to load archive'))
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    refresh()
-  }, [refresh])
-
-  const openTenure = useCallback(async (tenure: Tenure) => {
+  const openTenure = useCallback(async (tenure: ArchiveRow) => {
     setSelected(tenure)
     setEvents(null)
     setEventsLoading(true)
@@ -71,27 +65,31 @@ export function TenureArchivePage() {
     }
   }, [])
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <Button asChild variant="ghost" size="sm" className="mb-2 -ml-2">
-          <Link href="/settings">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to Settings
-          </Link>
-        </Button>
-        <PageHeader
-          title="Tenure Archive"
-          description="Browse past NSS tenures. Read-only."
-        />
-      </div>
+  async function handleDownload(tenure: ArchiveRow) {
+    setDownloadingId(tenure.id)
+    try {
+      const { filename, csv } = await exportTenureCSV(tenure.id)
+      triggerCSVDownload(filename, csv)
+      toast.success(`Downloaded ${filename}`)
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to export CSV'))
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
+  return (
+    <>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Archive className="h-4 w-4" />
             All Tenures
           </CardTitle>
+          <CardDescription>
+            Every academic year with aggregate stats. Click a row to view events, or download the
+            CSV for that tenure.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -100,12 +98,10 @@ export function TenureArchivePage() {
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
-          ) : !tenures || tenures.length === 0 ? (
-            <EmptyState
-              icon={Archive}
-              title="No tenures yet"
-              description="Create a tenure from the Settings page to begin tracking data by academic year."
-            />
+          ) : !archive || archive.length === 0 ? (
+            <p className="text-muted-foreground py-6 text-center text-sm">
+              No tenures yet. Start one from the Overview tab.
+            </p>
           ) : (
             <div className="rounded-md border">
               <Table>
@@ -117,11 +113,11 @@ export function TenureArchivePage() {
                     <TableHead className="text-right">Events</TableHead>
                     <TableHead className="text-right">Volunteers</TableHead>
                     <TableHead className="text-right">Approved Hrs</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {tenures.map((t) => (
+                  {archive.map((t) => (
                     <TableRow key={t.id}>
                       <TableCell className="font-medium">
                         {t.label}
@@ -132,22 +128,34 @@ export function TenureArchivePage() {
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{t.startDate}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {t.endDate ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {t.eventCount}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {t.volunteerCount}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {t.totalHours}
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline" onClick={() => openTenure(t)}>
-                          View
-                        </Button>
+                      <TableCell className="text-muted-foreground">{t.endDate ?? '—'}</TableCell>
+                      <TableCell className="text-right tabular-nums">{t.eventCount}</TableCell>
+                      <TableCell className="text-right tabular-nums">{t.volunteerCount}</TableCell>
+                      <TableCell className="text-right tabular-nums">{t.totalHours}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openTenure(t)}
+                            title="View events"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDownload(t)}
+                            disabled={downloadingId === t.id}
+                            title="Download CSV"
+                          >
+                            {downloadingId === t.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -163,18 +171,17 @@ export function TenureArchivePage() {
           <DialogHeader>
             <DialogTitle>Tenure {selected?.label}</DialogTitle>
             <DialogDescription>
-              {selected?.startDate} to {selected?.endDate ?? '—'} · Read-only snapshot of
-              events.
+              {selected?.startDate} to {selected?.endDate ?? '—'} · Read-only snapshot of events.
             </DialogDescription>
           </DialogHeader>
 
           {eventsLoading ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
+            <div className="text-muted-foreground py-6 text-center text-sm">
               <Loader2 className="mx-auto h-5 w-5 animate-spin" />
               Loading events...
             </div>
           ) : !events || events.length === 0 ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
+            <div className="text-muted-foreground py-6 text-center text-sm">
               No events were recorded in this tenure.
             </div>
           ) : (
@@ -217,6 +224,6 @@ export function TenureArchivePage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   )
 }

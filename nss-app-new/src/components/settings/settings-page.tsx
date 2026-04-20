@@ -13,8 +13,6 @@ import { useAuth } from '@/contexts/auth-context'
 import { useTheme } from '@/contexts/theme-context'
 import { ROLE_DISPLAY_NAMES, ROLE_COLORS, type Role } from '@/lib/constants'
 import { cn } from '@/lib/utils'
-import { DatabaseSettings } from './database-settings'
-import { TenureSettings } from './tenure-settings'
 
 const notificationItems = [
   {
@@ -35,7 +33,7 @@ const notificationItems = [
 ]
 
 export function SettingsPage() {
-  const { currentUser, hasRole } = useAuth()
+  const { currentUser } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const [notifications, setNotifications] = useState({
     email: true,
@@ -100,11 +98,7 @@ export function SettingsPage() {
               <Label htmlFor="dark-mode">Dark Mode</Label>
               <p className="text-muted-foreground text-sm">Toggle between dark and light themes</p>
             </div>
-            <Switch
-              id="dark-mode"
-              checked={theme === 'dark'}
-              onCheckedChange={toggleTheme}
-            />
+            <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
           </div>
         </CardContent>
       </Card>
@@ -136,13 +130,6 @@ export function SettingsPage() {
           ))}
         </CardContent>
       </Card>
-
-      {hasRole('admin') && (
-        <>
-          <TenureSettings />
-          <DatabaseSettings />
-        </>
-      )}
     </div>
   )
 }

@@ -1,10 +1,5 @@
-import { ProtectedRoute } from '@/components/auth/protected-route'
-import { TenureArchivePage } from '@/components/settings/archive'
+import { redirect } from 'next/navigation'
 
-export default function Page() {
-  return (
-    <ProtectedRoute allowedRoles={['admin']}>
-      <TenureArchivePage />
-    </ProtectedRoute>
-  )
+export default function ArchiveRedirect() {
+  redirect('/tenure')
 }

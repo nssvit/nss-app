@@ -37,7 +37,9 @@ export function DatabaseSettings() {
     }
   }, [])
 
-  useEffect(() => { refresh() }, [refresh])
+  useEffect(() => {
+    refresh()
+  }, [refresh])
 
   async function handleSwitch(provider: string) {
     setSwitching(true)
@@ -52,7 +54,7 @@ export function DatabaseSettings() {
     }
   }
 
-  const switchTargets = status?.availableProviders.filter(p => p !== status.activeProvider) ?? []
+  const switchTargets = status?.availableProviders.filter((p) => p !== status.activeProvider) ?? []
 
   return (
     <Card>
@@ -87,7 +89,10 @@ export function DatabaseSettings() {
         <div className="space-y-2">
           <p className="text-sm font-medium">Connection Health</p>
           {status?.health.map((h) => (
-            <div key={h.provider} className="flex items-center justify-between rounded-md border p-3">
+            <div
+              key={h.provider}
+              className="flex items-center justify-between rounded-md border p-3"
+            >
               <div className="flex items-center gap-2">
                 {h.ok ? (
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -96,11 +101,13 @@ export function DatabaseSettings() {
                 )}
                 <span className="text-sm capitalize">{h.provider}</span>
                 {h.provider === status.activeProvider && (
-                  <Badge variant="outline" className="text-xs">Active</Badge>
+                  <Badge variant="outline" className="text-xs">
+                    Active
+                  </Badge>
                 )}
               </div>
               <div className="text-muted-foreground text-xs">
-                {h.ok ? `${h.latencyMs}ms` : h.error ?? 'Unavailable'}
+                {h.ok ? `${h.latencyMs}ms` : (h.error ?? 'Unavailable')}
               </div>
             </div>
           ))}
@@ -121,11 +128,7 @@ export function DatabaseSettings() {
           {switchTargets.map((target) => (
             <AlertDialog key={target}>
               <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={switching || loading}
-                >
+                <Button variant="outline" size="sm" disabled={switching || loading}>
                   <ArrowRightLeft className="mr-1 h-3 w-3" />
                   Switch to {target}
                 </Button>
@@ -134,8 +137,8 @@ export function DatabaseSettings() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Switch Database Provider</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will switch all database queries from {status?.activeProvider ?? 'current'} to {target}.
-                    Active sessions and in-flight requests may be affected.
+                    This will switch all database queries from {status?.activeProvider ?? 'current'}{' '}
+                    to {target}. Active sessions and in-flight requests may be affected.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

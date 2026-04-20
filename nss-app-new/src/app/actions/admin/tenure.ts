@@ -126,6 +126,179 @@ export async function getTenureEvents(tenureId: string) {
 }
 
 /**
+ * Per-tenure analytics for the /tenure page.
+ * Pass a tenureId to scope; omit to use current tenure.
+ */
+export async function getTenureStats(tenureId?: string) {
+  await requireAdmin()
+  if (tenureId) z.string().uuid().parse(tenureId)
+
+  const tenureFilter = tenureId ? sql`${tenureId}::uuid` : sql`current_tenure_id()`
+
+  // Category distribution (events, volunteers, hours per category)
+  const categoryRows = await db.execute(sql`
+    SELECT
+      ec.category_name,
+      ec.color_hex,
+      COALESCE(COUNT(DISTINCT e.id), 0)::int AS event_count,
+      COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int AS volunteer_count,
+      COALESCE(SUM(ep.approved_hours), 0)::int AS total_hours
+    FROM event_categories ec
+    LEFT JOIN events e ON ec.id = e.category_id
+      AND e.is_active = true
+      AND e.tenure_id = ${tenureFilter}
+    LEFT JOIN event_participation ep ON e.id = ep.event_id
+      AND ep.tenure_id = ${tenureFilter}
+    WHERE ec.is_active = true
+    GROUP BY ec.id, ec.category_name, ec.color_hex
+    ORDER BY total_hours DESC, event_count DESC
+  `)
+
+  // Hours by branch
+  const branchRows = await db.execute(sql`
+    SELECT
+      v.branch,
+      COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int AS volunteer_count,
+      COALESCE(SUM(ep.approved_hours), 0)::int AS total_hours,
+      COALESCE(COUNT(ep.id), 0)::int AS participation_count
+    FROM volunteers v
+    LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
+      AND ep.tenure_id = ${tenureFilter}
+    WHERE v.is_active = true
+    GROUP BY v.branch
+    ORDER BY total_hours DESC
+  `)
+
+  // Top volunteers by approved hours
+  const topVolunteerRows = await db.execute(sql`
+    SELECT
+      v.id,
+      v.first_name,
+      v.last_name,
+      v.roll_number,
+      v.branch,
+      v.year,
+      COALESCE(SUM(ep.approved_hours), 0)::int AS total_hours,
+      COUNT(DISTINCT ep.event_id)::int AS events_count
+    FROM volunteers v
+    JOIN event_participation ep ON v.id = ep.volunteer_id
+    WHERE ep.tenure_id = ${tenureFilter}
+      AND ep.approval_status = 'approved'
+    GROUP BY v.id
+    ORDER BY total_hours DESC
+    LIMIT 10
+  `)
+
+  const categoryArr = Array.isArray(categoryRows) ? categoryRows : []
+  const branchArr = Array.isArray(branchRows) ? branchRows : []
+  const topArr = Array.isArray(topVolunteerRows) ? topVolunteerRows : []
+
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL
+    byCategory: categoryArr.map((r: any) => ({
+      categoryName: r.category_name as string,
+      colorHex: (r.color_hex as string | null) ?? '#6366F1',
+      eventCount: Number(r.event_count),
+      volunteerCount: Number(r.volunteer_count),
+      totalHours: Number(r.total_hours),
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL
+    byBranch: branchArr.map((r: any) => ({
+      branch: r.branch as string,
+      volunteerCount: Number(r.volunteer_count),
+      totalHours: Number(r.total_hours),
+      participationCount: Number(r.participation_count),
+    })),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL
+    topVolunteers: topArr.map((r: any) => ({
+      id: r.id as string,
+      firstName: r.first_name as string,
+      lastName: r.last_name as string,
+      rollNumber: r.roll_number as string,
+      branch: r.branch as string,
+      year: r.year as string,
+      totalHours: Number(r.total_hours),
+      eventsCount: Number(r.events_count),
+    })),
+  }
+}
+
+/**
+ * CSV export for a specific tenure. Events + participation pivoted, similar
+ * to the existing exportCSVData but tenure-scoped and returns the full string.
+ */
+export async function exportTenureCSV(
+  tenureId: string
+): Promise<{ filename: string; csv: string }> {
+  await requireAdmin()
+  z.string().uuid().parse(tenureId)
+
+  const [tenure] = await db.select().from(tenures).where(eq(tenures.id, tenureId)).limit(1)
+  if (!tenure) throw new Error('Tenure not found')
+
+  // Events with aggregate stats for the tenure
+  const eventRows = await db.execute(sql`
+    SELECT
+      e.event_name,
+      e.start_date,
+      e.declared_hours,
+      e.event_status,
+      ec.category_name,
+      e.location,
+      COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int AS participant_count,
+      COALESCE(SUM(ep.approved_hours), 0)::int AS approved_hours
+    FROM events e
+    LEFT JOIN event_categories ec ON e.category_id = ec.id
+    LEFT JOIN event_participation ep ON e.id = ep.event_id
+    WHERE e.tenure_id = ${tenureId} AND e.is_active = true
+    GROUP BY e.id, ec.category_name
+    ORDER BY e.start_date
+  `)
+
+  const rows = Array.isArray(eventRows) ? eventRows : []
+
+  function escape(v: string | number | null | undefined): string {
+    if (v === null || v === undefined) return ''
+    const s = String(v)
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
+  }
+
+  const header = [
+    'Event Name',
+    'Date',
+    'Category',
+    'Location',
+    'Declared Hours',
+    'Participants',
+    'Approved Hours',
+    'Status',
+  ].join(',')
+
+  const lines = [header]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL
+  for (const r of rows as any[]) {
+    const date = r.start_date ? new Date(r.start_date).toLocaleDateString('en-IN') : ''
+    lines.push(
+      [
+        escape(r.event_name),
+        escape(date),
+        escape(r.category_name ?? ''),
+        escape(r.location ?? ''),
+        escape(r.declared_hours),
+        escape(r.participant_count),
+        escape(r.approved_hours),
+        escape((r.event_status as string).replace(/_/g, ' ')),
+      ].join(',')
+    )
+  }
+
+  return {
+    filename: `NSS_${tenure.label}_events.csv`,
+    csv: lines.join('\n'),
+  }
+}
+
+/**
  * Fetch the list of active SE + TE volunteers that the next rollover will affect.
  * Used by the rollover review modal so admins can uncheck exceptions (repeat years).
  */

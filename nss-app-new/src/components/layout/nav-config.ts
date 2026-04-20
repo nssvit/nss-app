@@ -9,6 +9,8 @@ import {
   Tag,
   UserCog,
   ScrollText,
+  CalendarRange,
+  Database,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -87,6 +89,20 @@ export const navItems: NavItem[] = [
     label: 'Activity Logs',
     href: '/activity-logs',
     icon: ScrollText,
+    section: 'admin',
+    roles: ['admin'],
+  },
+  {
+    label: 'Tenure',
+    href: '/tenure',
+    icon: CalendarRange,
+    section: 'admin',
+    roles: ['admin'],
+  },
+  {
+    label: 'Database',
+    href: '/database',
+    icon: Database,
     section: 'admin',
     roles: ['admin'],
   },
