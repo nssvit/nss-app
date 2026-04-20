@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { CheckCircle, FileText, Users, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -35,7 +35,6 @@ export function AttendanceManager() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
-  const [attendanceSaved, setAttendanceSaved] = useState(false)
   const {
     events,
     participants,
@@ -52,16 +51,11 @@ export function AttendanceManager() {
 
   const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null
 
-  useEffect(() => {
-    setAttendanceSaved(false)
-  }, [selectedEventId])
-
   const handleSubmit = async () => {
     setSaving(true)
     try {
       await submitAttendance()
       toast.success('Attendance saved successfully')
-      setAttendanceSaved(true)
     } catch {
       toast.error('Failed to save attendance')
     } finally {
@@ -235,7 +229,7 @@ export function AttendanceManager() {
           </div>
 
           <div className="flex justify-end gap-2">
-            {attendanceSaved && presentCount > 0 && (
+            {presentCount > 0 && (
               <Button variant="outline" onClick={() => setReportOpen(true)} disabled={saving}>
                 <FileText className="mr-1 h-4 w-4" />
                 Generate Report
