@@ -15,11 +15,7 @@ import { logAudit } from '@/lib/audit'
 export async function getCurrentTenureInfo() {
   await requireAdmin()
 
-  const [current] = await db
-    .select()
-    .from(tenures)
-    .where(eq(tenures.isCurrent, true))
-    .limit(1)
+  const [current] = await db.select().from(tenures).where(eq(tenures.isCurrent, true)).limit(1)
 
   const rows = await db.execute(sql`
     SELECT
@@ -129,10 +125,45 @@ export async function getTenureEvents(tenureId: string) {
   }))
 }
 
+/**
+ * Fetch the list of active SE + TE volunteers that the next rollover will affect.
+ * Used by the rollover review modal so admins can uncheck exceptions (repeat years).
+ */
+export async function getRolloverPreview() {
+  await requireAdmin()
+
+  const result = await db.execute(sql`
+    SELECT id, first_name, last_name, roll_number, branch, year
+    FROM volunteers
+    WHERE status = 'active' AND year IN ('SE', 'TE')
+    ORDER BY year DESC, first_name, last_name
+  `)
+
+  const rows = Array.isArray(result) ? result : []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- raw SQL
+  const mapped = rows.map((r: any) => ({
+    id: r.id as string,
+    firstName: r.first_name as string,
+    lastName: r.last_name as string,
+    rollNumber: r.roll_number as string,
+    branch: r.branch as string,
+    year: r.year as 'SE' | 'TE',
+  }))
+
+  return {
+    teActives: mapped.filter((v) => v.year === 'TE'),
+    seActives: mapped.filter((v) => v.year === 'SE'),
+  }
+}
+
 const rolloverSchema = z.object({
   label: z.string().regex(/^\d{4}-\d{4}$/, 'Format: YYYY-YYYY (e.g. 2026-2027)'),
   startDate: z.string().date(),
   endDate: z.string().date().optional(),
+  /** TE volunteer IDs to exclude from the graduate-to-completed step. */
+  excludeGraduates: z.array(z.string().uuid()).optional(),
+  /** SE volunteer IDs to exclude from the promote-to-TE step. */
+  excludePromotions: z.array(z.string().uuid()).optional(),
 })
 
 export type RolloverInput = z.infer<typeof rolloverSchema>
@@ -141,8 +172,8 @@ export type RolloverInput = z.infer<typeof rolloverSchema>
  * Start a new academic tenure.
  *
  * Atomic operation:
- *   1. 3rd-year (TE) actives -> status = 'completed' (NSS done)
- *   2. 2nd-year (SE) actives -> year = 'TE'
+ *   1. 3rd-year (TE) actives -> status = 'completed' (NSS done), except IDs in excludeGraduates
+ *   2. 2nd-year (SE) actives -> year = 'TE', except IDs in excludePromotions
  *   3. Flip is_current: old tenure false, new tenure inserted as true
  *
  * Past events / participations / roles keep their original tenure_id and
@@ -152,16 +183,28 @@ export async function startNewTenure(input: RolloverInput) {
   const admin = await requireAdmin()
   const parsed = rolloverSchema.parse(input)
 
-  const result = await db.transaction(async (tx) => {
-    await tx
-      .update(volunteers)
-      .set({ status: 'completed' })
-      .where(sql`${volunteers.year} = 'TE' AND ${volunteers.status} = 'active'`)
+  const excludeGraduates = parsed.excludeGraduates ?? []
+  const excludePromotions = parsed.excludePromotions ?? []
 
-    await tx
-      .update(volunteers)
-      .set({ year: 'TE' })
-      .where(sql`${volunteers.year} = 'SE' AND ${volunteers.status} = 'active'`)
+  const result = await db.transaction(async (tx) => {
+    const graduateCond =
+      excludeGraduates.length > 0
+        ? sql`${volunteers.year} = 'TE' AND ${volunteers.status} = 'active' AND ${volunteers.id} NOT IN (${sql.join(
+            excludeGraduates.map((id) => sql`${id}`),
+            sql`, `
+          )})`
+        : sql`${volunteers.year} = 'TE' AND ${volunteers.status} = 'active'`
+
+    const promoteCond =
+      excludePromotions.length > 0
+        ? sql`${volunteers.year} = 'SE' AND ${volunteers.status} = 'active' AND ${volunteers.id} NOT IN (${sql.join(
+            excludePromotions.map((id) => sql`${id}`),
+            sql`, `
+          )})`
+        : sql`${volunteers.year} = 'SE' AND ${volunteers.status} = 'active'`
+
+    await tx.update(volunteers).set({ status: 'completed' }).where(graduateCond)
+    await tx.update(volunteers).set({ year: 'TE' }).where(promoteCond)
 
     await tx.update(tenures).set({ isCurrent: false }).where(eq(tenures.isCurrent, true))
 
@@ -183,7 +226,12 @@ export async function startNewTenure(input: RolloverInput) {
     actorId: admin.id,
     targetType: 'tenure',
     targetId: result.id,
-    details: { label: parsed.label, startDate: parsed.startDate },
+    details: {
+      label: parsed.label,
+      startDate: parsed.startDate,
+      excludedGraduates: excludeGraduates.length,
+      excludedPromotions: excludePromotions.length,
+    },
   })
 
   revalidatePath('/', 'layout')
