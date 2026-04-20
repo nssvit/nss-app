@@ -29,7 +29,9 @@ export async function getCategoryDistribution() {
       COALESCE(COUNT(DISTINCT ep.volunteer_id), 0)::int as participant_count,
       COALESCE(SUM(ep.approved_hours), 0)::int as total_hours
     FROM event_categories ec
-    LEFT JOIN events e ON ec.id = e.category_id AND e.is_active = true
+    LEFT JOIN events e ON ec.id = e.category_id
+      AND e.is_active = true
+      AND e.tenure_id = current_tenure_id()
     LEFT JOIN event_participation ep ON e.id = ep.event_id
     WHERE ec.is_active = true
     GROUP BY ec.id, ec.category_name, ec.color_hex
@@ -57,7 +59,7 @@ export async function getTopEventsByImpact(limitCount: number = 10) {
     FROM events e
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     LEFT JOIN event_participation ep ON e.id = ep.event_id
-    WHERE e.is_active = true
+    WHERE e.is_active = true AND e.tenure_id = current_tenure_id()
     GROUP BY e.id, e.event_name, e.start_date, ec.category_name, e.event_status
     ORDER BY (COALESCE(COUNT(DISTINCT ep.volunteer_id), 0) * COALESCE(SUM(ep.approved_hours), 0)) DESC
     LIMIT ${limitCount}
@@ -89,7 +91,7 @@ export async function getAttendanceSummary() {
     FROM events e
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     LEFT JOIN event_participation ep ON e.id = ep.event_id
-    WHERE e.is_active = true
+    WHERE e.is_active = true AND e.tenure_id = current_tenure_id()
     GROUP BY e.id, e.event_name, e.start_date, ec.category_name
     ORDER BY e.start_date DESC
   `)
@@ -112,7 +114,7 @@ export async function getVolunteerHoursSummary() {
       MAX(ep.attendance_date) as last_activity
     FROM volunteers v
     LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
-      AND ep.event_id IN (SELECT id FROM events WHERE is_active = true)
+      AND ep.tenure_id = current_tenure_id()
     WHERE v.is_active = true
     GROUP BY v.id, v.first_name, v.last_name
     ORDER BY total_hours DESC
@@ -150,6 +152,7 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
     LEFT JOIN event_categories ec ON e.category_id = ec.id
     WHERE ep.volunteer_id = ${volunteerId}
       AND e.is_active = true
+      AND e.tenure_id = current_tenure_id()
     ORDER BY e.start_date DESC
   `)
 

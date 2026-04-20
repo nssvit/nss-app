@@ -38,9 +38,19 @@ export async function getEventParticipants(eventId: string) {
 }
 
 /**
- * Get events for attendance manager
+ * Get events for attendance manager.
+ *
+ * - Admins see every active event in the current tenure.
+ * - Heads see only events whose status is 'registration_closed' or 'ongoing'
+ *   — i.e. events the admin has explicitly unlocked for attendance taking.
+ *   This prevents heads from retroactively editing completed events or
+ *   planned events that haven't started.
  */
-export async function getEventsForAttendance(limit: number = 50) {
+export async function getEventsForAttendance(limit: number = 50, headOnly: boolean = false) {
+  const statusFilter = headOnly
+    ? sql`AND e.event_status IN ('registration_closed', 'ongoing')`
+    : sql``
+
   const result = await db.execute(sql`
     SELECT
       e.id,
@@ -50,6 +60,8 @@ export async function getEventsForAttendance(limit: number = 50) {
       e.location
     FROM events e
     WHERE e.is_active = true
+      AND e.tenure_id = current_tenure_id()
+      ${statusFilter}
     ORDER BY e.start_date DESC
     LIMIT ${limit}
   `)

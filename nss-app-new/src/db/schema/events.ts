@@ -10,6 +10,7 @@ import {
   check,
 } from 'drizzle-orm/pg-core'
 import { eventCategories } from './eventCategories'
+import { tenures } from './tenures'
 import { volunteers } from './volunteers'
 
 export const events = pgTable(
@@ -32,6 +33,9 @@ export const events = pgTable(
     createdByVolunteerId: uuid('created_by_volunteer_id')
       .notNull()
       .references(() => volunteers.id, { onDelete: 'restrict' }),
+    tenureId: uuid('tenure_id')
+      .notNull()
+      .references(() => tenures.id),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -43,6 +47,8 @@ export const events = pgTable(
     index('idx_events_start_date').on(table.startDate),
     index('idx_events_active').on(table.isActive),
     index('idx_events_created_by').on(table.createdByVolunteerId),
+    index('idx_events_tenure').on(table.tenureId),
+    index('idx_events_tenure_start').on(table.tenureId, table.startDate),
 
     // Check constraints for data validation
     check('events_dates_check', sql`${table.endDate} >= ${table.startDate}`),

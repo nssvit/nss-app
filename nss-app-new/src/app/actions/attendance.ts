@@ -96,9 +96,12 @@ export async function bulkMarkAttendance(params: {
 }
 
 /**
- * Get events list for attendance manager
+ * Get events list for attendance manager.
+ * Heads see only events with status 'registration_closed' or 'ongoing'.
+ * Admins see every active event.
  */
 export async function getEventsForAttendance(limit: number = 50) {
-  await getAuthUser()
-  return queries.getEventsForAttendance(limit)
+  const volunteer = await requireAnyRole('admin', 'head')
+  const isAdmin = volunteer.roleNames.includes('admin')
+  return queries.getEventsForAttendance(limit, !isAdmin)
 }

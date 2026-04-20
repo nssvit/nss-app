@@ -14,13 +14,19 @@ import { db } from '../index'
 export async function getDashboardStats() {
   const result = await db.execute(sql`
     SELECT
-      (SELECT COUNT(*)::int FROM events WHERE is_active = true) as total_events,
+      (SELECT COUNT(*)::int FROM events
+        WHERE is_active = true AND tenure_id = current_tenure_id()) as total_events,
       (SELECT COUNT(*)::int FROM volunteers WHERE is_active = true) as active_volunteers,
       (SELECT COALESCE(SUM(ep.approved_hours), 0)::int
        FROM event_participation ep
        INNER JOIN events e ON ep.event_id = e.id
-       WHERE ep.approval_status = 'approved' AND e.is_active = true) as total_hours,
-      (SELECT COUNT(*)::int FROM events WHERE is_active = true AND event_status = 'ongoing') as ongoing_projects
+       WHERE ep.approval_status = 'approved'
+         AND e.is_active = true
+         AND e.tenure_id = current_tenure_id()) as total_hours,
+      (SELECT COUNT(*)::int FROM events
+        WHERE is_active = true
+          AND event_status = 'ongoing'
+          AND tenure_id = current_tenure_id()) as ongoing_projects
   `)
 
   const row = (Array.isArray(result) ? result[0] : null) as {
@@ -53,6 +59,7 @@ export async function getMonthlyActivityTrends() {
     FROM events e
     LEFT JOIN event_participation ep ON e.id = ep.event_id
     WHERE e.is_active = true
+      AND e.tenure_id = current_tenure_id()
       AND e.start_date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '11 months')
     GROUP BY DATE_TRUNC('month', e.start_date)
     ORDER BY DATE_TRUNC('month', e.start_date)

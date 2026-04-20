@@ -10,6 +10,7 @@ import {
   check,
 } from 'drizzle-orm/pg-core'
 import { events } from './events'
+import { tenures } from './tenures'
 import { volunteers } from './volunteers'
 
 export const eventParticipation = pgTable(
@@ -22,6 +23,9 @@ export const eventParticipation = pgTable(
     volunteerId: uuid('volunteer_id')
       .notNull()
       .references(() => volunteers.id, { onDelete: 'cascade' }),
+    tenureId: uuid('tenure_id')
+      .notNull()
+      .references(() => tenures.id),
     hoursAttended: integer('hours_attended').notNull().default(0),
     approvedHours: integer('approved_hours'),
     participationStatus: text('participation_status').notNull().default('registered'),
@@ -47,6 +51,7 @@ export const eventParticipation = pgTable(
     index('idx_participation_status').on(table.participationStatus),
     index('idx_participation_approval_status').on(table.approvalStatus),
     index('idx_participation_approved_by').on(table.approvedBy),
+    index('idx_participation_tenure_volunteer').on(table.tenureId, table.volunteerId),
 
     // Unique constraint: one participation per volunteer per event
     uniqueIndex('idx_participation_unique').on(table.eventId, table.volunteerId),

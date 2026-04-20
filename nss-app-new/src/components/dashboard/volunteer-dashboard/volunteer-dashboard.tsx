@@ -1,128 +1,88 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { CheckCircle2 } from 'lucide-react'
 import { getErrorMessage } from '@/lib/error-utils'
-import { Calendar, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { getMyHoursSummary } from '@/app/actions/volunteers'
+import { NSS_HOURS_REQUIRED } from '@/lib/constants'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { StatsCard } from '@/components/stats-card'
-import type { EventParticipationWithEvent } from '@/types'
-import { getVolunteerDashboardData } from '@/app/actions/volunteers'
-import dynamic from 'next/dynamic'
-import { RecentEvents } from './recent-events'
-
-const CategoryChart = dynamic(() => import('./category-chart').then(m => ({ default: m.CategoryChart })), {
-  ssr: false,
-  loading: () => <Skeleton className="h-[350px] rounded-xl" />,
-})
-const MonthlyChart = dynamic(() => import('./monthly-chart').then(m => ({ default: m.MonthlyChart })), {
-  ssr: false,
-  loading: () => <Skeleton className="h-[350px] rounded-xl" />,
-})
-
-function VolunteerDashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-[120px] rounded-xl" />
-        ))}
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Skeleton className="h-[350px] rounded-xl" />
-        <Skeleton className="h-[350px] rounded-xl" />
-      </div>
-      <Skeleton className="h-[300px] rounded-xl" />
-    </div>
-  )
-}
 
 export function VolunteerDashboard() {
-  const [stats, setStats] = useState<{
-    totalHours: number
-    approvedHours: number
-    eventsParticipated: number
-    pendingReviews: number
-  } | null>(null)
-  const [participation, setParticipation] = useState<EventParticipationWithEvent[]>([])
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- server action returns untyped events
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [approved, setApproved] = useState<number | null>(null)
 
   useEffect(() => {
-    async function load() {
+    let ignore = false
+    ;(async () => {
       try {
-        const data = await getVolunteerDashboardData()
-        setStats(data.stats)
-        setParticipation(data.participation || [])
-        setUpcomingEvents(data.availableEvents || [])
+        const data = await getMyHoursSummary()
+        if (!ignore) setApproved(data.approvedHours)
       } catch (err) {
-        toast.error(getErrorMessage(err, 'Failed to load dashboard'))
-      } finally {
-        setLoading(false)
+        if (!ignore) toast.error(getErrorMessage(err, 'Failed to load hours'))
       }
+    })()
+    return () => {
+      ignore = true
     }
-    load()
   }, [])
 
-  // Aggregate hours by category for donut chart (skip rejected)
-  const categoryData = useMemo(() => {
-    const grouped: Record<string, number> = {}
-    for (const p of participation) {
-      if (p.approvalStatus === 'rejected') continue
-      const cat = p.categoryName || 'Other'
-      const hours = p.approvalStatus === 'approved' ? (p.approvedHours ?? 0) : (p.hoursAttended ?? 0)
-      grouped[cat] = (grouped[cat] || 0) + hours
-    }
-    return Object.entries(grouped)
-      .map(([name, value]) => ({ name, value }))
-      .filter((d) => d.value > 0)
-  }, [participation])
-
-  // Aggregate hours by month for bar chart (skip rejected)
-  const monthlyData = useMemo(() => {
-    const grouped: Record<string, number> = {}
-    for (const p of participation) {
-      if (p.approvalStatus === 'rejected' || !p.startDate) continue
-      const d = new Date(p.startDate)
-      const key = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-      const hours = p.approvalStatus === 'approved' ? (p.approvedHours ?? 0) : (p.hoursAttended ?? 0)
-      grouped[key] = (grouped[key] || 0) + hours
-    }
-    // Sort chronologically
-    return Object.entries(grouped)
-      .map(([month, hours]) => ({ month, hours }))
-      .sort((a, b) => {
-        const parse = (m: string) => new Date(`1 ${m}`)
-        return parse(a.month).getTime() - parse(b.month).getTime()
-      })
-  }, [participation])
-
-  if (loading) {
-    return <VolunteerDashboardSkeleton />
+  if (approved === null) {
+    return (
+      <Card>
+        <CardContent className="space-y-4 p-8">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-24" />
+        </CardContent>
+      </Card>
+    )
   }
 
+  const required = NSS_HOURS_REQUIRED
+  const percent = Math.min(100, Math.round((approved / required) * 100))
+  const remaining = Math.max(0, required - approved)
+  const done = approved >= required
+
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Events Participated"
-          value={stats?.eventsParticipated ?? 0}
-          icon={Calendar}
-        />
-        <StatsCard title="Hours Logged" value={stats?.totalHours ?? 0} icon={Clock} />
-        <StatsCard title="Approved Hours" value={stats?.approvedHours ?? 0} icon={CheckCircle} />
-        <StatsCard title="Pending Reviews" value={stats?.pendingReviews ?? 0} icon={AlertCircle} />
-      </div>
+    <Card>
+      <CardContent className="space-y-6 p-8">
+        <div className="flex items-baseline justify-between gap-4">
+          <div>
+            <div className="text-muted-foreground text-sm font-medium uppercase tracking-wide">
+              Approved Hours
+            </div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <span className="text-5xl font-semibold tabular-nums">{approved}</span>
+              <span className="text-muted-foreground text-xl">/ {required}</span>
+            </div>
+          </div>
+          {done && (
+            <div className="flex items-center gap-2 rounded-full bg-green-500/15 px-3 py-1 text-sm text-green-500">
+              <CheckCircle2 className="h-4 w-4" />
+              Completed
+            </div>
+          )}
+        </div>
 
-      {/* Charts Row */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <CategoryChart data={categoryData} />
-        <MonthlyChart data={monthlyData} />
-      </div>
-
-      <RecentEvents participation={participation} upcomingEvents={upcomingEvents} />
-    </div>
+        <div>
+          <div className="bg-muted/50 h-3 overflow-hidden rounded-full">
+            <div
+              className={
+                done
+                  ? 'h-full rounded-full bg-green-500 transition-all'
+                  : 'h-full rounded-full bg-primary transition-all'
+              }
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+          <div className="text-muted-foreground mt-2 text-sm">
+            {done
+              ? 'You have met this tenure\u2019s hours requirement.'
+              : `${remaining} hours remaining to meet this tenure\u2019s requirement.`}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

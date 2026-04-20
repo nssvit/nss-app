@@ -57,6 +57,7 @@ export async function markEventAttendance(
         toInsert.map((volunteerId) => ({
           eventId,
           volunteerId,
+          tenureId: sql`current_tenure_id()`,
           participationStatus: 'present' as const,
           hoursAttended: declaredHours,
           attendanceDate: now,
@@ -114,6 +115,7 @@ export async function updateEventAttendance(
         toAdd.map((volunteerId) => ({
           eventId,
           volunteerId,
+          tenureId: sql`current_tenure_id()`,
           participationStatus: 'present' as const,
           hoursAttended: 0,
           recordedByVolunteerId: recordedBy,
@@ -168,6 +170,7 @@ export async function syncEventAttendance(eventId: string, selectedVolunteerIds:
         toAdd.map((volunteerId) => ({
           eventId,
           volunteerId,
+          tenureId: sql`current_tenure_id()`,
           participationStatus: 'present' as const,
           hoursAttended: 0,
         }))
@@ -214,7 +217,7 @@ export async function registerForEvent(
     }>(sql`
       SELECT id, is_active, max_participants
       FROM events
-      WHERE id = ${eventId} AND is_active = true
+      WHERE id = ${eventId} AND is_active = true AND tenure_id = current_tenure_id()
       FOR UPDATE
     `)
 
@@ -237,6 +240,7 @@ export async function registerForEvent(
     await tx.insert(eventParticipation).values({
       eventId,
       volunteerId,
+      tenureId: sql`current_tenure_id()`,
       participationStatus: 'registered',
       registrationDate: new Date(),
     })
@@ -327,6 +331,7 @@ export async function bulkMarkAttendance(params: {
         toInsert.map((volunteerId) => ({
           eventId,
           volunteerId,
+          tenureId: sql`current_tenure_id()`,
           participationStatus: status,
           hoursAttended: hoursAttended ?? 0,
           notes,

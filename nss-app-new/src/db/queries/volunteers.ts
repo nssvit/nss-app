@@ -41,7 +41,7 @@ export async function getVolunteersWithStats() {
       top_role.role_name as role_name
     FROM volunteers v
     LEFT JOIN event_participation ep ON v.id = ep.volunteer_id
-      AND ep.event_id IN (SELECT id FROM events WHERE is_active = true)
+      AND ep.tenure_id = current_tenure_id()
     LEFT JOIN LATERAL (
       SELECT rd.role_name
       FROM user_roles ur

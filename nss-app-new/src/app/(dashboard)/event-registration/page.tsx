@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route'
 
 export default function EventRegistrationRoute() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute allowedRoles={['admin', 'head']}>
       <EventRegistration />
     </ProtectedRoute>
   )

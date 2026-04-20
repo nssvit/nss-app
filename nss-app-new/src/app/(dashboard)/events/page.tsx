@@ -1,4 +1,5 @@
 import { EventsPage } from '@/components/events'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { getCurrentVolunteer } from '@/lib/auth-cache'
 import { queries } from '@/db/queries'
 import { getCachedCategories } from '@/lib/query-cache'
@@ -15,5 +16,9 @@ export default async function Events() {
   ])
 
   const events = eventRows.map(mapEventRow)
-  return <EventsPage initialData={{ events, categories }} />
+  return (
+    <ProtectedRoute allowedRoles={['admin', 'head']}>
+      <EventsPage initialData={{ events, categories }} />
+    </ProtectedRoute>
+  )
 }

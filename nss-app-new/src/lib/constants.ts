@@ -126,3 +126,6 @@ export const YEAR_DISPLAY_NAMES: Record<string, string> = {
   SE: 'Second Year (SE)',
   TE: 'Third Year (TE)',
 }
+
+/** Hours each volunteer must complete per NSS tenure (academic year). */
+export const NSS_HOURS_REQUIRED = 120

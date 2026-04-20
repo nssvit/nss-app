@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { queries } from '@/db/queries'
-import { getAuthUser, requireAnyRole } from '@/lib/auth-cache'
+import { getAuthUser, requireAdmin } from '@/lib/auth-cache'
 import { logAudit } from '@/lib/audit'
 import { invalidateHoursMutation } from '@/lib/cache-invalidation'
 
@@ -44,7 +44,7 @@ export async function approveHours(
   approvedHours?: number,
   notes?: string
 ) {
-  const volunteer = await requireAnyRole('admin', 'head')
+  const volunteer = await requireAdmin()
 
   // Validate approvedHours range
   if (approvedHours !== undefined && approvedHours !== null) {
@@ -70,7 +70,7 @@ export async function approveHours(
  * Reject hours for a participation
  */
 export async function rejectHours(participationId: string, notes?: string) {
-  const volunteer = await requireAnyRole('admin', 'head')
+  const volunteer = await requireAdmin()
   const validatedNotes = notesSchema.parse(notes)
   const result = await queries.rejectHoursTransaction(participationId, volunteer.id, validatedNotes)
   logAudit({ action: 'hours.reject', actorId: volunteer.id, targetType: 'participation', targetId: participationId })
@@ -82,7 +82,7 @@ export async function rejectHours(participationId: string, notes?: string) {
  * Bulk approve multiple participations
  */
 export async function bulkApproveHours(participationIds: string[], notes?: string) {
-  const volunteer = await requireAnyRole('admin', 'head')
+  const volunteer = await requireAdmin()
   const validatedNotes = notesSchema.parse(notes)
   const result = await queries.bulkApproveHoursTransaction(participationIds, volunteer.id, validatedNotes)
   logAudit({ action: 'hours.bulk_approve', actorId: volunteer.id, targetType: 'participation', details: { count: participationIds.length } })
@@ -94,7 +94,7 @@ export async function bulkApproveHours(participationIds: string[], notes?: strin
  * Reset approval status back to pending
  */
 export async function resetApproval(participationId: string) {
-  await requireAnyRole('admin', 'head')
+  await requireAdmin()
   const result = await queries.resetApprovalTransaction(participationId)
   revalidatePath('/hours-approval')
   return result

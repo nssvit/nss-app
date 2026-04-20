@@ -1,9 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Users, MoreHorizontal, Eye, Pencil } from 'lucide-react'
+import {
+  Search,
+  Users,
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  UserX,
+  UserCheck,
+  Trash2,
+  UserPlus,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import type { VolunteerWithStats } from '@/types'
 import { useVolunteers } from '@/hooks/use-volunteers'
+import { getErrorMessage } from '@/lib/error-utils'
+import { deactivateVolunteer, reactivateVolunteer } from '@/app/actions/volunteers'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState } from '@/components/empty-state'
 import { Input } from '@/components/ui/input'
@@ -22,10 +35,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ViewUserModal } from './view-user-modal'
 import { EditUserModal } from './edit-user-modal'
+import { PermanentDeleteModal } from './permanent-delete-modal'
+import { CreateUserModal } from './create-user-modal'
 import { cn } from '@/lib/utils'
 import { BRANCH_DISPLAY_NAMES } from '@/lib/constants'
 
@@ -40,12 +56,16 @@ function TableSkeleton() {
 }
 
 export function UserManagementPage() {
-  const { volunteers, loading } = useVolunteers()
+  const { volunteers, loading, refresh } = useVolunteers()
   const [search, setSearch] = useState('')
   const [viewVolunteer, setViewVolunteer] = useState<VolunteerWithStats | null>(null)
   const [editVolunteer, setEditVolunteer] = useState<VolunteerWithStats | null>(null)
+  const [deleteVolunteer, setDeleteVolunteer] = useState<VolunteerWithStats | null>(null)
   const [viewOpen, setViewOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [actingId, setActingId] = useState<string | null>(null)
 
   const filtered = volunteers.filter((v) => {
     const query = search.toLowerCase()
@@ -67,6 +87,38 @@ export function UserManagementPage() {
     setEditOpen(true)
   }
 
+  function handlePermanentDelete(volunteer: VolunteerWithStats) {
+    setDeleteVolunteer(volunteer)
+    setDeleteOpen(true)
+  }
+
+  async function handleDeactivate(volunteer: VolunteerWithStats) {
+    if (!confirm(`Deactivate ${volunteer.firstName} ${volunteer.lastName}? They will lose access immediately.`)) return
+    setActingId(volunteer.id)
+    try {
+      await deactivateVolunteer(volunteer.id)
+      toast.success(`${volunteer.firstName} ${volunteer.lastName} deactivated`)
+      refresh()
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to deactivate user'))
+    } finally {
+      setActingId(null)
+    }
+  }
+
+  async function handleReactivate(volunteer: VolunteerWithStats) {
+    setActingId(volunteer.id)
+    try {
+      await reactivateVolunteer(volunteer.id)
+      toast.success(`${volunteer.firstName} ${volunteer.lastName} reactivated`)
+      refresh()
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Failed to reactivate user'))
+    } finally {
+      setActingId(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -74,14 +126,20 @@ export function UserManagementPage() {
         description="Manage user accounts, roles, and permissions."
       />
 
-      <div className="relative max-w-sm">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input
-          placeholder="Search by name, email, or roll number..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-2">
+        <div className="relative max-w-sm flex-1">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+          <Input
+            placeholder="Search by name, email, or roll number..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button onClick={() => setCreateOpen(true)} size="sm">
+          <UserPlus className="mr-1.5 h-4 w-4" />
+          Add Volunteer
+        </Button>
       </div>
 
       {loading ? (
@@ -147,6 +205,34 @@ export function UserManagementPage() {
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit User
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {volunteer.isActive ? (
+                          <DropdownMenuItem
+                            onClick={() => handleDeactivate(volunteer)}
+                            disabled={actingId === volunteer.id}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <UserX className="mr-2 h-4 w-4" />
+                            Delete User
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => handleReactivate(volunteer)}
+                              disabled={actingId === volunteer.id}
+                            >
+                              <UserCheck className="mr-2 h-4 w-4" />
+                              Reactivate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handlePermanentDelete(volunteer)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Permanent Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -158,7 +244,23 @@ export function UserManagementPage() {
       )}
 
       <ViewUserModal volunteer={viewVolunteer} open={viewOpen} onOpenChange={setViewOpen} />
-      <EditUserModal volunteer={editVolunteer} open={editOpen} onOpenChange={setEditOpen} />
+      <EditUserModal
+        volunteer={editVolunteer}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSuccess={refresh}
+      />
+      <PermanentDeleteModal
+        volunteer={deleteVolunteer}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onSuccess={refresh}
+      />
+      <CreateUserModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={refresh}
+      />
     </div>
   )
 }

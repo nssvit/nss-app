@@ -43,7 +43,7 @@ export async function getEventsWithStats(volunteerId?: string) {
     FROM events e
     LEFT JOIN event_participation ep ON e.id = ep.event_id
     LEFT JOIN event_categories ec ON e.category_id = ec.id
-    WHERE e.is_active = true
+    WHERE e.is_active = true AND e.tenure_id = current_tenure_id()
     GROUP BY e.id, ec.category_name, ec.color_hex
     ORDER BY e.created_at DESC
   `)
@@ -56,7 +56,11 @@ export async function getEventsWithStats(volunteerId?: string) {
  */
 export async function getEventById(eventId: string) {
   const result = await db.query.events.findFirst({
-    where: and(eq(events.id, eventId), eq(events.isActive, true)),
+    where: and(
+      eq(events.id, eventId),
+      eq(events.isActive, true),
+      sql`${events.tenureId} = current_tenure_id()`
+    ),
     with: {
       category: true,
       createdBy: true,
@@ -77,7 +81,11 @@ export async function getEventById(eventId: string) {
  */
 export async function getUpcomingEvents(limit: number = 10) {
   const result = await db.query.events.findMany({
-    where: and(eq(events.isActive, true), gte(events.startDate, sql`NOW()`)),
+    where: and(
+      eq(events.isActive, true),
+      gte(events.startDate, sql`NOW()`),
+      sql`${events.tenureId} = current_tenure_id()`
+    ),
     with: {
       category: true,
       createdBy: true,
@@ -126,16 +134,18 @@ export async function createEvent(
         registrationDeadline: eventData.registrationDeadline,
         eventStatus: eventData.eventStatus ?? 'planned',
         createdByVolunteerId,
+        tenureId: sql`current_tenure_id()`,
         isActive: true,
       })
       .returning()
 
-    // Pre-register selected volunteers
+    // Pre-register selected volunteers — inherit event's tenure
     if (volunteerIds && volunteerIds.length > 0) {
       await tx.insert(eventParticipation).values(
         volunteerIds.map((volunteerId) => ({
           eventId: newEvent.id,
           volunteerId,
+          tenureId: newEvent.tenureId,
           participationStatus: 'registered' as const,
           registrationDate: new Date(),
         }))
@@ -219,7 +229,13 @@ export async function canRegisterForEvent(eventId: string, volunteerId?: string)
   const [event] = await db
     .select()
     .from(events)
-    .where(and(eq(events.id, eventId), eq(events.isActive, true)))
+    .where(
+      and(
+        eq(events.id, eventId),
+        eq(events.isActive, true),
+        sql`${events.tenureId} = current_tenure_id()`
+      )
+    )
 
   if (!event) {
     return false

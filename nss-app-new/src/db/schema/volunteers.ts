@@ -28,6 +28,7 @@ export const volunteers = pgTable(
     nssJoinYear: integer('nss_join_year'),
     address: text('address'),
     profilePic: text('profile_pic'),
+    status: text('status').notNull().default('active'),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -47,6 +48,10 @@ export const volunteers = pgTable(
       sql`${table.branch} IN ('EXCS', 'CMPN', 'IT', 'BIO-MED', 'EXTC')`
     ),
     check('volunteers_year_check', sql`${table.year} IN ('FE', 'SE', 'TE')`),
+    check(
+      'volunteers_status_check',
+      sql`${table.status} IN ('active', 'completed', 'inactive')`
+    ),
     check(
       'volunteers_gender_check',
       sql`${table.gender} IS NULL OR ${table.gender} IN ('M', 'F', 'Prefer not to say')`

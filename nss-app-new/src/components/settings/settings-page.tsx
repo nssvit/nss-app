@@ -14,6 +14,7 @@ import { useTheme } from '@/contexts/theme-context'
 import { ROLE_DISPLAY_NAMES, ROLE_COLORS, type Role } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { DatabaseSettings } from './database-settings'
+import { TenureSettings } from './tenure-settings'
 
 const notificationItems = [
   {
@@ -136,7 +137,12 @@ export function SettingsPage() {
         </CardContent>
       </Card>
 
-      {hasRole('admin') && <DatabaseSettings />}
+      {hasRole('admin') && (
+        <>
+          <TenureSettings />
+          <DatabaseSettings />
+        </>
+      )}
     </div>
   )
 }

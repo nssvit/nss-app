@@ -18,7 +18,8 @@ export async function getPendingApprovalsCount() {
     .where(
       and(
         eq(eventParticipation.approvalStatus, 'pending'),
-        sql`${eventParticipation.hoursAttended} > 0`
+        sql`${eventParticipation.hoursAttended} > 0`,
+        sql`${eventParticipation.tenureId} = current_tenure_id()`
       )
     )
 
@@ -32,7 +33,8 @@ export async function getPendingParticipations() {
   const result = await db.query.eventParticipation.findMany({
     where: and(
       eq(eventParticipation.approvalStatus, 'pending'),
-      sql`${eventParticipation.hoursAttended} > 0`
+      sql`${eventParticipation.hoursAttended} > 0`,
+      sql`${eventParticipation.tenureId} = current_tenure_id()`
     ),
     with: {
       volunteer: true,

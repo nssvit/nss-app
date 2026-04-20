@@ -31,6 +31,7 @@ export const navItems: NavItem[] = [
     href: '/events',
     icon: Calendar,
     section: 'main',
+    roles: ['admin', 'head'],
   },
   {
     label: 'Attendance',
