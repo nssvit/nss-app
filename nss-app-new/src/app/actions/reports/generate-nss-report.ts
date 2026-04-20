@@ -86,7 +86,9 @@ export async function generateNssReport(raw: unknown): Promise<GenerateReportRes
     details: {
       filename,
       attendeeCount: attendees.length,
-      objectiveLength: input.majorObjective.length,
+      objective: input.majorObjective,
+      scheme,
+      organizingUnit,
     },
   })
 
