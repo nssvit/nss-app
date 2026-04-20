@@ -7,6 +7,15 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['*.ngrok-free.app'],
+  // Ensure the NSS report prompt + .docx template are included in the
+  // serverless bundle. Without this, the tracer misses fs.readFile calls
+  // that use a computed path (process.cwd() + ...).
+  outputFileTracingIncludes: {
+    '/**/*': [
+      './src/lib/reports/prompts/**',
+      './src/lib/reports/templates/**',
+    ],
+  },
   async headers() {
     return [
       {
