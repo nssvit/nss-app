@@ -91,21 +91,14 @@ export {
   getVolunteerHoursSummary,
   getVolunteerParticipationHistory,
   getUserStats,
+  getEventReportInputs,
 } from './reports'
 
 // Category queries
-export {
-  getActiveCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-} from './categories'
+export { getActiveCategories, createCategory, updateCategory, deleteCategory } from './categories'
 
 // Audit queries
-export {
-  getAuditLogs,
-  getDistinctAuditActions,
-} from './audit'
+export { getAuditLogs, getDistinctAuditActions } from './audit'
 
 // Import all for namespace export
 import * as attendance from './attendance'
@@ -153,6 +146,7 @@ export const queries = {
   getVolunteerHoursSummary: reports.getVolunteerHoursSummary,
   getVolunteerParticipationHistory: reports.getVolunteerParticipationHistory,
   getUserStats: reports.getUserStats,
+  getEventReportInputs: reports.getEventReportInputs,
 
   // Hours Approval
   getPendingParticipations: hours.getPendingParticipations,

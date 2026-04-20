@@ -11,6 +11,8 @@ import {
   attendanceSummaryRowSchema,
   volunteerHoursSummaryRowSchema,
   participationHistoryRowSchema,
+  eventReportHeaderRowSchema,
+  eventReportAttendeeRowSchema,
 } from '../query-validators'
 import { db } from '../index'
 import { volunteers, userRoles, roleDefinitions } from '../schema'
@@ -157,6 +159,58 @@ export async function getVolunteerParticipationHistory(volunteerId: string) {
   `)
 
   return parseRows(result, participationHistoryRowSchema)
+}
+
+/**
+ * Fetch event + attendees for NSS report generation.
+ * Returns only present/partially_present volunteers (who actually showed up).
+ */
+export async function getEventReportInputs(eventId: string) {
+  const headerRows = await db.execute(sql`
+    SELECT
+      e.id,
+      e.event_name,
+      e.description,
+      e.start_date,
+      e.end_date,
+      e.location,
+      e.declared_hours,
+      ec.category_name,
+      ec.code as category_code
+    FROM events e
+    LEFT JOIN event_categories ec ON e.category_id = ec.id
+    WHERE e.id = ${eventId}
+      AND e.is_active = true
+      AND e.tenure_id = current_tenure_id()
+    LIMIT 1
+  `)
+
+  const header = parseRows(headerRows, eventReportHeaderRowSchema)[0]
+  if (!header) return null
+
+  const attendeeRows = await db.execute(sql`
+    SELECT
+      v.first_name,
+      v.last_name,
+      v.gender,
+      v.year,
+      v.branch,
+      v.roll_number,
+      ep.hours_attended,
+      ep.participation_status
+    FROM event_participation ep
+    JOIN volunteers v ON ep.volunteer_id = v.id
+    WHERE ep.event_id = ${eventId}
+      AND ep.participation_status IN ('present', 'partially_present')
+      AND v.is_active = true
+    ORDER BY
+      CASE v.year WHEN 'FE' THEN 0 WHEN 'SE' THEN 1 WHEN 'TE' THEN 2 ELSE 3 END,
+      v.first_name, v.last_name
+  `)
+
+  const attendees = parseRows(attendeeRows, eventReportAttendeeRowSchema)
+
+  return { header, attendees }
 }
 
 /**

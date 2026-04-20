@@ -1,3 +1,5 @@
 export { getCategoryDistribution, getTopEventsByImpact } from './queries'
 export { exportCSVData } from './csv-export'
 export { exportXLSXData } from './xlsx-export'
+export { generateNssReport } from './generate-nss-report'
+export type { GenerateReportResult } from './generate-nss-report'

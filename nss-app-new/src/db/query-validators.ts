@@ -34,155 +34,202 @@ export function parseRows<T extends z.ZodTypeAny>(rows: unknown, schema: T): z.i
 
 // --- Dashboard ---
 
-export const monthlyTrendRowSchema = z.object({
-  month: z.string(),
-  month_number: z.number(),
-  year_number: z.number(),
-  events_count: z.number(),
-  volunteers_count: z.number(),
-  hours_sum: z.number(),
-}).passthrough()
+export const monthlyTrendRowSchema = z
+  .object({
+    month: z.string(),
+    month_number: z.number(),
+    year_number: z.number(),
+    events_count: z.number(),
+    volunteers_count: z.number(),
+    hours_sum: z.number(),
+  })
+  .passthrough()
 
 // --- Events ---
 
-export const eventWithStatsRowSchema = z.object({
-  id: z.string(),
-  event_name: z.string(),
-  description: z.string().nullable(),
-  start_date: zDate,
-  end_date: zDate,
-  declared_hours: z.number(),
-  location: z.string().nullable(),
-  max_participants: z.number().nullable(),
-  min_participants: z.number().nullable(),
-  registration_deadline: zDateNullable,
-  event_status: z.string(),
-  category_id: z.number(),
-  created_by_volunteer_id: z.string().nullable(),
-  is_active: zBoolean,
-  created_at: zDate,
-  updated_at: zDate,
-  participant_count: z.number(),
-  total_hours: z.number(),
-  category_name: z.string().nullable(),
-  category_color: z.string().nullable(),
-  user_participation_status: z.string().nullable(),
-}).passthrough()
+export const eventWithStatsRowSchema = z
+  .object({
+    id: z.string(),
+    event_name: z.string(),
+    description: z.string().nullable(),
+    start_date: zDate,
+    end_date: zDate,
+    declared_hours: z.number(),
+    location: z.string().nullable(),
+    max_participants: z.number().nullable(),
+    min_participants: z.number().nullable(),
+    registration_deadline: zDateNullable,
+    event_status: z.string(),
+    category_id: z.number(),
+    created_by_volunteer_id: z.string().nullable(),
+    is_active: zBoolean,
+    created_at: zDate,
+    updated_at: zDate,
+    participant_count: z.number(),
+    total_hours: z.number(),
+    category_name: z.string().nullable(),
+    category_color: z.string().nullable(),
+    user_participation_status: z.string().nullable(),
+  })
+  .passthrough()
 
 // --- Attendance ---
 
-export const eventParticipantRowSchema = z.object({
-  participant_id: z.string(),
-  volunteer_id: z.string(),
-  volunteer_name: z.string(),
-  roll_number: z.string(),
-  branch: z.string(),
-  year: z.string(),
-  participation_status: z.string(),
-  hours_attended: z.number(),
-  attendance_date: zDateNullable,
-  registration_date: zDate,
-  notes: z.string().nullable(),
-  approval_status: z.string().nullable(),
-  approved_hours: z.number().nullable(),
-  approved_by: z.string().nullable(),
-  approved_at: zDateNullable,
-}).passthrough()
+export const eventParticipantRowSchema = z
+  .object({
+    participant_id: z.string(),
+    volunteer_id: z.string(),
+    volunteer_name: z.string(),
+    roll_number: z.string(),
+    branch: z.string(),
+    year: z.string(),
+    participation_status: z.string(),
+    hours_attended: z.number(),
+    attendance_date: zDateNullable,
+    registration_date: zDate,
+    notes: z.string().nullable(),
+    approval_status: z.string().nullable(),
+    approved_hours: z.number().nullable(),
+    approved_by: z.string().nullable(),
+    approved_at: zDateNullable,
+  })
+  .passthrough()
 
-export const eventsForAttendanceRowSchema = z.object({
-  id: z.string(),
-  event_name: z.string(),
-  start_date: zDate,
-  declared_hours: z.number(),
-  location: z.string().nullable(),
-}).passthrough()
+export const eventsForAttendanceRowSchema = z
+  .object({
+    id: z.string(),
+    event_name: z.string(),
+    start_date: zDate,
+    declared_hours: z.number(),
+    location: z.string().nullable(),
+  })
+  .passthrough()
 
 // --- Reports ---
 
-export const categoryDistributionRowSchema = z.object({
-  category_id: z.number(),
-  category_name: z.string(),
-  event_count: z.number(),
-  color_hex: z.string().nullable(),
-  participant_count: z.number(),
-  total_hours: z.number(),
-}).passthrough()
+export const categoryDistributionRowSchema = z
+  .object({
+    category_id: z.number(),
+    category_name: z.string(),
+    event_count: z.number(),
+    color_hex: z.string().nullable(),
+    participant_count: z.number(),
+    total_hours: z.number(),
+  })
+  .passthrough()
 
-export const topEventRowSchema = z.object({
-  event_id: z.string(),
-  event_name: z.string(),
-  start_date: zDateNullable,
-  category_name: z.string(),
-  participant_count: z.number(),
-  total_hours: z.number(),
-  impact_score: z.string(),
-  event_status: z.string(),
-}).passthrough()
+export const topEventRowSchema = z
+  .object({
+    event_id: z.string(),
+    event_name: z.string(),
+    start_date: zDateNullable,
+    category_name: z.string(),
+    participant_count: z.number(),
+    total_hours: z.number(),
+    impact_score: z.string(),
+    event_status: z.string(),
+  })
+  .passthrough()
 
-export const attendanceSummaryRowSchema = z.object({
-  event_id: z.string(),
-  event_name: z.string(),
-  start_date: zDateNullable,
-  category_name: z.string().nullable(),
-  total_registered: z.number(),
-  total_present: z.number(),
-  total_absent: z.number(),
-  attendance_rate: z.number(),
-  total_hours: z.number(),
-}).passthrough()
+export const attendanceSummaryRowSchema = z
+  .object({
+    event_id: z.string(),
+    event_name: z.string(),
+    start_date: zDateNullable,
+    category_name: z.string().nullable(),
+    total_registered: z.number(),
+    total_present: z.number(),
+    total_absent: z.number(),
+    attendance_rate: z.number(),
+    total_hours: z.number(),
+  })
+  .passthrough()
 
-export const volunteerHoursSummaryRowSchema = z.object({
-  volunteer_id: z.string(),
-  volunteer_name: z.string(),
-  total_hours: z.number(),
-  approved_hours: z.number(),
-  events_count: z.number(),
-  last_activity: zDateNullable,
-}).passthrough()
+export const volunteerHoursSummaryRowSchema = z
+  .object({
+    volunteer_id: z.string(),
+    volunteer_name: z.string(),
+    total_hours: z.number(),
+    approved_hours: z.number(),
+    events_count: z.number(),
+    last_activity: zDateNullable,
+  })
+  .passthrough()
 
-export const participationHistoryRowSchema = z.object({
-  participation_id: z.string(),
-  event_id: z.string(),
-  event_name: z.string(),
-  start_date: zDateNullable,
-  category_name: z.string().nullable(),
-  participation_status: z.string(),
-  hours_attended: z.number(),
-  attendance_date: zDateNullable,
-  registration_date: zDateNullable,
-  notes: z.string().nullable(),
-  approval_status: z.string().nullable(),
-  approved_hours: z.number().nullable(),
-  approved_by: z.string().nullable(),
-  approved_at: zDateNullable,
-  approval_notes: z.string().nullable(),
-  created_at: zDate,
-  recorded_by_volunteer_id: z.string().nullable(),
-}).passthrough()
+export const participationHistoryRowSchema = z
+  .object({
+    participation_id: z.string(),
+    event_id: z.string(),
+    event_name: z.string(),
+    start_date: zDateNullable,
+    category_name: z.string().nullable(),
+    participation_status: z.string(),
+    hours_attended: z.number(),
+    attendance_date: zDateNullable,
+    registration_date: zDateNullable,
+    notes: z.string().nullable(),
+    approval_status: z.string().nullable(),
+    approved_hours: z.number().nullable(),
+    approved_by: z.string().nullable(),
+    approved_at: zDateNullable,
+    approval_notes: z.string().nullable(),
+    created_at: zDate,
+    recorded_by_volunteer_id: z.string().nullable(),
+  })
+  .passthrough()
+
+export const eventReportHeaderRowSchema = z
+  .object({
+    id: z.string(),
+    event_name: z.string(),
+    description: z.string().nullable(),
+    start_date: zDate,
+    end_date: zDate,
+    location: z.string().nullable(),
+    declared_hours: z.number(),
+    category_name: z.string().nullable(),
+    category_code: z.string().nullable(),
+  })
+  .passthrough()
+
+export const eventReportAttendeeRowSchema = z
+  .object({
+    first_name: z.string(),
+    last_name: z.string(),
+    gender: z.string().nullable(),
+    year: z.string(),
+    branch: z.string(),
+    roll_number: z.string(),
+    hours_attended: z.number(),
+    participation_status: z.string(),
+  })
+  .passthrough()
 
 // --- Volunteers ---
 
-export const volunteerWithStatsRowSchema = z.object({
-  id: z.string(),
-  volunteer_id: z.string(),
-  auth_user_id: z.string().nullable(),
-  first_name: z.string(),
-  last_name: z.string(),
-  roll_number: z.string(),
-  email: z.string(),
-  branch: z.string(),
-  year: z.string(),
-  phone_no: z.string().nullable(),
-  birth_date: zDateNullable,
-  gender: z.string().nullable(),
-  nss_join_year: z.number().nullable(),
-  address: z.string().nullable(),
-  profile_pic: z.string().nullable(),
-  is_active: zBoolean,
-  created_at: zDate,
-  updated_at: zDate,
-  events_participated: z.number(),
-  total_hours: z.number(),
-  approved_hours: z.number(),
-  role_name: z.string().nullable(),
-}).passthrough()
+export const volunteerWithStatsRowSchema = z
+  .object({
+    id: z.string(),
+    volunteer_id: z.string(),
+    auth_user_id: z.string().nullable(),
+    first_name: z.string(),
+    last_name: z.string(),
+    roll_number: z.string(),
+    email: z.string(),
+    branch: z.string(),
+    year: z.string(),
+    phone_no: z.string().nullable(),
+    birth_date: zDateNullable,
+    gender: z.string().nullable(),
+    nss_join_year: z.number().nullable(),
+    address: z.string().nullable(),
+    profile_pic: z.string().nullable(),
+    is_active: zBoolean,
+    created_at: zDate,
+    updated_at: zDate,
+    events_participated: z.number(),
+    total_hours: z.number(),
+    approved_hours: z.number(),
+    role_name: z.string().nullable(),
+  })
+  .passthrough()

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { CheckCircle, Users, XCircle } from 'lucide-react'
+import { CheckCircle, FileText, Users, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   PARTICIPATION_STATUS_COLORS,
@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/page-header'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { GenerateReportModal } from './generate-report-modal'
 import {
   Select,
   SelectContent,
@@ -33,6 +34,8 @@ import {
 export function AttendanceManager() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
+  const [attendanceSaved, setAttendanceSaved] = useState(false)
   const {
     events,
     participants,
@@ -47,11 +50,18 @@ export function AttendanceManager() {
   const presentCount = Object.values(attendanceMap).filter((v) => v === 'present').length
   const absentCount = Object.values(attendanceMap).filter((v) => v === 'absent').length
 
+  const selectedEvent = events.find((e) => e.id === selectedEventId) ?? null
+
+  useEffect(() => {
+    setAttendanceSaved(false)
+  }, [selectedEventId])
+
   const handleSubmit = async () => {
     setSaving(true)
     try {
       await submitAttendance()
       toast.success('Attendance saved successfully')
+      setAttendanceSaved(true)
     } catch {
       toast.error('Failed to save attendance')
     } finally {
@@ -224,13 +234,26 @@ export function AttendanceManager() {
             </Table>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            {attendanceSaved && presentCount > 0 && (
+              <Button variant="outline" onClick={() => setReportOpen(true)} disabled={saving}>
+                <FileText className="mr-1 h-4 w-4" />
+                Generate Report
+              </Button>
+            )}
             <Button onClick={handleSubmit} disabled={saving}>
               {saving ? 'Saving...' : 'Save Attendance'}
             </Button>
           </div>
         </>
       )}
+
+      <GenerateReportModal
+        event={selectedEvent}
+        presentCount={presentCount}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
     </div>
   )
 }
