@@ -38,6 +38,7 @@ import { useVolunteers } from '@/hooks/use-volunteers'
 import { EventInfoDisplay } from './event-info-display'
 import { EventEditForm, type EditFormState } from './event-edit-form'
 import { ParticipantList } from './participant-list'
+import { GenerateReportModal } from '@/components/attendance/generate-report-modal'
 
 interface EventDetailModalProps {
   event: EventWithStats | null
@@ -69,6 +70,7 @@ export function EventDetailModal({
   const [volunteerSearch, setVolunteerSearch] = useState('')
   const [selectedToAdd, setSelectedToAdd] = useState<string[]>([])
   const [addingVolunteers, setAddingVolunteers] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
 
   const { volunteers: allVolunteers } = useVolunteers()
 
@@ -273,6 +275,10 @@ export function EventDetailModal({
 
   if (!event) return null
 
+  const presentCount = participants.filter(
+    (p) => p.participationStatus === 'present' || p.participationStatus === 'partially_present'
+  ).length
+
   const categoryOptions = categories.map((c) => ({
     value: c.id.toString(),
     label: c.categoryName,
@@ -321,6 +327,8 @@ export function EventDetailModal({
                 onDeleteClick={() => setConfirmDelete(true)}
                 onDeleteConfirm={handleDelete}
                 onDeleteCancel={() => setConfirmDelete(false)}
+                canGenerateReport={presentCount > 0}
+                onGenerateReport={() => setReportOpen(true)}
               />
 
               <ParticipantList
@@ -371,6 +379,13 @@ export function EventDetailModal({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <GenerateReportModal
+        event={event}
+        presentCount={presentCount}
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+      />
     </Dialog>
   )
 }

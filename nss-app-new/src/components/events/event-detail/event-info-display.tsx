@@ -1,13 +1,6 @@
 'use client'
 
-import {
-  Calendar,
-  MapPin,
-  Clock,
-  Users,
-  Pencil,
-  Trash2,
-} from 'lucide-react'
+import { Calendar, MapPin, Clock, Users, Pencil, Trash2, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { EventWithStats } from '@/types'
 
@@ -21,6 +14,8 @@ interface EventInfoDisplayProps {
   onDeleteClick: () => void
   onDeleteConfirm: () => void
   onDeleteCancel: () => void
+  canGenerateReport?: boolean
+  onGenerateReport?: () => void
 }
 
 export function EventInfoDisplay({
@@ -33,6 +28,8 @@ export function EventInfoDisplay({
   onDeleteClick,
   onDeleteConfirm,
   onDeleteCancel,
+  canGenerateReport = false,
+  onGenerateReport,
 }: EventInfoDisplayProps) {
   const formattedDate = event.startDate
     ? new Date(event.startDate).toLocaleDateString('en-IN', {
@@ -94,15 +91,17 @@ export function EventInfoDisplay({
 
       {/* Action buttons */}
       {canManage && (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onEdit}
-          >
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onEdit}>
             <Pencil className="mr-1.5 h-3.5 w-3.5" />
             Edit
           </Button>
+          {canGenerateReport && onGenerateReport && (
+            <Button variant="outline" size="sm" onClick={onGenerateReport}>
+              <FileText className="mr-1.5 h-3.5 w-3.5" />
+              Generate Report
+            </Button>
+          )}
           {confirmDelete ? (
             <div className="flex items-center gap-1.5">
               <span className="text-destructive text-xs font-medium">
