@@ -30,7 +30,6 @@ const navCommands = [
   { label: 'Dashboard', href: '/dashboard', icon: Home },
   { label: 'Events', href: '/events', icon: Calendar },
   { label: 'Volunteers', href: '/volunteers', icon: Users },
-  { label: 'Hours Approval', href: '/hours-approval', icon: Clock },
   { label: 'Attendance', href: '/attendance', icon: ClipboardCheck },
   { label: 'Reports', href: '/reports', icon: BarChart3 },
   { label: 'Profile', href: '/profile', icon: User },

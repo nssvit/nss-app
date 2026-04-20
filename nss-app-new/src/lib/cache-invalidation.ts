@@ -96,6 +96,6 @@ export async function invalidateHoursMutation() {
     invalidateReportsCache(),
     invalidateEventsCache(),
   ])
-  revalidatePath('/hours-approval')
+  revalidatePath('/attendance')
   revalidatePath('/reports')
 }

@@ -74,7 +74,7 @@ export async function rejectHours(participationId: string, notes?: string) {
   const validatedNotes = notesSchema.parse(notes)
   const result = await queries.rejectHoursTransaction(participationId, volunteer.id, validatedNotes)
   logAudit({ action: 'hours.reject', actorId: volunteer.id, targetType: 'participation', targetId: participationId })
-  revalidatePath('/hours-approval')
+  revalidatePath('/attendance')
   return result
 }
 
@@ -96,7 +96,7 @@ export async function bulkApproveHours(participationIds: string[], notes?: strin
 export async function resetApproval(participationId: string) {
   await requireAdmin()
   const result = await queries.resetApprovalTransaction(participationId)
-  revalidatePath('/hours-approval')
+  revalidatePath('/attendance')
   return result
 }
 

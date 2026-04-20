@@ -1,10 +1,10 @@
-import { AttendancePage } from '@/components/attendance'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { HoursPage } from '@/components/hours'
 
 export default function AttendanceRoutePage() {
   return (
     <ProtectedRoute allowedRoles={['admin', 'head']}>
-      <AttendancePage />
+      <HoursPage />
     </ProtectedRoute>
   )
 }

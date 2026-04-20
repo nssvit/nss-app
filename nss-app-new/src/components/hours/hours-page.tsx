@@ -79,8 +79,8 @@ export function HoursPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Hours Approval"
-        description="Review and approve volunteer hours submissions."
+        title="Attendance"
+        description="Review and approve volunteer hours for completed events."
       />
 
       <div className={cn('flex flex-col gap-4 sm:flex-row sm:items-center')}>

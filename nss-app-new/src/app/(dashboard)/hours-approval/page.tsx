@@ -1,10 +1,5 @@
-import { ProtectedRoute } from '@/components/auth/protected-route'
-import { HoursPage } from '@/components/hours'
+import { redirect } from 'next/navigation'
 
-export default function HoursApprovalRoute() {
-  return (
-    <ProtectedRoute allowedRoles={['admin', 'head']}>
-      <HoursPage />
-    </ProtectedRoute>
-  )
+export default function HoursApprovalRedirect() {
+  redirect('/attendance')
 }

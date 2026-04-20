@@ -3,33 +3,9 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { getErrorMessage } from '@/lib/error-utils'
-import type { EventWithStats, EventParticipationWithVolunteer } from '@/types'
+import type { EventParticipationWithVolunteer, EventWithStats } from '@/types'
 import { getEvents, getEventParticipants } from '@/app/actions/events'
 import { syncAttendance } from '@/app/actions/attendance'
-
-export function useAttendance() {
-  const [events, setEvents] = useState<EventWithStats[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let ignore = false
-    async function load() {
-      try {
-        const data = await getEvents()
-        if (!ignore) setEvents(data)
-      } catch (err) {
-        if (ignore || (err instanceof Error && err.name === 'AbortError')) return
-        toast.error(getErrorMessage(err, 'Failed to load events'))
-      } finally {
-        if (!ignore) setLoading(false)
-      }
-    }
-    load()
-    return () => { ignore = true }
-  }, [])
-
-  return { events, loading }
-}
 
 export function useAttendanceManager(eventId: string | null) {
   const [participants, setParticipants] = useState<EventParticipationWithVolunteer[]>([])
